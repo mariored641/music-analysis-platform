@@ -8,10 +8,11 @@ interface Props {
   visible: Record<LayerId, boolean>
   elementMap: Map<string, NoteElement>
   containerRef: RefObject<HTMLDivElement | null>
+  scrollRef?: RefObject<HTMLDivElement | null>
   playbackMeasure?: number
 }
 
-export function AnnotationOverlay({ annotations, visible, elementMap, containerRef, playbackMeasure }: Props) {
+export function AnnotationOverlay({ annotations, visible, elementMap, containerRef, scrollRef, playbackMeasure }: Props) {
   const [containerRect, setContainerRect] = useState<DOMRect | null>(null)
 
   useEffect(() => {
@@ -25,6 +26,16 @@ export function AnnotationOverlay({ annotations, visible, elementMap, containerR
     observer.observe(containerRef.current)
     return () => { window.removeEventListener('resize', update); observer.disconnect() }
   }, [containerRef])
+
+  useEffect(() => {
+    const el = scrollRef?.current
+    if (!el) return
+    const onScroll = () => {
+      if (containerRef.current) setContainerRect(containerRef.current.getBoundingClientRect())
+    }
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
+  }, [scrollRef, containerRef])
 
   if (!containerRect) return null
 

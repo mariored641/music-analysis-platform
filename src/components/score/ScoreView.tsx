@@ -12,6 +12,8 @@ import { AnnotationOverlay } from './AnnotationOverlay'
 import { HarmonyOverlay } from './HarmonyOverlay'
 import { FormalStrip } from './FormalStrip'
 import { FreehandCanvas } from './FreehandCanvas'
+import { SelectionOverlay } from './SelectionOverlay'
+import type { DragState } from './SelectionOverlay'
 import { ContextMenu } from '../menus/ContextMenu'
 import './ScoreView.css'
 
@@ -126,6 +128,18 @@ function findMeasureAtPoint(clientX: number, clientY: number, elementMap: Map<st
   return null
 }
 
+function lassoIntersects(
+  bbox: DOMRect,
+  lasso: { left: number; top: number; right: number; bottom: number }
+): boolean {
+  return (
+    bbox.left   < lasso.right  &&
+    bbox.right  > lasso.left   &&
+    bbox.top    < lasso.bottom &&
+    bbox.bottom > lasso.top
+  )
+}
+
 const NOTE_COLORS: Record<string, string> = {
   CT: '#3b82f6',
   'NCT-diatonic': '#222222',
@@ -170,6 +184,14 @@ export function ScoreView() {
   const [scoreError, setScoreError] = useState<string | null>(null)
   const [elementMap, setElementMap] = useState<Map<string, NoteElement>>(new Map())
   const [harmonies, setHarmonies] = useState<HarmonyItem[]>([])
+
+  // Drag-lasso state
+  const [dragState, setDragState] = useState<DragState | null>(null)
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null)
+  const didDragRef = useRef(false)
+  // Mirror of dragState for reading inside mouseUp without stale closure
+  const dragStateRef = useRef<DragState | null>(null)
+  useEffect(() => { dragStateRef.current = dragState }, [dragState])
 
   const renderKeyRef = useRef(0)
 
@@ -224,22 +246,84 @@ export function ScoreView() {
     else clearNoteColors(container)
   }, [visible.noteColor, annotations])
 
+  // ── Mouse handlers for drag-lasso ─────────────────────────────────────────
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button !== 0) return
+    didDragRef.current = false
+    dragStartRef.current = { x: e.clientX, y: e.clientY }
+  }, [])
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!dragStartRef.current) return
+    const dx = e.clientX - dragStartRef.current.x
+    const dy = e.clientY - dragStartRef.current.y
+    if (Math.sqrt(dx * dx + dy * dy) > 5) {
+      didDragRef.current = true
+      setDragState({
+        active: true,
+        startX: dragStartRef.current.x,
+        startY: dragStartRef.current.y,
+        currentX: e.clientX,
+        currentY: e.clientY,
+      })
+    }
+  }, [])
+
+  const handleMouseUp = useCallback((e: React.MouseEvent) => {
+    dragStartRef.current = null
+    const drag = dragStateRef.current
+    setDragState(null)
+
+    if (!didDragRef.current || !drag) return
+
+    // Commit lasso selection
+    const lassoRect = {
+      left:   Math.min(drag.startX, drag.currentX),
+      top:    Math.min(drag.startY, drag.currentY),
+      right:  Math.max(drag.startX, drag.currentX),
+      bottom: Math.max(drag.startY, drag.currentY),
+    }
+    const hits = [...elementMap.values()].filter(el => lassoIntersects(el.bbox, lassoRect))
+    if (hits.length > 0) {
+      const minM = Math.min(...hits.map(el => el.measureNum))
+      const maxM = Math.max(...hits.map(el => el.measureNum))
+      setSelection({ type: 'measures', measureStart: minM, measureEnd: maxM, noteIds: [], anchorMeasure: minM })
+      showContextMenu(drag.currentX, drag.currentY)
+    } else {
+      setSelection(null)
+      hideContextMenu()
+    }
+  }, [elementMap, setSelection, showContextMenu, hideContextMenu])
+
+  const handleMouseLeave = useCallback(() => {
+    dragStartRef.current = null
+    didDragRef.current = false
+    setDragState(null)
+  }, [])
+
+  // ── Click handlers ─────────────────────────────────────────────────────────
+
   const handleScoreClick = useCallback((e: React.MouseEvent) => {
+    if (didDragRef.current) return  // drag was handled in mouseUp
+
     const measureNum = findMeasureAtPoint(e.clientX, e.clientY, elementMap)
     if (measureNum === null) {
-      if (selection) { hideContextMenu(); setSelection(null) }
+      hideContextMenu()
+      setSelection(null)
       return
     }
 
     if (e.shiftKey && selection) {
-      const minM = Math.min(selection.measureStart, measureNum)
-      const maxM = Math.max(selection.measureEnd ?? selection.measureStart, measureNum)
-      setSelection({ type: 'measures', measureStart: minM, measureEnd: maxM, noteIds: [] })
+      const anchor = selection.anchorMeasure ?? selection.measureStart
+      const minM = Math.min(anchor, measureNum)
+      const maxM = Math.max(anchor, measureNum)
+      setSelection({ type: 'measures', measureStart: minM, measureEnd: maxM, noteIds: [], anchorMeasure: anchor })
       showContextMenu(e.clientX, e.clientY)
       return
     }
 
-    setSelection({ type: 'measure', measureStart: measureNum, measureEnd: measureNum, noteIds: [] })
+    setSelection({ type: 'measure', measureStart: measureNum, measureEnd: measureNum, noteIds: [], anchorMeasure: measureNum })
     showContextMenu(e.clientX, e.clientY)
   }, [selection, setSelection, showContextMenu, hideContextMenu, elementMap])
 
@@ -247,7 +331,7 @@ export function ScoreView() {
     e.preventDefault()
     const measureNum = findMeasureAtPoint(e.clientX, e.clientY, elementMap)
     if (!measureNum) return
-    setSelection({ type: 'measure', measureStart: measureNum, measureEnd: measureNum, noteIds: [] })
+    setSelection({ type: 'measure', measureStart: measureNum, measureEnd: measureNum, noteIds: [], anchorMeasure: measureNum })
     showContextMenu(e.clientX, e.clientY)
   }, [setSelection, showContextMenu, elementMap])
 
@@ -270,9 +354,13 @@ export function ScoreView() {
       <div className="score-scroll" ref={scrollRef}>
         <div
           ref={scoreRef}
-          className="score-container"
+          className={`score-container${dragState?.active ? ' dragging' : ''}`}
           onClick={handleScoreClick}
           onContextMenu={handleContextMenu}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
         >
           {rendering && <div className="score-loading">Rendering score…</div>}
           {scoreError && <div className="score-error">{scoreError}</div>}
@@ -288,7 +376,17 @@ export function ScoreView() {
               visible={visible}
               elementMap={elementMap}
               containerRef={scoreRef}
+              scrollRef={scrollRef}
               playbackMeasure={highlightedMeasure}
+            />
+          )}
+          {svgContent && (
+            <SelectionOverlay
+              selection={selection}
+              dragState={dragState}
+              elementMap={elementMap}
+              containerRef={scoreRef}
+              scrollRef={scrollRef}
             />
           )}
           {svgContent && harmonies.length > 0 && (
