@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm show:*)",
+      "Bash(npm create:*)",
+      "Bash(node -e \":*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npx tsc:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(gh auth:*)"
+    ]
+  }
+}

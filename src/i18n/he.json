@@ -1,0 +1,64 @@
+{
+  "app": {
+    "title": "פלטפורמת ניתוח מוסיקה",
+    "library": "ספרייה",
+    "layers": "שכבות",
+    "quickTags": "תגיות מהירות",
+    "noScore": "פתח קובץ MusicXML לניתוח",
+    "openFile": "פתח קובץ",
+    "export": "ייצא JSON",
+    "play": "נגן",
+    "pause": "עצור",
+    "saving": "שומר...",
+    "saved": "נשמר",
+    "unsaved": "לא נשמר"
+  },
+  "layers": {
+    "harmony": "הרמוניה",
+    "melody": "מלודיה",
+    "form": "מבנה",
+    "motif": "מוטיב",
+    "labels": "תוויות",
+    "texture": "מרקם",
+    "freehand": "ציור חופשי",
+    "noteColor": "צבע תוים"
+  },
+  "tags": {
+    "chord_tone": "צליל הסכמה",
+    "passing_tone": "צליל מעבר",
+    "neighbor_tone": "צליל שכן",
+    "suspension": "השהיה",
+    "anticipation": "ציפייה",
+    "appoggiatura": "אפוג'יאטורה",
+    "escape_tone": "צליל בריחה",
+    "pedal_tone": "פדל",
+    "harmony": "הרמוניה",
+    "cadence": "קדנצה",
+    "modulation": "מודולציה",
+    "form": "מבנה פורמלי",
+    "motif": "מוטיב",
+    "label": "תווית",
+    "question": "שאלה פתוחה",
+    "more": "עוד...",
+    "apply": "אשר",
+    "cancel": "ביטול"
+  },
+  "selection": {
+    "note": "תו",
+    "notes": "תוים",
+    "measure": "תיבה",
+    "measures": "תיבות",
+    "pitch": "גובה צליל",
+    "duration": "משך",
+    "beat": "פעימה",
+    "voice": "קול",
+    "none": "אין בחירה"
+  },
+  "status": {
+    "measure": "תיבה",
+    "total_tags": "תגיות",
+    "open_questions": "שאלות פתוחות",
+    "key": "טונאליות",
+    "range": "טווח"
+  }
+}

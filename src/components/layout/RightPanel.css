@@ -1,0 +1,110 @@
+.right-panel {
+  width: 180px;
+  min-width: 180px;
+  background: #12122a;
+  border-left: 1px solid #2d2d4e;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.selection-detail {
+  padding: 4px 10px 6px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+  border-bottom: 1px solid #1e1e3a;
+  font-size: 11px;
+}
+
+.detail-row:last-child { border-bottom: none; }
+
+.detail-label { color: #4a5568; }
+.detail-value { color: #e2e8f0; font-weight: 500; }
+
+.no-selection-hint {
+  font-size: 11px;
+  color: #4a5568;
+  padding: 6px 10px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.annotation-list {
+  list-style: none;
+  padding: 4px 6px;
+  margin: 0;
+}
+
+.annotation-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 4px 4px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 1px 0;
+}
+
+.ann-layer-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.ann-text {
+  flex: 1;
+  word-break: break-word;
+  color: #cbd5e1;
+  font-size: 11px;
+}
+
+.ann-delete {
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: transparent;
+  color: #374151;
+  font-size: 14px;
+  cursor: pointer;
+  line-height: 1;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.1s, background 0.1s;
+}
+
+.annotation-item:hover .ann-delete {
+  opacity: 1;
+}
+
+.ann-delete:hover {
+  background: #2d2d4e;
+  color: #ef4444;
+}
+
+.stats-section {
+  margin-top: auto;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 10px;
+  font-size: 11px;
+}
+
+.stat-label { color: #4a5568; }
+.stat-value { color: #94a3b8; font-weight: 600; }

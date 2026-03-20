@@ -1,0 +1,115 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  background: #1a1a2e;
+  border-bottom: 1px solid #2d2d4e;
+  padding: 0 12px;
+  flex-shrink: 0;
+  gap: 8px;
+  z-index: 100;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.topbar-logo {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #7c6af7;
+  flex-shrink: 0;
+}
+
+.topbar-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.topbar-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+
+.topbar-composer {
+  font-size: 13px;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.topbar-badge {
+  font-size: 11px;
+  background: #2d2d4e;
+  color: #94a3b8;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.save-status {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.save-status.saved { color: #22c55e; }
+.save-status.unsaved { color: #f59e0b; }
+
+.btn-play, .btn-export, .btn-lang {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border: 1px solid #2d2d4e;
+  border-radius: 6px;
+  background: #16213e;
+  color: #e2e8f0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-play:hover, .btn-export:hover, .btn-lang:hover {
+  background: #2d2d4e;
+}
+
+.btn-play.active {
+  background: #1e3a5f;
+  border-color: #3b82f6;
+  color: #60a5fa;
+}
+
+.tempo-input {
+  width: 48px;
+  padding: 4px 6px;
+  border: 1px solid #2d2d4e;
+  border-radius: 6px;
+  background: #16213e;
+  color: #e2e8f0;
+  font-size: 12px;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+.tempo-input::-webkit-inner-spin-button,
+.tempo-input::-webkit-outer-spin-button { -webkit-appearance: none; }

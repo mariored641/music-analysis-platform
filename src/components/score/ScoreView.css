@@ -1,0 +1,108 @@
+.score-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f8f9fa;
+  position: relative;
+}
+
+.score-scroll {
+  flex: 1;
+  overflow-x: hidden;   /* no horizontal scroll */
+  overflow-y: auto;
+  position: relative;
+}
+
+.score-container {
+  position: relative;
+  min-height: 100%;
+  cursor: default;
+  user-select: none;
+  width: 100%;
+}
+
+.wm-svg {
+  display: block;
+  width: 100%;
+}
+
+.wm-svg svg {
+  display: block;
+  width: 100% !important;
+  height: auto !important;
+  background: white;
+  margin-bottom: 8px;
+}
+
+/* Hide partial webmscore chord paths — root letters missing due to font bug in WASM build.
+   HarmonyOverlay renders complete chord symbols instead. */
+.wm-svg path.Harmony {
+  visibility: hidden;
+}
+
+/* Selected note/measure highlight in MuseScore SVG */
+.wm-svg .map-selected path,
+.wm-svg .map-selected use {
+  fill: #7c6af7 !important;
+}
+
+.wm-svg .map-playing {
+  outline: 2px solid rgba(59, 130, 246, 0.4);
+}
+
+.wm-svg .map-sel {
+  outline: 2px solid rgba(124, 106, 247, 0.4);
+}
+
+.score-loading,
+.score-error {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  color: #64748b;
+  background: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 10;
+}
+
+.score-error { color: #ef4444; }
+
+.score-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  gap: 12px;
+}
+
+.score-empty-icon {
+  font-size: 64px;
+  opacity: 0.3;
+}
+
+.score-empty p {
+  font-size: 14px;
+  margin: 0;
+}
+
+.btn-open-score {
+  padding: 10px 24px;
+  border: 1px solid #7c6af7;
+  border-radius: 8px;
+  background: transparent;
+  color: #7c6af7;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-open-score:hover {
+  background: rgba(124, 106, 247, 0.1);
+}

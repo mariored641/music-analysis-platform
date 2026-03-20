@@ -1,0 +1,64 @@
+{
+  "app": {
+    "title": "Music Analysis Platform",
+    "library": "Library",
+    "layers": "Layers",
+    "quickTags": "Quick Tags",
+    "noScore": "Open a MusicXML file to begin analysis",
+    "openFile": "Open File",
+    "export": "Export JSON",
+    "play": "Play",
+    "pause": "Pause",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "unsaved": "Unsaved"
+  },
+  "layers": {
+    "harmony": "Harmony",
+    "melody": "Melody",
+    "form": "Form",
+    "motif": "Motif",
+    "labels": "Labels",
+    "texture": "Texture",
+    "freehand": "Freehand",
+    "noteColor": "Note Color"
+  },
+  "tags": {
+    "chord_tone": "Chord Tone",
+    "passing_tone": "Passing Tone",
+    "neighbor_tone": "Neighbor Tone",
+    "suspension": "Suspension",
+    "anticipation": "Anticipation",
+    "appoggiatura": "Appoggiatura",
+    "escape_tone": "Escape Tone",
+    "pedal_tone": "Pedal Tone",
+    "harmony": "Harmony",
+    "cadence": "Cadence",
+    "modulation": "Modulation",
+    "form": "Formal Structure",
+    "motif": "Motif",
+    "label": "Label",
+    "question": "Open Question",
+    "more": "More...",
+    "apply": "Apply",
+    "cancel": "Cancel"
+  },
+  "selection": {
+    "note": "note",
+    "notes": "notes",
+    "measure": "measure",
+    "measures": "measures",
+    "pitch": "Pitch",
+    "duration": "Duration",
+    "beat": "Beat",
+    "voice": "Voice",
+    "none": "No selection"
+  },
+  "status": {
+    "measure": "Measure",
+    "total_tags": "Tags",
+    "open_questions": "Open Questions",
+    "key": "Key",
+    "range": "Range"
+  }
+}
