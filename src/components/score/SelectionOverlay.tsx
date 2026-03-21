@@ -48,16 +48,32 @@ export function SelectionOverlay({ selection, dragState, elementMap, containerRe
   // One rect per selected measure (measures wrap across lines, so no hull)
   const selectionRects: Array<{ x: number; y: number; w: number; h: number }> = []
   if (selection) {
-    for (let m = selection.measureStart; m <= selection.measureEnd; m++) {
-      const el = elementMap.get(`measure-${m - 1}`)
-      if (!el) continue
-      const b = el.bbox
-      selectionRects.push({
-        x: b.left - containerRect.left - 2,
-        y: b.top  - containerRect.top  - 2,
-        w: b.width  + 4,
-        h: b.height + 4,
-      })
+    if ((selection.type === 'note' || selection.type === 'notes') && selection.noteIds?.length) {
+      // Note-level highlight: query Verovio SVG directly by ID
+      for (const noteId of selection.noteIds) {
+        const noteEl = noteId ? document.getElementById(noteId) : null
+        if (!noteEl) continue
+        const b = noteEl.getBoundingClientRect()
+        if (b.width === 0) continue
+        selectionRects.push({
+          x: b.left - containerRect.left - 4,
+          y: b.top  - containerRect.top  - 4,
+          w: b.width  + 8,
+          h: b.height + 8,
+        })
+      }
+    } else {
+      for (let m = selection.measureStart; m <= selection.measureEnd; m++) {
+        const el = elementMap.get(`measure-${m - 1}`)
+        if (!el) continue
+        const b = el.bbox
+        selectionRects.push({
+          x: b.left - containerRect.left - 2,
+          y: b.top  - containerRect.top  - 2,
+          w: b.width  + 4,
+          h: b.height + 4,
+        })
+      }
     }
   }
 

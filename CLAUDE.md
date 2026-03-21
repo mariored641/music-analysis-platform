@@ -5,6 +5,8 @@
 **Location:** `C:\Users\DELL\Documents\MAP - Music Analysis Platform`
 **Test file:** `public/DONNALEE.XML` — Donna Lee, Charlie Parker, Ab major, 4/4, 100 measures
 **Dev server:** `node node_modules/vite/bin/vite.js --port 3002` (or next available port)
+**GitHub:** https://github.com/mariored641/music-analysis-platform
+**Vercel:** https://map-music-analysis-platform.vercel.app (auto-deploys on push to main/master)
 
 ---
 

@@ -22,23 +22,17 @@
   width: 100%;
 }
 
-.wm-svg {
+.vrv-svg {
   display: block;
   width: 100%;
 }
 
-.wm-svg svg {
+.vrv-svg svg {
   display: block;
   width: 100% !important;
   height: auto !important;
   background: white;
   margin-bottom: 8px;
-}
-
-/* Hide partial webmscore chord paths — root letters missing due to font bug in WASM build.
-   HarmonyOverlay renders complete chord symbols instead. */
-.wm-svg path.Harmony {
-  visibility: hidden;
 }
 
 .score-container { cursor: default; }
