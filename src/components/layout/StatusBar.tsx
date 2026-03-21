@@ -22,9 +22,11 @@ export function StatusBar() {
         {isPlaying
           ? `▶ m.${currentMeasure}`
           : selection
-            ? selection.measureStart === selection.measureEnd
-              ? `${t('status.measure')} ${selection.measureStart}`
-              : `Measures ${selection.measureStart}–${selection.measureEnd} (${selection.measureEnd - selection.measureStart + 1} measures)`
+            ? (selection.type === 'note' || selection.type === 'notes') && selection.noteIds?.length
+              ? `Note — m.${selection.measureStart}`
+              : selection.measureStart === selection.measureEnd
+                ? `${t('status.measure')} ${selection.measureStart}`
+                : `Measures ${selection.measureStart}–${selection.measureEnd} (${selection.measureEnd - selection.measureStart + 1} measures)`
             : metadata
               ? `${t('status.measure')} — / ${metadata.totalMeasures}`
               : '—'

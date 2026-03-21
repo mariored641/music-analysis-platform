@@ -7,6 +7,7 @@ import { usePlaybackStore } from '../../store/playbackStore'
 import { useLibraryStore } from '../../store/libraryStore'
 import { useTranslation } from 'react-i18next'
 import { parseMusicXml, parseHarmonies, type HarmonyItem } from '../../services/xmlParser'
+import { prepareMusicXML } from '../../services/xmlSanitizer'
 import { saveFile, loadFile } from '../../services/storageService'
 import { AnnotationOverlay } from './AnnotationOverlay'
 import { HarmonyOverlay } from './HarmonyOverlay'
@@ -17,8 +18,51 @@ import type { DragState } from './SelectionOverlay'
 import { ContextMenu } from '../menus/ContextMenu'
 import './ScoreView.css'
 
-// webmscore is loaded as a global via CDN <script> tag in index.html
-declare const WebMscore: any
+// ── Verovio initialisation ────────────────────────────────────────────────────
+// verovio/wasm exports createVerovioModule (async WASM factory)
+// verovio/esm  exports VerovioToolkit (class wrapper)
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore — no bundled TS declarations for verovio
+import createVerovioModule from 'verovio/wasm'
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import { VerovioToolkit } from 'verovio/esm'
+
+let vrvToolkitPromise: Promise<any> | null = null
+
+function getVerovioToolkit(): Promise<any> {
+  if (vrvToolkitPromise) return vrvToolkitPromise
+  vrvToolkitPromise = createVerovioModule().then((mod: any) => new VerovioToolkit(mod))
+  return vrvToolkitPromise!
+}
+
+// Render MusicXML → one SVG string per page
+async function renderWithVerovio(xmlString: string): Promise<string[]> {
+  const tk = await getVerovioToolkit()
+
+  tk.setOptions({
+    pageWidth:        2100,
+    scale:            40,
+    adjustPageHeight: true,
+    header:           'none',
+    footer:           'none',
+    breaks:           'auto',
+    spacingSystem:    12,
+  })
+
+  const preparedXml = prepareMusicXML(xmlString)
+  tk.loadData(preparedXml)
+  console.log('[Verovio]', tk.getLog() || '(no log)')
+  ;(window as any).__vrvTk = tk   // dev helper: run tk.getMEI() in console
+  const pageCount: number = tk.getPageCount()
+  const svgs: string[] = []
+  for (let i = 1; i <= pageCount; i++) {
+    svgs.push(tk.renderToSVG(i, false))  // false = no XML declaration
+  }
+  return svgs
+}
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface NoteElement {
   id: string
@@ -26,93 +70,21 @@ export interface NoteElement {
   bbox: DOMRect
 }
 
-interface PositionsData {
-  elements: Array<{ id: number; page: number; x: number; y: number; sx: number; sy: number }>
-  pageSize: { width: number; height: number }
-}
-
-// Wait for webmscore CDN to load and be ready
-let wmReadyPromise: Promise<void> | null = null
-function waitForWebMscore(): Promise<void> {
-  if (wmReadyPromise) return wmReadyPromise
-  wmReadyPromise = new Promise((resolve, reject) => {
-    const check = () => {
-      if (typeof WebMscore !== 'undefined') {
-        WebMscore.ready.then(resolve).catch(reject)
-      } else {
-        setTimeout(check, 100)
-      }
-    }
-    check()
-    setTimeout(() => reject(new Error('webmscore CDN load timeout')), 30000)
-  })
-  return wmReadyPromise
-}
-
-// Strip XML/DOCTYPE declarations so SVG strings can be injected via innerHTML
-function stripXmlDeclarations(svg: string): string {
-  return svg
-    .replace(/<\?xml[^?]*\?>/gi, '')
-    .replace(/<!DOCTYPE[^>]*>/gi, '')
-    .trim()
-}
-
-// Render MusicXML → SVG strings (one per page) + measure positions
-async function renderWithWebMscore(xmlString: string): Promise<{ svgs: string[]; positions: PositionsData }> {
-  await waitForWebMscore()
-  const encoder = new TextEncoder()
-  const data = encoder.encode(xmlString)
-  const score = await WebMscore.load('musicxml', data)
-  try {
-    const meta = await score.metadata()
-    const pageCount: number = meta.pages ?? 1
-    const svgs: string[] = []
-    for (let i = 0; i < pageCount; i++) {
-      const svg: string = await score.saveSvg(i, false)
-      svgs.push(stripXmlDeclarations(svg))
-    }
-    const posJson: string = await score.savePositions(false)
-    const positions: PositionsData = JSON.parse(posJson)
-    return { svgs, positions }
-  } finally {
-    score.destroy()
-  }
-}
-
-// Build element map from webmscore positions data.
-// positions.elements: one entry per measure (id = 0-based measure index),
-// with x/y/sx/sy in SVG page coordinates.
-// Each SVG page is a <svg> element inside .wm-svg — use getBoundingClientRect()
-// to convert SVG coordinates to screen coordinates.
-function buildElementMap(container: Element, positions: PositionsData): Map<string, NoteElement> {
+// Build element map from Verovio SVG DOM.
+// Verovio renders each measure as <g class="measure"> inside the SVG.
+// We query all of them in order and assign measure numbers 1, 2, 3…
+function buildElementMap(container: Element): Map<string, NoteElement> {
   const elementMap = new Map<string, NoteElement>()
-  const svgEls = Array.from(container.querySelectorAll(':scope > svg'))
-  const { width: svgW, height: svgH } = positions.pageSize
+  const measureEls = Array.from(container.querySelectorAll('g.measure'))
 
-  for (const measure of positions.elements) {
-    const pageEl = svgEls[measure.page]
-    if (!pageEl) continue
+  measureEls.forEach((el, index) => {
+    const measureNum = index + 1
+    const bbox = (el as Element).getBoundingClientRect()
+    if (bbox.width === 0) return
 
-    const svgRect = pageEl.getBoundingClientRect()
-    if (svgRect.width === 0) continue
-
-    const scaleX = svgRect.width / svgW
-    const scaleY = svgRect.height / svgH
-
-    const left   = svgRect.left + measure.x * scaleX
-    const top    = svgRect.top  + measure.y * scaleY
-    const width  = measure.sx * scaleX
-    const height = measure.sy * scaleY
-
-    const id = `measure-${measure.id}`
-    const bbox = {
-      left, top, right: left + width, bottom: top + height,
-      width, height, x: left, y: top,
-      toJSON: () => ({}),
-    } as DOMRect
-
-    elementMap.set(id, { id, measureNum: measure.id + 1, bbox })
-  }
+    const id = `measure-${index}`
+    elementMap.set(id, { id, measureNum, bbox })
+  })
 
   return elementMap
 }
@@ -168,6 +140,8 @@ function clearNoteColors(container: Element) {
   })
 }
 
+// ── ScoreView ─────────────────────────────────────────────────────────────────
+
 export function ScoreView() {
   const { t } = useTranslation()
   const { xmlString, metadata } = useScoreStore()
@@ -179,7 +153,6 @@ export function ScoreView() {
   const scoreRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const [svgContent, setSvgContent] = useState<string>('')
-  const [positions, setPositions] = useState<PositionsData | null>(null)
   const [rendering, setRendering] = useState(false)
   const [scoreError, setScoreError] = useState<string | null>(null)
   const [elementMap, setElementMap] = useState<Map<string, NoteElement>>(new Map())
@@ -189,7 +162,6 @@ export function ScoreView() {
   const [dragState, setDragState] = useState<DragState | null>(null)
   const dragStartRef = useRef<{ x: number; y: number } | null>(null)
   const didDragRef = useRef(false)
-  // Mirror of dragState for reading inside mouseUp without stale closure
   const dragStateRef = useRef<DragState | null>(null)
   useEffect(() => { dragStateRef.current = dragState }, [dragState])
 
@@ -201,14 +173,13 @@ export function ScoreView() {
     setRendering(true)
     setScoreError(null)
 
-    renderWithWebMscore(xml).then(({ svgs, positions: pos }) => {
+    renderWithVerovio(xml).then(svgs => {
       if (key !== renderKeyRef.current) return
       setSvgContent(svgs.join('\n'))
-      setPositions(pos)
       setRendering(false)
     }).catch(e => {
       if (key !== renderKeyRef.current) return
-      console.error('webmscore render error:', e)
+      console.error('verovio render error:', e)
       setScoreError(`Render error: ${e?.message ?? e}`)
       setRendering(false)
     })
@@ -218,29 +189,29 @@ export function ScoreView() {
 
   // Render when XML changes
   useEffect(() => {
-    if (!xmlString) { setSvgContent(''); setPositions(null); setHarmonies([]); return }
+    if (!xmlString) { setSvgContent(''); setHarmonies([]); return }
     setHarmonies(parseHarmonies(xmlString))
     return doRender(xmlString)
   }, [xmlString, doRender])
 
-  // Build element map after SVG is injected into DOM and positions are available.
-  // requestAnimationFrame ensures SVG elements have non-zero layout dimensions.
+  // Build element map after SVG is in DOM.
+  // requestAnimationFrame ensures layout has run so getBoundingClientRect() is valid.
   useEffect(() => {
-    if (!svgContent || !positions || !scoreRef.current) return
-    const container = scoreRef.current.querySelector('.wm-svg')
+    if (!svgContent || !scoreRef.current) return
+    const container = scoreRef.current.querySelector('.vrv-svg')
     if (!container) return
 
     requestAnimationFrame(() => {
-      const eMap = buildElementMap(container, positions)
+      const eMap = buildElementMap(container)
       setElementMap(eMap)
       if (visible.noteColor) applyNoteColors(container, annotations)
     })
-  }, [svgContent, positions]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [svgContent]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reapply note colors when layer/annotations change
   useEffect(() => {
     if (!scoreRef.current) return
-    const container = scoreRef.current.querySelector('.wm-svg')
+    const container = scoreRef.current.querySelector('.vrv-svg')
     if (!container) return
     if (visible.noteColor) applyNoteColors(container, annotations)
     else clearNoteColors(container)
@@ -277,7 +248,6 @@ export function ScoreView() {
 
     if (!didDragRef.current || !drag) return
 
-    // Commit lasso selection
     const lassoRect = {
       left:   Math.min(drag.startX, drag.currentX),
       top:    Math.min(drag.startY, drag.currentY),
@@ -305,7 +275,20 @@ export function ScoreView() {
   // ── Click handlers ─────────────────────────────────────────────────────────
 
   const handleScoreClick = useCallback((e: React.MouseEvent) => {
-    if (didDragRef.current) return  // drag was handled in mouseUp
+    if (didDragRef.current) return
+
+    // Check for note click first — Verovio assigns IDs to every g.note element
+    const noteEl = (e.target as Element).closest?.('g.note') as SVGGElement | null
+    if (noteEl && !e.shiftKey) {
+      const noteId = noteEl.id
+      const measureEl = noteEl.closest('g.measure') as Element | null
+      const allMeasures = Array.from(document.querySelectorAll('g.measure'))
+      const measureIndex = measureEl ? allMeasures.indexOf(measureEl) : -1
+      const measureNum = measureIndex >= 0 ? measureIndex + 1 : 1
+      setSelection({ type: 'note', measureStart: measureNum, measureEnd: measureNum, noteIds: [noteId], anchorMeasure: measureNum })
+      showContextMenu(e.clientX, e.clientY)
+      return
+    }
 
     const measureNum = findMeasureAtPoint(e.clientX, e.clientY, elementMap)
     if (measureNum === null) {
@@ -366,7 +349,7 @@ export function ScoreView() {
           {scoreError && <div className="score-error">{scoreError}</div>}
           {svgContent && (
             <div
-              className="wm-svg"
+              className="vrv-svg"
               dangerouslySetInnerHTML={{ __html: svgContent }}
             />
           )}
@@ -387,13 +370,6 @@ export function ScoreView() {
               elementMap={elementMap}
               containerRef={scoreRef}
               scrollRef={scrollRef}
-            />
-          )}
-          {svgContent && harmonies.length > 0 && (
-            <HarmonyOverlay
-              harmonies={harmonies}
-              elementMap={elementMap}
-              containerRef={scoreRef}
             />
           )}
           {svgContent && <FreehandCanvas containerRef={scoreRef} />}
