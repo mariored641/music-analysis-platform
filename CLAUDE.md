@@ -26,65 +26,74 @@ Three-panel fixed layout:
 - **ScoreView** — main score rendering area with overlays
 - **LeftPanel** — library list + layer toggles
 - **RightPanel** — selection details, tag count, open questions
-- **StatusBar** — key, time sig, measure info, shortcut hints
+- **StatusBar** — key, time sig, selection info, shortcut hints
 
 ---
 
-## Renderer: webmscore (current, working)
+## Renderer: Verovio (current, working)
 
 **Renderer history (do not re-litigate):**
-1. Verovio — wrong chord symbol positions (linked to bass clef rest). Replaced.
+1. webmscore — chord symbol root letters missing (Edwin font absent from WASM). Replaced.
 2. OSMD — wrong chord positions for some measures. Replaced.
-3. **webmscore** ← current. MuseScore 4 WASM via CDN. Fully working.
+3. **Verovio** ← current. npm ESM + WASM. Chord symbols render natively. Fully working.
 
-**How it loads:** `<script>` tag in `index.html`:
-```html
-<script src="https://cdn.jsdelivr.net/npm/webmscore/webmscore.js"></script>
+**How it loads:** npm package, imported in `ScoreView.tsx`:
+```typescript
+import createVerovioModule from 'verovio/wasm'
+import { VerovioToolkit } from 'verovio/esm'
 ```
 
 **API (confirmed working):**
 ```typescript
-declare const WebMscore: any   // global from CDN
-await WebMscore.ready
-const score = await WebMscore.load('musicxml', uint8array)
-const meta  = await score.metadata()        // { pages, title, measures, ... }
-const svg   = await score.saveSvg(i, false) // SVG string per page
-const pos   = await score.savePositions(false) // JSON string
-const midi  = await score.saveMidi()        // Uint8Array
-score.destroy()   // ← NOT score.close() (doesn't exist)
+const mod = await createVerovioModule()
+const tk = new VerovioToolkit(mod)
+tk.setOptions({ pageWidth: 2100, scale: 40, adjustPageHeight: true, breaks: 'auto', ... })
+tk.loadData(preparedXml)           // preprocessed MusicXML
+const pageCount = tk.getPageCount()
+const svg = tk.renderToSVG(i, false)  // 1-based page index
 ```
 
-**Known webmscore bug:** Chord symbol root letters (Ab, Bb, F#...) are NOT rendered by webmscore — the Edwin font is missing from the WASM binary. Only the quality/suffix (m7, Maj7, 7...) renders as `path.Harmony` elements.
-**Fix:** `HarmonyOverlay.tsx` parses `<harmony>` from MusicXML and overlays complete chord labels. CSS hides the partial webmscore paths: `.wm-svg path.Harmony { visibility: hidden }`.
+**Multi-staff fix:** `prepareMusicXML()` in `src/services/xmlSanitizer.ts`
+- Rebuilds each measure: preamble (harmony/attrs) → staff-1 notes → one backup → staff-2 notes
+- Injects `<voice>1</voice>` into all notes
+- Fixes DONNALEE.XML where staff-2 notes appear before any `<backup>` (Verovio rule: staff tag only honored after backup)
+
+**Verovio reference book:** `docs/verovio-reference-book.md` (1611 lines, 11 chapters)
 
 ---
 
 ## ScoreView rendering flow
 
 ```
-xmlString → renderWithWebMscore() → { svgs[], positions }
-         → dangerouslySetInnerHTML (.wm-svg div)
+xmlString → prepareMusicXML() → renderWithVerovio() → svgs[]
+         → dangerouslySetInnerHTML (.vrv-svg div)
          → requestAnimationFrame → buildElementMap()
          → setElementMap(Map<"measure-N", NoteElement>)
 ```
 
-**`buildElementMap(container, positions)`**
-- `positions.elements`: `[{ id, page, x, y, sx, sy }]` — SVG coords, 0-based measure index
-- For each measure: gets page SVG's `getBoundingClientRect()`, applies scale, builds screen-space DOMRect
-- `elementMap` key: `"measure-N"` where N = id (0-based)
-- `NoteElement.measureNum` = id + 1 (1-based, matches MusicXML `<measure number="...">`)
+**`buildElementMap(container)`**
+- Queries `container.querySelectorAll('g.measure')` — Verovio class for measure groups
+- `elementMap` key: `"measure-N"` where N = index (0-based)
+- `NoteElement.measureNum` = index + 1 (1-based)
+- DONNALEE.XML: 100 measures, 643 notes, each `g.note` has a unique Verovio ID
 
-**`savePositions()` format:**
-```json
-{
-  "elements": [{ "id": 0, "page": 0, "x": 336.6, "y": 634.2, "sx": 555.7, "sy": 306.4 }],
-  "events":   [{ "elid": 0, "position": 0 }],
-  "pageSize": { "width": 2977.2, "height": 4208.4 }
-}
-```
-- DONNALEE.XML: 4 pages, A4 size, ~268×379px rendered on screen, scale ≈ 0.09
+**Click detection:**
+- Note click: `e.target.closest('g.note')` → gets note ID + parent measure index
+- Measure click: `findMeasureAtPoint(clientX, clientY, elementMap)` — bbox hit test
 
-**Click detection:** `findMeasureAtPoint(clientX, clientY, elementMap)` — checks screen coords against measure bboxes (coordinate-based, no DOM class selectors).
+---
+
+## Selection system
+
+| Action | Result |
+|--------|--------|
+| Click note | Purple highlight on note, StatusBar: `Note — m.N` |
+| Click measure (non-note area) | Purple highlight on measure, StatusBar: `Measure N` |
+| Shift+click | Extends range from anchorMeasure |
+| Drag lasso | Rubber-band rect → selects all intersected measures |
+| Escape | Clears selection |
+
+**SelectionOverlay.tsx** — note bbox from `document.getElementById(noteId).getBoundingClientRect()`, measure bbox from elementMap.
 
 ---
 
@@ -93,10 +102,11 @@ xmlString → renderWithWebMscore() → { svgs[], positions }
 ### `src/components/score/`
 | File | Purpose |
 |------|---------|
-| `ScoreView.tsx` | Main renderer — webmscore, elementMap, click handling |
-| `ScoreView.css` | Includes `.wm-svg path.Harmony { visibility: hidden }` |
+| `ScoreView.tsx` | Main renderer — Verovio, elementMap, click/drag handling |
+| `ScoreView.css` | Score layout styles |
+| `SelectionOverlay.tsx` | SVG overlay — note + measure highlight, lasso rect |
 | `AnnotationOverlay.tsx` | SVG overlay for annotations (colored rects + labels) |
-| `HarmonyOverlay.tsx` | SVG overlay for chord symbol labels (workaround for webmscore font bug) |
+| `HarmonyOverlay.tsx` | Legacy file — imported but not rendered (Verovio renders chord symbols natively) |
 | `FormalStrip.tsx` | Horizontal strip above score for form annotations |
 | `FreehandCanvas.tsx` | Canvas layer for freehand drawing |
 
@@ -112,7 +122,7 @@ xmlString → renderWithWebMscore() → { svgs[], positions }
 |-------|-------|
 | `scoreStore.ts` | `xmlString`, `metadata`, `noteMap` |
 | `annotationStore.ts` | `annotations: Record<id, Annotation>`, undo stack (immer) |
-| `selectionStore.ts` | `selection`, `showContextMenu`, `hideContextMenu` |
+| `selectionStore.ts` | `selection` (type, measureStart, measureEnd, noteIds, anchorMeasure), `contextMenu` |
 | `playbackStore.ts` | `isPlaying`, `currentMeasure`, `bpm` |
 | `layerStore.ts` | `visible: Record<layerId, boolean>` — 8 layers, persisted to localStorage |
 | `libraryStore.ts` | `pieces[]` — saved piece list |
@@ -121,18 +131,19 @@ xmlString → renderWithWebMscore() → { svgs[], positions }
 | File | Purpose |
 |------|---------|
 | `xmlParser.ts` | `parseMusicXml()` → NoteMap. `parseHarmonies()` → HarmonyItem[]. Handles `<backup>/<forward>`, staff filtering |
+| `xmlSanitizer.ts` | `prepareMusicXML()` — fixes multi-staff ordering for Verovio |
 | `storageService.ts` | IndexedDB — `saveFile()`, `loadFile()` |
 | `jsonExporter.ts` | Exports `.analysis.json` |
 
 ### `src/hooks/`
 `useAutoSave.ts` — 1.5s debounce → IndexedDB
-`useKeyboard.ts` — H/M/F/T/Q/Space/Ctrl+Z shortcuts
+`useKeyboard.ts` — H/M/F/T/Q/Space/Ctrl+Z/Escape shortcuts
 `usePlayback.ts` — Tone.js synthesis from NoteMap
 `useRestoreSession.ts` — loads last piece on startup
 
 ### `src/types/`
 `score.ts` — `NoteMap`, `MeasureData`, `NoteData`, `ScoreMetadata`
-`annotation.ts` — `Annotation` type
+`annotation.ts` — `Annotation` type, `SelectionType = 'note' | 'notes' | 'measure' | 'measures'`
 `analysis.ts` — `.analysis.json` export format
 
 ### `src/constants/`
@@ -157,7 +168,7 @@ interface Annotation {
   layer: string        // 'harmony' | 'melody' | 'form' | 'motif' | 'label' | 'noteColor' | ...
   measureStart: number
   measureEnd: number
-  noteIds?: string[]
+  noteIds?: string[]   // Verovio element IDs (g.note id attributes)
   // layer-specific fields: chordFunction, cadenceType, colorType, formLabel, motifId, ...
 }
 ```
@@ -168,15 +179,18 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 
 ## What's done ✅
 
-- webmscore rendering (4 pages, MuseScore quality)
-- elementMap (measure bboxes, click detection)
-- Chord symbol overlay (HarmonyOverlay — full Ab6/Bbm7/etc.)
+- Verovio rendering (npm ESM, multi-page SVG)
+- elementMap (g.measure → screen-space bboxes)
+- Multi-staff rendering fixed (prepareMusicXML in xmlSanitizer.ts)
+- Chord symbols render natively (no overlay needed)
+- **Note-level selection** — click g.note → purple highlight + context menu
+- **Measure-level selection** — click, shift+click range, lasso drag
 - Annotation system with undo
 - Library (IndexedDB, left panel)
 - JSON export
 - Layer toggles
 - i18n Hebrew/English
-- Keyboard shortcuts
+- Keyboard shortcuts (incl. Escape)
 - Tone.js playback hook
 - Auto-save
 
@@ -185,8 +199,7 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 - **Playback bug** — notes play simultaneously (parse fix done, needs re-test)
 - **FormalStrip** — needs measure-range annotations to render
 - **Annotations persistence** — load from IndexedDB on piece open (save works, load missing)
-- **Right panel** — show selection data (measure details, chord analysis)
-- **Note-level highlighting** — webmscore SVG has no note IDs, needs position-based lookup
+- **Right panel** — show selection data (note pitch, chord analysis)
 - **Python scripts** — 6 analysis scripts (harmony, melody, motifs, tessitura, etc.)
 - **Mobile/touch** — not started
 
@@ -202,7 +215,7 @@ node node_modules/vite/bin/vite.js --port 3002
 npm run build
 
 # Push to GitHub (auto-deploys via Vercel)
-git add . && git commit -m "..." && git push origin main
+git add . && git commit -m "..." && git push origin master
 ```
 
 Always test with DONNALEE.XML (click "♩ Donna Lee" button on empty state).
