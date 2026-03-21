@@ -53,6 +53,7 @@ export function HarmonyMenu({ onApply }: Props) {
           <button
             key={f.value}
             className={`tag-chip ${func === f.value ? 'selected' : ''}`}
+            title={`${f.labelHe} / ${f.labelEn}`}
             onClick={() => setFunc(func === f.value ? '' : f.value)}
           >
             {f.value} ({f.labelEn})
@@ -66,6 +67,7 @@ export function HarmonyMenu({ onApply }: Props) {
           <button
             key={c.value}
             className={`tag-chip ${cadenceType === c.value ? 'selected' : ''}`}
+            title={`${c.labelHe} / ${c.labelEn}`}
             onClick={() => setCadenceType(cadenceType === c.value ? '' : c.value)}
           >
             {c.value}

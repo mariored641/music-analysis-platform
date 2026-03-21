@@ -90,8 +90,12 @@ xmlString → prepareMusicXML() → renderWithVerovio() → svgs[]
 | Click note | Purple highlight on note, StatusBar: `Note — m.N` |
 | Click measure (non-note area) | Purple highlight on measure, StatusBar: `Measure N` |
 | Shift+click | Extends range from anchorMeasure |
-| Drag lasso | Rubber-band rect → selects all intersected measures |
+| Drag lasso | Rubber-band rect → selects **notes** (`type: 'notes'`) intersecting the rect, not measures |
 | Escape | Clears selection |
+
+**Context menu positioning:** uses `useLayoutEffect` to measure actual rendered height after each open, clamps to viewport on all four sides (no hardcoded height). Never goes off-screen.
+
+**Tag button tooltips:** `title` attribute on tag chips shows `עברית / English` on hover — covers HARMONY_FUNCTIONS, CADENCE_TYPES, MOTIF_VARIANTS, MELODY_NOTE_FUNCTIONS, CHROMATICISM.
 
 **SelectionOverlay.tsx** — note bbox from `document.getElementById(noteId).getBoundingClientRect()`, measure bbox from elementMap.
 

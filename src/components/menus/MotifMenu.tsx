@@ -59,6 +59,7 @@ export function MotifMenu({ onApply }: Props) {
           <button
             key={v.value}
             className={`tag-chip ${variantType === v.value ? 'selected' : ''}`}
+            title={`${v.labelHe} / ${v.labelEn}`}
             onClick={() => setVariantType(v.value)}
           >
             {v.labelEn}

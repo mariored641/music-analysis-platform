@@ -254,17 +254,35 @@ export function ScoreView() {
       right:  Math.max(drag.startX, drag.currentX),
       bottom: Math.max(drag.startY, drag.currentY),
     }
-    const hits = [...elementMap.values()].filter(el => lassoIntersects(el.bbox, lassoRect))
-    if (hits.length > 0) {
-      const minM = Math.min(...hits.map(el => el.measureNum))
-      const maxM = Math.max(...hits.map(el => el.measureNum))
-      setSelection({ type: 'measures', measureStart: minM, measureEnd: maxM, noteIds: [], anchorMeasure: minM })
+
+    // Collect all g.note elements that intersect the lasso rect
+    const container = scoreRef.current?.querySelector('.vrv-svg')
+    if (!container) return
+
+    const allMeasures = Array.from(container.querySelectorAll('g.measure'))
+    const hitNoteIds: string[] = []
+    const hitMeasureNums: number[] = []
+
+    container.querySelectorAll('g.note').forEach(noteEl => {
+      const bbox = noteEl.getBoundingClientRect()
+      if (lassoIntersects(bbox, lassoRect) && noteEl.id) {
+        hitNoteIds.push(noteEl.id)
+        const measureEl = noteEl.closest('g.measure')
+        const idx = measureEl ? allMeasures.indexOf(measureEl) : -1
+        if (idx >= 0) hitMeasureNums.push(idx + 1)
+      }
+    })
+
+    if (hitNoteIds.length > 0) {
+      const minM = Math.min(...hitMeasureNums)
+      const maxM = Math.max(...hitMeasureNums)
+      setSelection({ type: 'notes', measureStart: minM, measureEnd: maxM, noteIds: hitNoteIds, anchorMeasure: minM })
       showContextMenu(drag.currentX, drag.currentY)
     } else {
       setSelection(null)
       hideContextMenu()
     }
-  }, [elementMap, setSelection, showContextMenu, hideContextMenu])
+  }, [setSelection, showContextMenu, hideContextMenu])
 
   const handleMouseLeave = useCallback(() => {
     dragStartRef.current = null

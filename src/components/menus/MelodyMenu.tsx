@@ -45,6 +45,7 @@ export function MelodyMenu({ onApply }: Props) {
           <button
             key={c.value}
             className={`tag-chip ${chromaticism === c.value ? 'selected' : ''}`}
+            title={`${c.labelHe} / ${c.labelEn}`}
             onClick={() => setChromaticism(chromaticism === c.value ? '' : c.value)}
           >
             {lang === 'he' ? c.labelHe : c.labelEn}

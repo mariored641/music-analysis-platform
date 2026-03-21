@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useLayoutEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { v4 as uuid } from 'uuid'
 import { useSelectionStore } from '../../store/selectionStore'
@@ -39,16 +39,27 @@ export function ContextMenu() {
     return () => document.removeEventListener('mousedown', onClickOut)
   }, [contextMenu.visible, hideContextMenu])
 
-  if (!contextMenu.visible || !selection) return null
+  const [pos, setPos] = useState<{ left: number; top: number; visible: boolean }>({
+    left: -9999, top: -9999, visible: false,
+  })
 
-  // Position menu, keep it on-screen
-  const menuWidth = 300
-  const menuHeight = 360
-  let left = contextMenu.x
-  let top = contextMenu.y
-  if (left + menuWidth > window.innerWidth) left = window.innerWidth - menuWidth - 8
-  if (top + menuHeight > window.innerHeight) top = contextMenu.y - menuHeight - 8
-  if (left < 8) left = 8
+  // After every render, measure the actual element and clamp it on-screen
+  // (runs synchronously before paint so there's no flicker)
+  useLayoutEffect(() => {
+    if (!contextMenu.visible || !ref.current) return
+    const el = ref.current
+    const w = el.offsetWidth || 300
+    const h = el.offsetHeight || 100
+    let left = contextMenu.x
+    let top = contextMenu.y
+    if (left + w > window.innerWidth)  left = window.innerWidth  - w - 8
+    if (top  + h > window.innerHeight) top  = window.innerHeight - h - 8
+    if (left < 8) left = 8
+    if (top  < 8) top  = 8
+    setPos({ left, top, visible: true })
+  }, [contextMenu.visible, contextMenu.x, contextMenu.y, activeTab])
+
+  if (!contextMenu.visible || !selection) return null
 
   const tabs = getTabsForSelection(selection.type)
 
@@ -72,7 +83,7 @@ export function ContextMenu() {
     <div
       ref={ref}
       className="context-menu"
-      style={{ left, top }}
+      style={{ left: pos.left, top: pos.top, visibility: pos.visible ? 'visible' : 'hidden' }}
       onClick={e => e.stopPropagation()}
     >
       <div className="menu-header">
