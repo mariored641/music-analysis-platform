@@ -148,7 +148,8 @@ export function ScoreView() {
   const { selection, setSelection, showContextMenu, hideContextMenu } = useSelectionStore()
   const visible = useLayerStore(s => s.visible)
   const annotations = useAnnotationStore(s => s.annotations)
-  const { currentMeasure: highlightedMeasure } = usePlaybackStore()
+  const { currentMeasure, isPlaying } = usePlaybackStore()
+  const highlightedMeasure = isPlaying ? currentMeasure : null
 
   const scoreRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -163,7 +164,6 @@ export function ScoreView() {
   const dragStartRef = useRef<{ x: number; y: number } | null>(null)
   const didDragRef = useRef(false)
   const dragStateRef = useRef<DragState | null>(null)
-  useEffect(() => { dragStateRef.current = dragState }, [dragState])
 
   const renderKeyRef = useRef(0)
 
@@ -231,19 +231,22 @@ export function ScoreView() {
     const dy = e.clientY - dragStartRef.current.y
     if (Math.sqrt(dx * dx + dy * dy) > 5) {
       didDragRef.current = true
-      setDragState({
+      const newDrag: DragState = {
         active: true,
         startX: dragStartRef.current.x,
         startY: dragStartRef.current.y,
         currentX: e.clientX,
         currentY: e.clientY,
-      })
+      }
+      dragStateRef.current = newDrag
+      setDragState(newDrag)
     }
   }, [])
 
   const handleMouseUp = useCallback((e: React.MouseEvent) => {
     dragStartRef.current = null
     const drag = dragStateRef.current
+    dragStateRef.current = null
     setDragState(null)
 
     if (!didDragRef.current || !drag) return
@@ -287,6 +290,7 @@ export function ScoreView() {
   const handleMouseLeave = useCallback(() => {
     dragStartRef.current = null
     didDragRef.current = false
+    dragStateRef.current = null
     setDragState(null)
   }, [])
 
