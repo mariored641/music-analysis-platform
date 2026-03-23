@@ -18,48 +18,42 @@ import type { DragState } from './SelectionOverlay'
 import { ContextMenu } from '../menus/ContextMenu'
 import './ScoreView.css'
 
-// ── Verovio initialisation ────────────────────────────────────────────────────
-// verovio/wasm exports createVerovioModule (async WASM factory)
-// verovio/esm  exports VerovioToolkit (class wrapper)
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore — no bundled TS declarations for verovio
-import createVerovioModule from 'verovio/wasm'
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import { VerovioToolkit } from 'verovio/esm'
+// ── Verovio worker ────────────────────────────────────────────────────────────
+// Rendering runs off the main thread via verovio.worker.ts
 
-let vrvToolkitPromise: Promise<any> | null = null
+import VrvWorker from '../../workers/verovio.worker?worker'
 
-function getVerovioToolkit(): Promise<any> {
-  if (vrvToolkitPromise) return vrvToolkitPromise
-  vrvToolkitPromise = createVerovioModule().then((mod: any) => new VerovioToolkit(mod))
-  return vrvToolkitPromise!
+let _worker: Worker | null = null
+let _pendingRenders = new Map<number, { resolve: (s: string[]) => void; reject: (e: Error) => void }>()
+let _renderId = 0
+
+function getVrvWorker(): Worker {
+  if (_worker) return _worker
+  _worker = new VrvWorker()
+  _worker.onmessage = (e: MessageEvent) => {
+    const { type, id, svgs, message } = e.data
+    const pending = _pendingRenders.get(id)
+    if (!pending) return
+    _pendingRenders.delete(id)
+    if (type === 'result') pending.resolve(svgs)
+    else pending.reject(new Error(message ?? 'Worker render error'))
+  }
+  _worker.onerror = (e) => {
+    console.error('[VrvWorker]', e.message)
+    _pendingRenders.forEach(p => p.reject(new Error(e.message)))
+    _pendingRenders.clear()
+    _worker = null  // allow re-creation on next call
+  }
+  return _worker
 }
 
-// Render MusicXML → one SVG string per page
-async function renderWithVerovio(xmlString: string): Promise<string[]> {
-  const tk = await getVerovioToolkit()
-
-  tk.setOptions({
-    pageWidth:        2100,
-    scale:            40,
-    adjustPageHeight: true,
-    header:           'none',
-    footer:           'none',
-    breaks:           'auto',
-    spacingSystem:    12,
+function renderWithVerovio(xmlString: string): Promise<string[]> {
+  return new Promise((resolve, reject) => {
+    const id = ++_renderId
+    _pendingRenders.set(id, { resolve, reject })
+    const preparedXml = prepareMusicXML(xmlString)
+    getVrvWorker().postMessage({ type: 'render', xml: preparedXml, id })
   })
-
-  const preparedXml = prepareMusicXML(xmlString)
-  tk.loadData(preparedXml)
-  console.log('[Verovio]', tk.getLog() || '(no log)')
-  ;(window as any).__vrvTk = tk   // dev helper: run tk.getMEI() in console
-  const pageCount: number = tk.getPageCount()
-  const svgs: string[] = []
-  for (let i = 1; i <= pageCount; i++) {
-    svgs.push(tk.renderToSVG(i, false))  // false = no XML declaration
-  }
-  return svgs
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
