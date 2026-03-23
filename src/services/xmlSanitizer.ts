@@ -4,31 +4,122 @@
  * Utilities to prepare MusicXML for clean rendering in Verovio.
  */
 
+// ── Accidental helpers ────────────────────────────────────────────────────────
+
+/** Flat order in key signatures (1 flat = Bb, 2 flats = Bb+Eb, …) */
+const FLAT_ORDER  = ['B', 'E', 'A', 'D', 'G', 'C', 'F']
+/** Sharp order in key signatures (1 sharp = F#, 2 sharps = F#+C#, …) */
+const SHARP_ORDER = ['F', 'C', 'G', 'D', 'A', 'E', 'B']
+
+/** Map of step → alter (-1 / 0 / +1) implied by a given key signature fifths value. */
+function keyAccidentals(fifths: number): Record<string, number> {
+  const acc: Record<string, number> = {}
+  if (fifths < 0) {
+    for (let i = 0; i < Math.abs(fifths) && i < 7; i++) acc[FLAT_ORDER[i]]  = -1
+  } else if (fifths > 0) {
+    for (let i = 0; i < fifths && i < 7; i++)             acc[SHARP_ORDER[i]] =  1
+  }
+  return acc
+}
+
+/** MusicXML accidental text for a given alter value. */
+function alterToAccText(alter: number): string {
+  if (alter ===  1) return 'sharp'
+  if (alter === -1) return 'flat'
+  if (alter ===  2) return 'double-sharp'
+  if (alter === -2) return 'flat-flat'
+  return 'natural'
+}
+
 /**
- * prepareMusicXML — reorders and voices MusicXML notes for correct Verovio rendering.
+ * addAccidentals — injects <accidental> elements where needed.
  *
- * Root cause: Verovio only honors <staff>N</staff> for physical staff placement when
- * the note comes AFTER a <backup> element. Notes at the very start of a measure
- * (before any backup) always land on staff 1 regardless of their <staff> tag.
+ * Verovio converts MusicXML <alter> to MEI @accid.ges (gestural = sounding pitch)
+ * but only renders a visible accidental sign when @accid (written) is present.
+ * Written accidentals come from the MusicXML <accidental> element, which many
+ * exporters omit.  This pass adds them by computing, per measure and staff, which
+ * notes deviate from the current key signature or a prior alteration in the bar.
  *
- * Many MusicXML exporters (e.g. the one that produced DONNALEE.XML) write staff-2
- * rests FIRST in each measure, then a <backup>, then the staff-1 melody. This
- * causes Verovio to place bass rests on the treble staff.
+ * Rules implemented:
+ *  - Accidentals reset to the key signature at every bar line.
+ *  - Within a measure, an accidental on step X overrides the key-sig default for
+ *    all subsequent notes on the same step (any octave) until the bar ends.
+ *  - Notes already carrying <accidental> are left untouched.
+ *  - Rests are ignored.
+ */
+function addAccidentals(doc: Document, keyFifths: number): void {
+  const keyAcc = keyAccidentals(keyFifths)
+
+  doc.querySelectorAll('measure').forEach(measure => {
+    // Track active accidental per step, separately for each staff
+    const activeAcc: Record<number, Record<string, number>> = {}
+
+    const getStaffAcc = (staff: number) => {
+      if (!activeAcc[staff]) activeAcc[staff] = { ...keyAcc }
+      return activeAcc[staff]
+    }
+
+    for (const node of Array.from(measure.childNodes)) {
+      if (node.nodeType !== 1) continue
+      const el = node as Element
+      if (el.tagName !== 'note') continue
+      if (el.querySelector('rest')) continue          // skip rests
+      if (el.querySelector('accidental')) continue    // already has one
+
+      const stepEl  = el.querySelector('pitch > step')
+      const alterEl = el.querySelector('pitch > alter')
+      if (!stepEl) continue
+
+      const step  = stepEl.textContent?.trim() ?? ''
+      const alter = alterEl ? parseFloat(alterEl.textContent?.trim() ?? '0') : 0
+      const staffNum = parseInt(el.querySelector('staff')?.textContent?.trim() ?? '1', 10)
+
+      const acc      = getStaffAcc(staffNum)
+      const expected = acc[step] ?? 0
+
+      if (alter !== expected) {
+        // Insert <accidental> before <time-modification>, <stem>, or <staff>,
+        // whichever comes first — the correct MusicXML position.
+        const accEl   = doc.createElement('accidental')
+        accEl.textContent = alterToAccText(alter)
+        const anchor  = el.querySelector('time-modification, stem, staff')
+        if (anchor) el.insertBefore(accEl, anchor)
+        else        el.appendChild(accEl)
+
+        acc[step] = alter   // propagate within the bar
+      }
+    }
+  })
+}
+
+// ── Main export ───────────────────────────────────────────────────────────────
+
+/**
+ * prepareMusicXML — reorders and voices MusicXML notes for correct Verovio rendering,
+ * then injects <accidental> elements so accidental signs appear in the SVG output.
+ *
+ * Root cause (staff ordering): Verovio only honors <staff>N</staff> for physical
+ * staff placement when the note comes AFTER a <backup> element.  Many MusicXML
+ * exporters write staff-2 rests FIRST in each measure, causing Verovio to place
+ * bass rests on the treble staff.
+ *
+ * Root cause (accidentals): Verovio converts <alter> → @accid.ges (gestural) but
+ * only renders a visible sign when @accid (written) is present, which requires the
+ * <accidental> child element in MusicXML.  Files that omit <accidental> show no
+ * accidental signs even when the pitch deviates from the key signature.
  *
  * Fix:
  *  1. Within every <measure>, collect notes by staff number.
  *  2. Rebuild the measure: staff-1 notes first, then one <backup>, then staff-2 notes.
- *  3. Inject <voice>1</voice> into every note so all voices map to Layer 1
- *     of their respective staff (clean single-voice-per-staff layout).
- *
- * Non-note elements (harmony, attributes, direction, sound…) are kept in their
- * original relative order at the start of the measure.
+ *  3. Inject <voice>1</voice> into every note.
+ *  4. Inject <accidental> elements where needed based on key sig + intra-bar context.
  */
 export function prepareMusicXML(xmlString: string): string {
   const parser = new DOMParser()
   const doc = parser.parseFromString(xmlString, 'text/xml')
   if (doc.querySelector('parsererror')) return xmlString
 
+  // ── Pass 1: reorder staves ─────────────────────────────────────────────────
   doc.querySelectorAll('measure').forEach(measure => {
     const preamble: ChildNode[] = []  // harmony, attributes, direction, sound…
     const staff1Notes: Element[] = []
@@ -87,6 +178,11 @@ export function prepareMusicXML(xmlString: string): string {
       })
     }
   })
+
+  // ── Pass 2: inject <accidental> elements ──────────────────────────────────
+  const fifthsEl = doc.querySelector('key > fifths')
+  const fifths   = fifthsEl ? parseInt(fifthsEl.textContent?.trim() ?? '0', 10) : 0
+  addAccidentals(doc, fifths)
 
   return new XMLSerializer().serializeToString(doc)
 }
