@@ -14,7 +14,6 @@ import { HarmonyOverlay } from './HarmonyOverlay'
 import { FormalStrip } from './FormalStrip'
 import { FreehandCanvas } from './FreehandCanvas'
 import { SelectionOverlay } from './SelectionOverlay'
-import type { DragState } from './SelectionOverlay'
 import { ContextMenu } from '../menus/ContextMenu'
 import './ScoreView.css'
 
@@ -62,11 +61,10 @@ export interface NoteElement {
   id: string
   measureNum: number
   bbox: DOMRect
+  staffBboxes: DOMRect[]  // one per g.staff child — used for hit detection and selection display
 }
 
 // Build element map from Verovio SVG DOM.
-// Verovio renders each measure as <g class="measure"> inside the SVG.
-// We query all of them in order and assign measure numbers 1, 2, 3…
 function buildElementMap(container: Element): Map<string, NoteElement> {
   const elementMap = new Map<string, NoteElement>()
   const measureEls = Array.from(container.querySelectorAll('g.measure'))
@@ -76,19 +74,30 @@ function buildElementMap(container: Element): Map<string, NoteElement> {
     const bbox = (el as Element).getBoundingClientRect()
     if (bbox.width === 0) return
 
+    const staffEls = Array.from(el.querySelectorAll('g.staff'))
+    const staffBboxes = staffEls
+      .map(s => s.getBoundingClientRect())
+      .filter(b => b.width > 0)
+
     const id = `measure-${index}`
-    elementMap.set(id, { id, measureNum, bbox })
+    elementMap.set(id, { id, measureNum, bbox, staffBboxes })
   })
 
   return elementMap
 }
 
-// Find which measure contains a screen coordinate (clientX, clientY)
-function findMeasureAtPoint(clientX: number, clientY: number, elementMap: Map<string, NoteElement>): number | null {
+// Find which measure+staff a screen coordinate hits.
+// Only matches inside actual g.staff bounds — clicking between staves or in margins returns null.
+function findMeasureAtPoint(
+  clientX: number, clientY: number,
+  elementMap: Map<string, NoteElement>
+): { measureNum: number; staffIndex: number } | null {
   for (const el of elementMap.values()) {
-    const b = el.bbox
-    if (clientX >= b.left && clientX <= b.right && clientY >= b.top && clientY <= b.bottom) {
-      return el.measureNum
+    for (let i = 0; i < el.staffBboxes.length; i++) {
+      const b = el.staffBboxes[i]
+      if (clientX >= b.left && clientX <= b.right && clientY >= b.top && clientY <= b.bottom) {
+        return { measureNum: el.measureNum, staffIndex: i }
+      }
     }
   }
   return null
@@ -153,11 +162,12 @@ export function ScoreView() {
   const [elementMap, setElementMap] = useState<Map<string, NoteElement>>(new Map())
   const [harmonies, setHarmonies] = useState<HarmonyItem[]>([])
 
-  // Drag-lasso state
-  const [dragState, setDragState] = useState<DragState | null>(null)
-  const dragStartRef = useRef<{ x: number; y: number } | null>(null)
-  const didDragRef = useRef(false)
-  const dragStateRef = useRef<DragState | null>(null)
+  // Drag-lasso state (all via refs — no React state to avoid lag)
+  type LassoState = { startX: number; startY: number; currentX: number; currentY: number }
+  const dragStartRef   = useRef<{ x: number; y: number } | null>(null)
+  const didDragRef     = useRef(false)
+  const dragStateRef   = useRef<LassoState | null>(null)
+  const lassoRectRef   = useRef<SVGRectElement>(null)
 
   const renderKeyRef = useRef(0)
 
@@ -217,6 +227,7 @@ export function ScoreView() {
     if (e.button !== 0) return
     didDragRef.current = false
     dragStartRef.current = { x: e.clientX, y: e.clientY }
+    if (lassoRectRef.current) lassoRectRef.current.style.display = 'none'
   }, [])
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
@@ -224,24 +235,41 @@ export function ScoreView() {
     const dx = e.clientX - dragStartRef.current.x
     const dy = e.clientY - dragStartRef.current.y
     if (Math.sqrt(dx * dx + dy * dy) > 5) {
-      didDragRef.current = true
-      const newDrag: DragState = {
-        active: true,
+      if (!didDragRef.current) {
+        didDragRef.current = true
+        scoreRef.current?.classList.add('dragging')
+      }
+      dragStateRef.current = {
         startX: dragStartRef.current.x,
         startY: dragStartRef.current.y,
         currentX: e.clientX,
         currentY: e.clientY,
       }
-      dragStateRef.current = newDrag
-      setDragState(newDrag)
+
+      // Direct DOM update for lasso rect — no React re-render = no lag
+      if (lassoRectRef.current && scoreRef.current) {
+        const cr = scoreRef.current.getBoundingClientRect()
+        const x = Math.min(dragStartRef.current.x, e.clientX) - cr.left
+        const y = Math.min(dragStartRef.current.y, e.clientY) - cr.top
+        const w = Math.abs(e.clientX - dragStartRef.current.x)
+        const h = Math.abs(e.clientY - dragStartRef.current.y)
+        const r = lassoRectRef.current
+        r.setAttribute('x', String(x))
+        r.setAttribute('y', String(y))
+        r.setAttribute('width', String(w))
+        r.setAttribute('height', String(h))
+        r.style.display = ''
+      }
+
     }
   }, [])
 
   const handleMouseUp = useCallback((e: React.MouseEvent) => {
-    dragStartRef.current = null
     const drag = dragStateRef.current
+    dragStartRef.current = null
     dragStateRef.current = null
-    setDragState(null)
+    if (lassoRectRef.current) lassoRectRef.current.style.display = 'none'
+    scoreRef.current?.classList.remove('dragging')
 
     if (!didDragRef.current || !drag) return
 
@@ -252,7 +280,6 @@ export function ScoreView() {
       bottom: Math.max(drag.startY, drag.currentY),
     }
 
-    // Collect all g.note elements that intersect the lasso rect
     const container = scoreRef.current?.querySelector('.vrv-svg')
     if (!container) return
 
@@ -285,7 +312,8 @@ export function ScoreView() {
     dragStartRef.current = null
     didDragRef.current = false
     dragStateRef.current = null
-    setDragState(null)
+    if (lassoRectRef.current) lassoRectRef.current.style.display = 'none'
+    scoreRef.current?.classList.remove('dragging')
   }, [])
 
   // ── Click handlers ─────────────────────────────────────────────────────────
@@ -293,44 +321,56 @@ export function ScoreView() {
   const handleScoreClick = useCallback((e: React.MouseEvent) => {
     if (didDragRef.current) return
 
-    // Check for note click first — Verovio assigns IDs to every g.note element
-    const noteEl = (e.target as Element).closest?.('g.note') as SVGGElement | null
-    if (noteEl && !e.shiftKey) {
-      const noteId = noteEl.id
-      const measureEl = noteEl.closest('g.measure') as Element | null
+    // Harmony/chord symbol click
+    const harmEl = (e.target as Element).closest?.('g.harm') as SVGGElement | null
+    if (harmEl && !e.shiftKey) {
       const allMeasures = Array.from(document.querySelectorAll('g.measure'))
+      const measureEl = harmEl.closest('g.measure') as Element | null
       const measureIndex = measureEl ? allMeasures.indexOf(measureEl) : -1
       const measureNum = measureIndex >= 0 ? measureIndex + 1 : 1
-      setSelection({ type: 'note', measureStart: measureNum, measureEnd: measureNum, noteIds: [noteId], anchorMeasure: measureNum })
+      setSelection({ type: 'note', measureStart: measureNum, measureEnd: measureNum, noteIds: [harmEl.id], anchorMeasure: measureNum })
       showContextMenu(e.clientX, e.clientY)
       return
     }
 
-    const measureNum = findMeasureAtPoint(e.clientX, e.clientY, elementMap)
-    if (measureNum === null) {
+    // Note click
+    const noteEl = (e.target as Element).closest?.('g.note') as SVGGElement | null
+    if (noteEl && !e.shiftKey) {
+      const allMeasures = Array.from(document.querySelectorAll('g.measure'))
+      const measureEl = noteEl.closest('g.measure') as Element | null
+      const measureIndex = measureEl ? allMeasures.indexOf(measureEl) : -1
+      const measureNum = measureIndex >= 0 ? measureIndex + 1 : 1
+      setSelection({ type: 'note', measureStart: measureNum, measureEnd: measureNum, noteIds: [noteEl.id], anchorMeasure: measureNum })
+      showContextMenu(e.clientX, e.clientY)
+      return
+    }
+
+    const hit = findMeasureAtPoint(e.clientX, e.clientY, elementMap)
+    if (!hit) {
       hideContextMenu()
       setSelection(null)
       return
     }
+    const { measureNum, staffIndex } = hit
 
     if (e.shiftKey && selection) {
       const anchor = selection.anchorMeasure ?? selection.measureStart
       const minM = Math.min(anchor, measureNum)
       const maxM = Math.max(anchor, measureNum)
-      setSelection({ type: 'measures', measureStart: minM, measureEnd: maxM, noteIds: [], anchorMeasure: anchor })
+      setSelection({ type: 'measures', measureStart: minM, measureEnd: maxM, noteIds: [], anchorMeasure: anchor, staffIndex: selection.staffIndex ?? staffIndex })
       showContextMenu(e.clientX, e.clientY)
       return
     }
 
-    setSelection({ type: 'measure', measureStart: measureNum, measureEnd: measureNum, noteIds: [], anchorMeasure: measureNum })
+    setSelection({ type: 'measure', measureStart: measureNum, measureEnd: measureNum, noteIds: [], anchorMeasure: measureNum, staffIndex })
     showContextMenu(e.clientX, e.clientY)
   }, [selection, setSelection, showContextMenu, hideContextMenu, elementMap])
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
-    const measureNum = findMeasureAtPoint(e.clientX, e.clientY, elementMap)
-    if (!measureNum) return
-    setSelection({ type: 'measure', measureStart: measureNum, measureEnd: measureNum, noteIds: [], anchorMeasure: measureNum })
+    const hit = findMeasureAtPoint(e.clientX, e.clientY, elementMap)
+    if (!hit) return
+    setSelection({ type: 'measure', measureStart: hit.measureNum, measureEnd: hit.measureNum, noteIds: [], anchorMeasure: hit.measureNum, staffIndex: hit.staffIndex })
     showContextMenu(e.clientX, e.clientY)
   }, [setSelection, showContextMenu, elementMap])
 
@@ -353,7 +393,7 @@ export function ScoreView() {
       <div className="score-scroll" ref={scrollRef}>
         <div
           ref={scoreRef}
-          className={`score-container${dragState?.active ? ' dragging' : ''}`}
+          className="score-container"
           onClick={handleScoreClick}
           onContextMenu={handleContextMenu}
           onMouseDown={handleMouseDown}
@@ -382,12 +422,15 @@ export function ScoreView() {
           {svgContent && (
             <SelectionOverlay
               selection={selection}
-              dragState={dragState}
               elementMap={elementMap}
               containerRef={scoreRef}
               scrollRef={scrollRef}
             />
           )}
+          {/* Lasso rect — direct DOM updates, zero React re-renders */}
+          <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible', zIndex: 11 }}>
+            <rect ref={lassoRectRef} style={{ display: 'none' }} fill="rgba(124,106,247,0.08)" stroke="#7c6af7" strokeDasharray="5 3" strokeWidth="1.5" x="0" y="0" width="0" height="0" />
+          </svg>
           {svgContent && <FreehandCanvas containerRef={scoreRef} />}
         </div>
       </div>

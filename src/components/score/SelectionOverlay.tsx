@@ -2,23 +2,14 @@ import { useEffect, useState, type RefObject } from 'react'
 import type { NoteElement } from './ScoreView'
 import type { Selection } from '../../store/selectionStore'
 
-export interface DragState {
-  active: boolean
-  startX: number
-  startY: number
-  currentX: number
-  currentY: number
-}
-
 interface Props {
   selection: Selection | null
-  dragState: DragState | null
   elementMap: Map<string, NoteElement>
   containerRef: RefObject<HTMLDivElement | null>
   scrollRef: RefObject<HTMLDivElement | null>
 }
 
-export function SelectionOverlay({ selection, dragState, elementMap, containerRef, scrollRef }: Props) {
+export function SelectionOverlay({ selection, elementMap, containerRef, scrollRef }: Props) {
   const [containerRect, setContainerRect] = useState<DOMRect | null>(null)
 
   useEffect(() => {
@@ -45,50 +36,85 @@ export function SelectionOverlay({ selection, dragState, elementMap, containerRe
 
   if (!containerRect) return null
 
-  // One rect per selected measure (measures wrap across lines, so no hull)
   const selectionRects: Array<{ x: number; y: number; w: number; h: number }> = []
+
   if (selection) {
     if ((selection.type === 'note' || selection.type === 'notes') && selection.noteIds?.length) {
-      // Note-level highlight: query Verovio SVG directly by ID
+      // Group selected elements by their parent g.staff — one hull rect per staff row
+      const staffGroups = new Map<string, { left: number; right: number; top: number; bottom: number }>()
+
       for (const noteId of selection.noteIds) {
-        const noteEl = noteId ? document.getElementById(noteId) : null
+        const noteEl = document.getElementById(noteId)
         if (!noteEl) continue
-        const b = noteEl.getBoundingClientRect()
-        if (b.width === 0) continue
+        const noteBbox = noteEl.getBoundingClientRect()
+        if (noteBbox.width === 0) continue
+
+        const staffEl = noteEl.closest('g.staff')
+        if (!staffEl) {
+          // Harmony/chord symbol — use tspan bounds for tight rect
+          // SVG text bbox includes large descender area; small tspans (quality suffix) are more accurate
+          const tspans = Array.from(noteEl.querySelectorAll('tspan')).filter(t => t.textContent?.trim())
+          const tboxes = tspans.map(t => t.getBoundingClientRect())
+          const tTop = tboxes.length > 0 ? Math.min(...tboxes.map(b => b.top)) : noteBbox.top
+          const smallBoxes = tboxes.filter(b => b.height < 15)
+          const tBottom = smallBoxes.length > 0
+            ? Math.max(...smallBoxes.map(b => b.bottom))
+            : noteBbox.top + noteBbox.height * 0.7
+          selectionRects.push({
+            x: noteBbox.left - containerRect.left - 3,
+            y: tTop    - containerRect.top  - 2,
+            w: noteBbox.width + 6,
+            h: (tBottom - tTop) + 4,
+          })
+          continue
+        }
+
+        const groupKey = staffEl.id || String(Array.from(staffEl.parentElement?.children ?? []).indexOf(staffEl))
+        const staffBbox = staffEl.getBoundingClientRect()
+
+        const existing = staffGroups.get(groupKey)
+        if (existing) {
+          existing.left  = Math.min(existing.left,  noteBbox.left)
+          existing.right = Math.max(existing.right, noteBbox.right)
+        } else {
+          staffGroups.set(groupKey, {
+            left:   noteBbox.left,
+            right:  noteBbox.right,
+            top:    staffBbox.top,
+            bottom: staffBbox.bottom,
+          })
+        }
+      }
+
+      for (const [, g] of staffGroups) {
         selectionRects.push({
-          x: b.left - containerRect.left - 4,
-          y: b.top  - containerRect.top  - 4,
-          w: b.width  + 8,
-          h: b.height + 8,
+          x: g.left  - containerRect.left - 4,
+          y: g.top   - containerRect.top  - 2,
+          w: g.right - g.left + 8,
+          h: g.bottom - g.top + 4,
         })
       }
     } else {
+      // Measure-level selection — use staffBboxes for accurate left/right/top/bottom
       for (let m = selection.measureStart; m <= selection.measureEnd; m++) {
         const el = elementMap.get(`measure-${m - 1}`)
         if (!el) continue
-        const b = el.bbox
+
+        const staffIdx = selection.staffIndex ?? 0
+        const sb = el.staffBboxes[staffIdx] ?? el.staffBboxes[0]
+        if (!sb) continue
+
         selectionRects.push({
-          x: b.left - containerRect.left - 2,
-          y: b.top  - containerRect.top  - 2,
-          w: b.width  + 4,
-          h: b.height + 4,
+          x: sb.left  - containerRect.left - 2,
+          y: sb.top   - containerRect.top  - 2,
+          w: sb.width  + 4,
+          h: sb.height + 4,
         })
       }
     }
   }
 
-  // Rubber-band lasso rect (only while actively dragging)
-  let lassoRect: { x: number; y: number; w: number; h: number } | null = null
-  if (dragState?.active) {
-    lassoRect = {
-      x: Math.min(dragState.startX, dragState.currentX) - containerRect.left,
-      y: Math.min(dragState.startY, dragState.currentY) - containerRect.top,
-      w: Math.abs(dragState.currentX - dragState.startX),
-      h: Math.abs(dragState.currentY - dragState.startY),
-    }
-  }
-
-  if (selectionRects.length === 0 && !lassoRect) return null
+  if (selectionRects.length === 0) return null
 
   return (
     <svg
@@ -114,16 +140,6 @@ export function SelectionOverlay({ selection, dragState, elementMap, containerRe
           rx="4"
         />
       ))}
-      {lassoRect && (
-        <rect
-          x={lassoRect.x} y={lassoRect.y}
-          width={lassoRect.w} height={lassoRect.h}
-          fill="rgba(124, 106, 247, 0.08)"
-          stroke="#7c6af7"
-          strokeDasharray="5 3"
-          strokeWidth="1.5"
-        />
-      )}
     </svg>
   )
 }

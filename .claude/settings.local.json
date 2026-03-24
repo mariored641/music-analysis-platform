@@ -7,7 +7,14 @@
       "Bash(npm uninstall:*)",
       "Bash(npx tsc:*)",
       "mcp__Claude_Preview__preview_start",
-      "Bash(gh auth:*)"
+      "Bash(gh auth:*)",
+      "Bash(gh repo:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(gh api:*)",
+      "Bash(Get-Process node:*)",
+      "Bash(Stop-Process -Force)",
+      "Bash(pkill -f \"vite\")",
+      "Bash(pkill -f \"node.*vite\")"
     ]
   }
 }

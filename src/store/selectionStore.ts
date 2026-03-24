@@ -8,6 +8,7 @@ export interface Selection {
   noteIds: string[]        // verovio element IDs
   anchorMeasure?: number   // for shift+click range
   notePitch?: string       // e.g. "G4" from Verovio getElementAttr
+  staffIndex?: number      // index of g.staff within measure (0 = top staff)
 }
 
 interface ContextMenuState {
