@@ -20,6 +20,7 @@ const defaults: LayerVisibility = {
   texture:   false,
   freehand:  true,
   noteColor: false,
+  svgColor:  true,
 }
 
 export const useLayerStore = create<LayerState>()(

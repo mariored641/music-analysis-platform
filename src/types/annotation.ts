@@ -1,4 +1,4 @@
-export type LayerId = 'harmony' | 'melody' | 'form' | 'motif' | 'labels' | 'texture' | 'freehand' | 'noteColor'
+export type LayerId = 'harmony' | 'melody' | 'form' | 'motif' | 'labels' | 'texture' | 'freehand' | 'noteColor' | 'svgColor'
 
 export type SelectionType = 'note' | 'notes' | 'measure' | 'measures'
 
@@ -10,6 +10,7 @@ interface BaseAnnotation {
   measureEnd?: number
   noteIds?: string[]
   createdAt: number
+  visualOffset?: { x: number; y: number }  // drag-to-reposition
 }
 
 export interface HarmonyAnnotation extends BaseAnnotation {
@@ -78,6 +79,14 @@ export interface OpenQuestion extends BaseAnnotation {
   text: string
 }
 
+// Identifies a non-note SVG element by structural position (stable across re-renders)
+export interface SvgColorAnnotation extends BaseAnnotation {
+  layer: 'svgColor'
+  color: string
+  svgClass: string      // Verovio element class: 'dynam' | 'artic' | 'hairpin' | 'tempo' | ...
+  positionIndex: number // index among elements of same class within measureStart
+}
+
 export type Annotation =
   | HarmonyAnnotation
   | MelodyAnnotation
@@ -87,3 +96,4 @@ export type Annotation =
   | TextureAnnotation
   | FreehandAnnotation
   | NoteColorAnnotation
+  | SvgColorAnnotation

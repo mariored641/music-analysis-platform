@@ -5,22 +5,39 @@ import { usePlaybackStore } from '../store/playbackStore'
 import { useScoreStore } from '../store/scoreStore'
 import type { Selection } from '../store/selectionStore'
 
-// Get Verovio note IDs in score order directly from the DOM
+// Get noteMap IDs in DOM score order (reads data-notemap-id stamped by buildVrvNoteIdMap)
 function getDomOrderedNoteIds(): string[] {
-  return Array.from(document.querySelectorAll('g.note'))
-    .map(el => el.id)
+  return Array.from(document.querySelectorAll('g.note[data-notemap-id]'))
+    .map(el => (el as HTMLElement).dataset.notemapId!)
     .filter(Boolean)
 }
 
-// Get the measure number (1-based) of a Verovio note element by its ID
-function getMeasureNumForNote(noteId: string): number {
-  const noteEl = document.getElementById(noteId)
+// Get measure number (1-based) for a noteMap ID via data attribute
+function getMeasureNumForNote(noteMapId: string): number {
+  const noteEl = document.querySelector(`g.note[data-notemap-id="${CSS.escape(noteMapId)}"]`)
   if (!noteEl) return 1
   const measureEl = noteEl.closest('g.measure')
   if (!measureEl) return 1
   const allMeasures = Array.from(document.querySelectorAll('g.measure'))
   const idx = allMeasures.indexOf(measureEl)
   return idx >= 0 ? idx + 1 : 1
+}
+
+// Find the g.system element that contains a given measure number (1-based)
+function getSystemForMeasure(measureNum: number): Element | null {
+  const allMeasures = Array.from(document.querySelectorAll('g.measure'))
+  const measureEl = allMeasures[measureNum - 1]
+  if (!measureEl) return null
+  return measureEl.closest('g.system')
+}
+
+// Get the first and last measure numbers (1-based) within a g.system element
+function getSystemMeasureRange(systemEl: Element): { first: number; last: number } {
+  const allMeasures = Array.from(document.querySelectorAll('g.measure'))
+  const sysMeasures = Array.from(systemEl.querySelectorAll('g.measure'))
+  const indices = sysMeasures.map(m => allMeasures.indexOf(m)).filter(i => i >= 0)
+  if (indices.length === 0) return { first: 1, last: 1 }
+  return { first: Math.min(...indices) + 1, last: Math.max(...indices) + 1 }
 }
 
 export function useKeyboard() {
@@ -78,25 +95,49 @@ export function useKeyboard() {
         case 'Q':
           if (selection) showContextMenu(window.innerWidth / 2, window.innerHeight / 2, 'question')
           break
+
+        // ── Shift+→ : extend right OR shrink from left ──────────────────────
         case 'ArrowRight':
           if (e.shiftKey && selectionRef.current) {
             e.preventDefault()
             const sel = selectionRef.current
             if (sel.type === 'note' || sel.type === 'notes') {
               const ordered = getDomOrderedNoteIds()
-              const lastId = sel.noteIds[sel.noteIds.length - 1]
-              const idx = ordered.indexOf(lastId)
-              if (idx >= 0 && idx < ordered.length - 1) {
-                const nextId = ordered[idx + 1]
-                const nextMeasure = getMeasureNumForNote(nextId)
-                const updated = {
-                  ...sel,
-                  type: 'notes' as const,
-                  noteIds: [...sel.noteIds, nextId],
-                  measureEnd: Math.max(sel.measureEnd, nextMeasure),
+              const anchor = sel.anchorNoteId ?? sel.noteIds[0]
+              const firstId = sel.noteIds[0]
+              const lastId  = sel.noteIds[sel.noteIds.length - 1]
+              const firstIdx = ordered.indexOf(firstId)
+              const lastIdx  = ordered.indexOf(lastId)
+
+              // anchor at start → cursor at end → extend right
+              if (anchor === firstId || firstIdx < 0) {
+                if (lastIdx >= 0 && lastIdx < ordered.length - 1) {
+                  const nextId = ordered[lastIdx + 1]
+                  const nextMeasure = getMeasureNumForNote(nextId)
+                  const updated: Selection = {
+                    ...sel,
+                    type: 'notes',
+                    noteIds: [...sel.noteIds, nextId],
+                    measureEnd: Math.max(sel.measureEnd, nextMeasure),
+                    anchorNoteId: anchor,
+                  }
+                  selectionRef.current = updated
+                  setSelection(updated)
                 }
-                selectionRef.current = updated
-                setSelection(updated)
+              } else {
+                // anchor at end → cursor at start → shrink from left
+                if (sel.noteIds.length > 1) {
+                  const newIds = sel.noteIds.slice(1)
+                  const updated: Selection = {
+                    ...sel,
+                    type: newIds.length === 1 ? 'note' : 'notes',
+                    noteIds: newIds,
+                    measureStart: getMeasureNumForNote(newIds[0]),
+                    anchorNoteId: anchor,
+                  }
+                  selectionRef.current = updated
+                  setSelection(updated)
+                }
               }
             } else {
               if (sel.measureEnd < totalMeasures) {
@@ -107,28 +148,102 @@ export function useKeyboard() {
             }
           }
           break
+
+        // ── Shift+← : extend left OR shrink from right ──────────────────────
         case 'ArrowLeft':
           if (e.shiftKey && selectionRef.current) {
             e.preventDefault()
             const sel = selectionRef.current
             if (sel.type === 'note' || sel.type === 'notes') {
               const ordered = getDomOrderedNoteIds()
+              const anchor = sel.anchorNoteId ?? sel.noteIds[0]
               const firstId = sel.noteIds[0]
-              const idx = ordered.indexOf(firstId)
-              if (idx > 0) {
-                const prevId = ordered[idx - 1]
-                const prevMeasure = getMeasureNumForNote(prevId)
-                const updated = {
-                  ...sel,
-                  type: 'notes' as const,
-                  noteIds: [prevId, ...sel.noteIds],
-                  measureStart: Math.min(sel.measureStart, prevMeasure),
+              const lastId  = sel.noteIds[sel.noteIds.length - 1]
+              const firstIdx = ordered.indexOf(firstId)
+              const lastIdx  = ordered.indexOf(lastId)
+
+              // anchor at end → cursor at start → extend left
+              if (anchor === lastId || lastIdx < 0) {
+                if (firstIdx > 0) {
+                  const prevId = ordered[firstIdx - 1]
+                  const prevMeasure = getMeasureNumForNote(prevId)
+                  const updated: Selection = {
+                    ...sel,
+                    type: 'notes',
+                    noteIds: [prevId, ...sel.noteIds],
+                    measureStart: Math.min(sel.measureStart, prevMeasure),
+                    anchorNoteId: anchor,
+                  }
+                  selectionRef.current = updated
+                  setSelection(updated)
                 }
-                selectionRef.current = updated
-                setSelection(updated)
+              } else {
+                // anchor at start → cursor at end → shrink from right
+                if (sel.noteIds.length > 1) {
+                  const newIds = sel.noteIds.slice(0, -1)
+                  const updated: Selection = {
+                    ...sel,
+                    type: newIds.length === 1 ? 'note' : 'notes',
+                    noteIds: newIds,
+                    measureEnd: getMeasureNumForNote(newIds[newIds.length - 1]),
+                    anchorNoteId: anchor,
+                  }
+                  selectionRef.current = updated
+                  setSelection(updated)
+                }
               }
             } else if (sel.measureStart > 1) {
               const updated = { ...sel, measureStart: sel.measureStart - 1 }
+              selectionRef.current = updated
+              setSelection(updated)
+            }
+          }
+          break
+
+        // ── Shift+↑ : extend selection to system row above ──────────────────
+        case 'ArrowUp':
+          if (e.shiftKey && selectionRef.current) {
+            e.preventDefault()
+            const sel = selectionRef.current
+            const currentSystem = getSystemForMeasure(sel.measureStart)
+            if (!currentSystem) break
+            const allSystems = Array.from(document.querySelectorAll('g.system'))
+            const currentSysIdx = allSystems.indexOf(currentSystem)
+            if (currentSysIdx > 0) {
+              const prevSystem = allSystems[currentSysIdx - 1]
+              const { first } = getSystemMeasureRange(prevSystem)
+              const updated: Selection = {
+                ...sel,
+                type: 'measures',
+                measureStart: first,
+                noteIds: [],
+                anchorMeasure: sel.measureEnd,
+              }
+              selectionRef.current = updated
+              setSelection(updated)
+            }
+          }
+          break
+
+        // ── Shift+↓ : extend selection to system row below ──────────────────
+        case 'ArrowDown':
+          if (e.shiftKey && selectionRef.current) {
+            e.preventDefault()
+            const sel = selectionRef.current
+            const currentSystem = getSystemForMeasure(sel.measureEnd)
+            if (!currentSystem) break
+            const allSystems = Array.from(document.querySelectorAll('g.system'))
+            const currentSysIdx = allSystems.indexOf(currentSystem)
+            if (currentSysIdx < allSystems.length - 1) {
+              const nextSystem = allSystems[currentSysIdx + 1]
+              const { last } = getSystemMeasureRange(nextSystem)
+              const updated: Selection = {
+                ...sel,
+                type: 'measures',
+                measureEnd: last,
+                noteIds: [],
+                anchorMeasure: sel.measureStart,
+              }
               selectionRef.current = updated
               setSelection(updated)
             }

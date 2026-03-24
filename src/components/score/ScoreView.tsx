@@ -113,6 +113,8 @@ function buildVrvNoteIdMap(
     for (let i = 0; i < len; i++) {
       toVrv.set(nmNotes[i].id, vrvNotes[i].id)
       fromVrv.set(vrvNotes[i].id, nmNotes[i].id)
+      // Stamp noteMap ID on the SVG element — used by keyboard navigation
+      ;(vrvNotes[i] as SVGGElement).dataset.notemapId = nmNotes[i].id
     }
   })
 
@@ -176,6 +178,39 @@ const NOTE_COLORS: Record<string, string> = {
   NEIGHBOR_TONE: '#22c55e',  // green
 }
 
+// SVG element classes that can be colored by clicking
+const SVG_COLORABLE = ['dynam', 'artic', 'hairpin', 'tempo', 'ferm', 'trill', 'turn', 'mordent', 'ornament']
+const SVG_COLORABLE_SELECTOR = SVG_COLORABLE.map(c => `g.${c}`).join(', ')
+
+function applySvgColors(container: Element, annotations: Record<string, any>, visible: Record<string, boolean>) {
+  // Clear previous svgColor styles
+  SVG_COLORABLE.forEach(cls => {
+    container.querySelectorAll(`g.${cls}`).forEach(el => {
+      ;(el as SVGElement).style.color = ''
+      el.querySelectorAll('*').forEach(child => {
+        ;(child as SVGElement).style.fill = ''
+        ;(child as SVGElement).style.color = ''
+      })
+    })
+  })
+  if (!visible.svgColor) return
+  Object.values(annotations)
+    .filter(a => a.layer === 'svgColor')
+    .forEach(ann => {
+      const allMeasures = Array.from(container.querySelectorAll('g.measure'))
+      const measureEl = allMeasures[ann.measureStart - 1]
+      if (!measureEl) return
+      const siblings = Array.from(measureEl.querySelectorAll(`g.${ann.svgClass}`))
+      const el = siblings[ann.positionIndex] as SVGElement | undefined
+      if (!el) return
+      el.style.color = ann.color
+      el.querySelectorAll('*').forEach(child => {
+        ;(child as SVGElement).style.fill = ann.color
+        ;(child as SVGElement).style.color = ann.color
+      })
+    })
+}
+
 function applyNoteColors(
   container: Element,
   annotations: Record<string, any>,
@@ -234,6 +269,10 @@ export function ScoreView() {
   const [scoreError, setScoreError] = useState<string | null>(null)
   const [elementMap, setElementMap] = useState<Map<string, NoteElement>>(new Map())
   const [harmonies, setHarmonies] = useState<HarmonyItem[]>([])
+
+  // SVG element color picker state
+  type SvgColorPickerState = { x: number; y: number; svgClass: string; measureNum: number; positionIndex: number }
+  const [svgColorPicker, setSvgColorPicker] = useState<SvgColorPickerState | null>(null)
 
   // Drag-lasso state (all via refs — no React state to avoid lag)
   type LassoState = { startX: number; startY: number; currentX: number; currentY: number }
@@ -302,22 +341,25 @@ export function ScoreView() {
       // Read fresh state directly — avoids stale-closure issue when SVG re-renders
       // (React StrictMode / re-renders can replace the SVG after the rAF was scheduled)
       const freshAnnotations = useAnnotationStore.getState().annotations
-      if (useLayerStore.getState().visible.noteColor) {
+      const freshVisible = useLayerStore.getState().visible
+      if (freshVisible.noteColor) {
         applyNoteColors(container, freshAnnotations, localToVrv)
       }
+      applySvgColors(container, freshAnnotations, freshVisible)
     })
   // noteMap in deps: if noteMap arrives after svgContent (async session restore),
   // this effect re-fires and builds the ID maps correctly.
   }, [svgContent, noteMap]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Reapply note colors when layer/annotations change
+  // Reapply note colors + svg element colors when layer/annotations change
   useEffect(() => {
     if (!scoreRef.current) return
     const container = scoreRef.current.querySelector('.vrv-svg')
     if (!container) return
     if (visible.noteColor) applyNoteColors(container, annotations, toVrv)
     else clearNoteColors(container)
-  }, [visible.noteColor, annotations, toVrv])
+    applySvgColors(container, annotations, visible)
+  }, [visible.noteColor, visible.svgColor, annotations, toVrv])
 
   // ── Mouse handlers for drag-lasso ─────────────────────────────────────────
 
@@ -420,6 +462,19 @@ export function ScoreView() {
   const handleScoreClick = useCallback((e: React.MouseEvent) => {
     if (didDragRef.current) return
 
+    // SVG element (dynamics, articulation, etc.) click → color picker
+    const svgColorEl = (e.target as Element).closest?.(SVG_COLORABLE_SELECTOR) as SVGGElement | null
+    if (svgColorEl && !e.shiftKey) {
+      const svgClass = SVG_COLORABLE.find(c => svgColorEl.classList.contains(c)) ?? ''
+      const allMeasures = Array.from(document.querySelectorAll('g.measure'))
+      const measureEl = svgColorEl.closest('g.measure')
+      const measureNum = measureEl ? allMeasures.indexOf(measureEl) + 1 : 1
+      const siblings = measureEl ? Array.from(measureEl.querySelectorAll(`g.${svgClass}`)) : []
+      const positionIndex = siblings.indexOf(svgColorEl)
+      setSvgColorPicker({ x: e.clientX, y: e.clientY, svgClass, measureNum, positionIndex })
+      return
+    }
+
     // Harmony/chord symbol click
     const harmEl = (e.target as Element).closest?.('g.harm') as SVGGElement | null
     if (harmEl && !e.shiftKey) {
@@ -441,7 +496,7 @@ export function ScoreView() {
       const measureNum = measureIndex >= 0 ? measureIndex + 1 : 1
       // Translate Verovio ID → noteMap ID
       const noteMapId = fromVrvRef.current.get(noteEl.id) ?? noteEl.id
-      setSelection({ type: 'note', measureStart: measureNum, measureEnd: measureNum, noteIds: [noteMapId], anchorMeasure: measureNum })
+      setSelection({ type: 'note', measureStart: measureNum, measureEnd: measureNum, noteIds: [noteMapId], anchorMeasure: measureNum, anchorNoteId: noteMapId })
       showContextMenu(e.clientX, e.clientY)
       return
     }
@@ -533,11 +588,88 @@ export function ScoreView() {
         </div>
       </div>
       <ContextMenu />
+      {svgColorPicker && (
+        <SvgColorPicker
+          x={svgColorPicker.x}
+          y={svgColorPicker.y}
+          onSelect={(color) => {
+            const { svgClass, measureNum, positionIndex } = svgColorPicker
+            useAnnotationStore.getState().addAnnotation({
+              id: `svgcolor-${Date.now()}`,
+              layer: 'svgColor',
+              measureStart: measureNum,
+              svgClass,
+              positionIndex,
+              color,
+              createdAt: Date.now(),
+            } as any)
+            setSvgColorPicker(null)
+          }}
+          onClose={() => setSvgColorPicker(null)}
+        />
+      )}
     </div>
   )
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
+
+const COLOR_PRESETS = [
+  '#ef4444', '#f97316', '#f59e0b', '#eab308',
+  '#22c55e', '#14b8a6', '#3b82f6', '#8b5cf6',
+  '#ec4899', '#000000', '#6b7280', '#ffffff',
+]
+
+function SvgColorPicker({ x, y, onSelect, onClose }: {
+  x: number; y: number
+  onSelect: (color: string) => void
+  onClose: () => void
+}) {
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      const el = document.getElementById('svg-color-picker-popup')
+      if (el && !el.contains(e.target as Node)) onClose()
+    }
+    // Slight delay so the same click that opened it doesn't close it
+    const timer = setTimeout(() => document.addEventListener('mousedown', handler), 100)
+    return () => { clearTimeout(timer); document.removeEventListener('mousedown', handler) }
+  }, [onClose])
+
+  // Clamp to viewport
+  const px = Math.min(x, window.innerWidth  - 220)
+  const py = Math.min(y, window.innerHeight - 80)
+
+  return (
+    <div
+      id="svg-color-picker-popup"
+      style={{
+        position: 'fixed', left: px, top: py, zIndex: 9999,
+        background: '#1e1e2e', border: '1px solid #333', borderRadius: 8,
+        padding: '8px 10px', boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+        display: 'flex', gap: 6, flexWrap: 'wrap', width: 200,
+      }}
+    >
+      {COLOR_PRESETS.map(c => (
+        <div
+          key={c}
+          onClick={() => onSelect(c)}
+          style={{
+            width: 22, height: 22, borderRadius: '50%', background: c,
+            cursor: 'pointer', border: c === '#ffffff' ? '2px solid #555' : '2px solid transparent',
+            boxSizing: 'border-box',
+          }}
+          title={c}
+        />
+      ))}
+      <input
+        type="color"
+        title="Custom color"
+        onChange={e => onSelect(e.target.value)}
+        style={{ width: 22, height: 22, padding: 0, border: 'none', cursor: 'pointer', background: 'none' }}
+      />
+    </div>
+  )
+}
 
 function OpenFileButton() {
   const { t } = useTranslation()

@@ -1,6 +1,7 @@
-import { useEffect, useState, type RefObject } from 'react'
+import { useEffect, useState, useCallback, type RefObject } from 'react'
 import type { Annotation, LayerId } from '../../types/annotation'
 import { LAYER_MAP } from '../../constants/layers'
+import { useAnnotationStore } from '../../store/annotationStore'
 import type { NoteElement } from './ScoreView'
 
 interface Props {
@@ -15,6 +16,7 @@ interface Props {
 
 export function AnnotationOverlay({ annotations, visible, elementMap, containerRef, scrollRef, playbackMeasure, toVrv }: Props) {
   const [containerRect, setContainerRect] = useState<DOMRect | null>(null)
+  const updateAnnotation = useAnnotationStore(s => s.updateAnnotation)
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -68,26 +70,55 @@ export function AnnotationOverlay({ annotations, visible, elementMap, containerR
           elementMap={elementMap}
           containerRect={containerRect}
           toVrv={toVrv}
+          onDragEnd={(id, offset) => updateAnnotation(id, { visualOffset: offset })}
         />
       ))}
     </svg>
   )
 }
 
-function AnnotationShape({ annotation, elementMap, containerRect, toVrv }: {
+function AnnotationShape({ annotation, elementMap, containerRect, toVrv, onDragEnd }: {
   annotation: Annotation
   elementMap: Map<string, NoteElement>
   containerRect: DOMRect
   toVrv?: Map<string, string>
+  onDragEnd: (id: string, offset: { x: number; y: number }) => void
 }) {
-  // noteColor annotations are rendered directly on SVG noteheads via applyNoteColors — no overlay rect
-  if (annotation.layer === 'noteColor') return null
+  // noteColor + svgColor annotations are applied directly to the SVG DOM — no overlay rect
+  if (annotation.layer === 'noteColor' || annotation.layer === 'svgColor') return null
 
   const layer = LAYER_MAP.get(annotation.layer)
   if (!layer) return null
 
   const color = layer.color
   const noteIds = annotation.noteIds || []
+
+  // Live drag offset — updated during drag without writing to store (no React re-renders)
+  const [dragOffset, setDragOffset] = useState<{ x: number; y: number } | null>(null)
+  const savedOffset = (annotation as any).visualOffset as { x: number; y: number } | undefined
+  const offset = dragOffset ?? savedOffset ?? { x: 0, y: 0 }
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    const startX = e.clientX
+    const startY = e.clientY
+    const baseOffset = savedOffset ?? { x: 0, y: 0 }
+    let current = { ...baseOffset }
+
+    const onMove = (me: MouseEvent) => {
+      current = { x: baseOffset.x + me.clientX - startX, y: baseOffset.y + me.clientY - startY }
+      setDragOffset({ ...current })
+    }
+    const onUp = () => {
+      onDragEnd(annotation.id, current)
+      setDragOffset(null)
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+  }, [annotation.id, savedOffset, onDragEnd])
 
   // Tight bounding boxes — query DOM directly so chord symbols get tspan-accurate bounds
   const regions: Array<{ left: number; top: number; right: number; bottom: number }> = []
@@ -138,7 +169,11 @@ function AnnotationShape({ annotation, elementMap, containerRect, toVrv }: {
   const label = getAnnotationLabel(annotation)
 
   return (
-    <g>
+    <g
+      transform={`translate(${offset.x}, ${offset.y})`}
+      style={{ cursor: 'move', pointerEvents: 'all' }}
+      onMouseDown={handleMouseDown}
+    >
       <rect
         x={minX} y={minY}
         width={maxX - minX} height={maxY - minY}

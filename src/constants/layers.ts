@@ -17,6 +17,7 @@ export const LAYERS: LayerConfig[] = [
   { id: 'texture',   labelHe: 'מרקם',      labelEn: 'Texture',    color: '#14b8a6', bgColor: 'rgba(20,184,166,0.15)' },
   { id: 'freehand',  labelHe: 'ציור חופשי', labelEn: 'Freehand',  color: '#ec4899', bgColor: 'rgba(236,72,153,0.15)' },
   { id: 'noteColor', labelHe: 'צבע תוים',  labelEn: 'Note Color', color: '#6b7280', bgColor: 'rgba(107,114,128,0.15)' },
+  { id: 'svgColor',  labelHe: 'צבע אלמנטים', labelEn: 'Element Color', color: '#06b6d4', bgColor: 'rgba(6,182,212,0.15)' },
 ]
 
 export const LAYER_MAP = new Map(LAYERS.map(l => [l.id, l]))
