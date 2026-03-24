@@ -179,10 +179,12 @@ const NOTE_COLORS: Record<string, string> = {
 }
 
 // SVG element classes that can be colored by clicking
-const SVG_COLORABLE = ['dynam', 'artic', 'hairpin', 'tempo', 'ferm', 'trill', 'turn', 'mordent', 'ornament']
+// Use class names exactly as Verovio generates them
+const SVG_COLORABLE = ['dynam', 'artic', 'hairpin', 'tempo', 'fermata', 'trill', 'turn', 'mordent', 'ornament', 'dir']
 
 // Proximity hit-padding in pixels — makes thin elements like hairpins easy to click
-const SVG_HIT_PADDING = 12
+// Also compensates for use-element bbox underreporting (fermata shows as 3x6px)
+const SVG_HIT_PADDING = 18
 
 // Find the nearest SVG colorable element within SVG_HIT_PADDING pixels of the click.
 // Handles thin/stroke-only elements (hairpins, slurs) that are impossible to hit precisely.
