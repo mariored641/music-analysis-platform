@@ -10,8 +10,19 @@
 
 ---
 
-## Layout
+## Views
 
+**Two-view app — `currentView` in `libraryStore` controls routing in `App.tsx`:**
+
+### Library View (`src/views/LibraryView.tsx`)
+- Home screen — shown on startup (or when `currentView === 'library'`)
+- Grid of `LibraryCard` components (`src/components/library/LibraryCard.tsx`)
+- Upload button → file picker → MetaForm modal → loads piece → switches to Analysis view
+- Sort: lastModified / lastOpened / dateAdded / title / composer / genre
+- Filter: by genre, by composer; text search
+- Delete piece (with confirm) — removes from IndexedDB + libraryStore
+
+### Analysis View (default layout)
 Three-panel fixed layout:
 ```
 ┌──────────┬────────────────────┬──────────┐
@@ -21,10 +32,10 @@ Three-panel fixed layout:
 │              StatusBar                    │
 └───────────────────────────────────────────┘
 ```
-- **TopBar** — title, language toggle, play button, BPM, JSON export, 🔬 Scripts button
+- **TopBar** — ← back-to-library button, title, language toggle, play button, BPM, JSON export, 🔬 Scripts button
 - **FormalStrip** — horizontal colored strip above score (form annotations)
 - **ScoreView** — main score rendering area with overlays
-- **LeftPanel** — library list + layer toggles
+- **LeftPanel** — layer toggles (library list moved to LibraryView)
 - **RightPanel** — selection details, tag count, open questions, analysis summary
 - **StatusBar** — key, time sig, selection info, shortcut hints
 
@@ -167,7 +178,19 @@ Note: Verovio `g.note` elements have NO `pname`/`oct` attributes — positional 
 | `selectionStore.ts` | `selection` (type, measureStart, measureEnd, noteIds=noteMapIds, anchorMeasure), `contextMenu` |
 | `playbackStore.ts` | `isPlaying`, `currentMeasure`, `bpm` |
 | `layerStore.ts` | `visible: Record<layerId, boolean>` — 8 layers, persisted to localStorage. Methods: `toggle`, `setVisible`, `setAll` |
-| `libraryStore.ts` | `pieces[]` — saved piece list |
+| `libraryStore.ts` | `pieces[]`, `activePieceId`, `currentView: 'library'\|'analysis'`, `setView()` |
+
+### `src/views/`
+| File | Purpose |
+|------|---------|
+| `LibraryView.tsx` | Home/library screen — cards grid, sort/filter, upload+metadata modal |
+| `LibraryView.css` | Library view styles |
+
+### `src/components/library/`
+| File | Purpose |
+|------|---------|
+| `LibraryCard.tsx` | Individual piece card — title, composer, genre, year, key, measures, last opened |
+| `LibraryCard.css` | Card styles |
 
 ### `src/services/`
 | File | Purpose |
@@ -291,13 +314,13 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 - **RightPanel analysis** — readable labels per note, filtered to selected note
 - **Note color display fixed** — ref-managed div replaces `dangerouslySetInnerHTML`, React re-renders no longer wipe inline styles
 - **`annotation.ts` types cleaned** — `NoteColorAnnotation.colorType` is `CHORD_TONE | PASSING_TONE | NEIGHBOR_TONE` only
+- **שלב 1: Library View** — cards grid, sort/filter/search, metadata form modal, back-to-library button in TopBar, two-view routing via `currentView` in libraryStore
 
 ## What's pending ⬜
 
 - **FormalStrip** — needs measure-range annotations to render
 - **Right panel** — note pitch display from noteMap (not from Verovio attr)
 - **Mobile/touch** — not started
-- **שלב 1** — Library View (cards, sort, filter, metadata form)
 - **שלב 2** — StatusBar חכם (note names + chord detection)
 - **שלב 3–10** — ר' SPEC.md
 
