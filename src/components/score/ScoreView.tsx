@@ -180,16 +180,48 @@ const NOTE_COLORS: Record<string, string> = {
 
 // SVG element classes that can be colored by clicking
 const SVG_COLORABLE = ['dynam', 'artic', 'hairpin', 'tempo', 'ferm', 'trill', 'turn', 'mordent', 'ornament']
-const SVG_COLORABLE_SELECTOR = SVG_COLORABLE.map(c => `g.${c}`).join(', ')
+
+// Proximity hit-padding in pixels — makes thin elements like hairpins easy to click
+const SVG_HIT_PADDING = 12
+
+// Find the nearest SVG colorable element within SVG_HIT_PADDING pixels of the click.
+// Handles thin/stroke-only elements (hairpins, slurs) that are impossible to hit precisely.
+function findNearbyColorableElement(
+  clientX: number, clientY: number,
+  container: Element,
+): SVGGElement | null {
+  let bestEl: SVGGElement | null = null
+  let bestDist = SVG_HIT_PADDING + 1
+
+  SVG_COLORABLE.forEach(cls => {
+    container.querySelectorAll(`g.${cls}`).forEach(raw => {
+      const el = raw as SVGGElement
+      const bbox = el.getBoundingClientRect()
+      if (bbox.width === 0 && bbox.height === 0) return
+      // Distance from click point to nearest edge of bbox (0 if inside)
+      const dx = Math.max(bbox.left - clientX, 0, clientX - bbox.right)
+      const dy = Math.max(bbox.top  - clientY, 0, clientY - bbox.bottom)
+      const dist = Math.sqrt(dx * dx + dy * dy)
+      if (dist < bestDist) {
+        bestDist = dist
+        bestEl = el
+      }
+    })
+  })
+
+  return bestEl
+}
 
 function applySvgColors(container: Element, annotations: Record<string, any>, visible: Record<string, boolean>) {
-  // Clear previous svgColor styles
+  // Clear previous svgColor styles (both fill and stroke)
   SVG_COLORABLE.forEach(cls => {
     container.querySelectorAll(`g.${cls}`).forEach(el => {
       ;(el as SVGElement).style.color = ''
+      ;(el as SVGElement).style.stroke = ''
       el.querySelectorAll('*').forEach(child => {
         ;(child as SVGElement).style.fill = ''
         ;(child as SVGElement).style.color = ''
+        ;(child as SVGElement).style.stroke = ''
       })
     })
   })
@@ -204,9 +236,17 @@ function applySvgColors(container: Element, annotations: Record<string, any>, vi
       const el = siblings[ann.positionIndex] as SVGElement | undefined
       if (!el) return
       el.style.color = ann.color
+      // Smart coloring: stroke-only elements (hairpin, slur) → only change stroke
+      // Fill-based elements (dynam text, artic/ferm glyphs) → change fill
       el.querySelectorAll('*').forEach(child => {
-        ;(child as SVGElement).style.fill = ann.color
-        ;(child as SVGElement).style.color = ann.color
+        const c = child as SVGElement
+        if (c.getAttribute('fill') === 'none') {
+          // Stroke-only path (hairpin lines, slur arc) — don't fill the shape
+          c.style.stroke = ann.color
+        } else {
+          c.style.fill  = ann.color
+          c.style.color = ann.color
+        }
       })
     })
 }
@@ -462,20 +502,7 @@ export function ScoreView() {
   const handleScoreClick = useCallback((e: React.MouseEvent) => {
     if (didDragRef.current) return
 
-    // SVG element (dynamics, articulation, etc.) click → color picker
-    const svgColorEl = (e.target as Element).closest?.(SVG_COLORABLE_SELECTOR) as SVGGElement | null
-    if (svgColorEl && !e.shiftKey) {
-      const svgClass = SVG_COLORABLE.find(c => svgColorEl.classList.contains(c)) ?? ''
-      const allMeasures = Array.from(document.querySelectorAll('g.measure'))
-      const measureEl = svgColorEl.closest('g.measure')
-      const measureNum = measureEl ? allMeasures.indexOf(measureEl) + 1 : 1
-      const siblings = measureEl ? Array.from(measureEl.querySelectorAll(`g.${svgClass}`)) : []
-      const positionIndex = siblings.indexOf(svgColorEl)
-      setSvgColorPicker({ x: e.clientX, y: e.clientY, svgClass, measureNum, positionIndex })
-      return
-    }
-
-    // Harmony/chord symbol click
+    // Harmony/chord symbol click (exact — runs before proximity colorable check)
     const harmEl = (e.target as Element).closest?.('g.harm') as SVGGElement | null
     if (harmEl && !e.shiftKey) {
       const allMeasures = Array.from(document.querySelectorAll('g.measure'))
@@ -499,6 +526,26 @@ export function ScoreView() {
       setSelection({ type: 'note', measureStart: measureNum, measureEnd: measureNum, noteIds: [noteMapId], anchorMeasure: measureNum, anchorNoteId: noteMapId })
       showContextMenu(e.clientX, e.clientY)
       return
+    }
+
+    // SVG element (dynamics, articulation, hairpin, etc.) → color picker
+    // Runs AFTER note/harmony checks. Proximity-based (SVG_HIT_PADDING px) so thin
+    // elements like hairpins are easy to hit. Notes/measures take priority.
+    if (!e.shiftKey && scoreRef.current) {
+      const vrvContainer = scoreRef.current.querySelector('.vrv-svg')
+      if (vrvContainer) {
+        const svgColorEl = findNearbyColorableElement(e.clientX, e.clientY, vrvContainer)
+        if (svgColorEl) {
+          const svgClass = SVG_COLORABLE.find(c => svgColorEl.classList.contains(c)) ?? ''
+          const allMeasures = Array.from(document.querySelectorAll('g.measure'))
+          const measureEl = svgColorEl.closest('g.measure')
+          const measureNum = measureEl ? allMeasures.indexOf(measureEl) + 1 : 1
+          const siblings = measureEl ? Array.from(measureEl.querySelectorAll(`g.${svgClass}`)) : []
+          const positionIndex = siblings.indexOf(svgColorEl)
+          setSvgColorPicker({ x: e.clientX, y: e.clientY, svgClass, measureNum, positionIndex })
+          return
+        }
+      }
     }
 
     const hit = findMeasureAtPoint(e.clientX, e.clientY, elementMap)
