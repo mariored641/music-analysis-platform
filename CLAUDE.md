@@ -233,14 +233,23 @@ Note: Verovio `g.note` elements have NO `pname`/`oct` attributes — positional 
 ```typescript
 interface Annotation {
   id: string
-  layer: string        // 'harmony' | 'melody' | 'form' | 'motif' | 'label' | 'noteColor' | ...
+  layer: string        // 'harmony' | 'melody' | 'form' | 'motif' | 'label' | 'noteColor' | 'svgColor' | ...
   measureStart: number
   measureEnd?: number
   noteIds?: string[]   // ALWAYS noteMap IDs — never Verovio IDs
   scriptId?: string    // set when created by a script (e.g. 'melodyColor', 'motifFinder')
+  visualOffset?: { x: number; y: number }  // drag-to-reposition offset in SVG pixels
   // layer-specific fields: chordFunction, cadenceType, colorType, formLabel, label, variantType, ...
 }
 ```
+
+**`SvgColorAnnotation`** (`layer: 'svgColor'`) — colors non-note SVG elements (dynamics, articulation, hairpins, fermatas, etc.):
+```typescript
+{ layer: 'svgColor', color: string, svgClass: string, positionIndex: number, measureStart: number }
+```
+- `svgClass`: Verovio element class (`dynam` | `artic` | `hairpin` | `tempo` | `fermata` | `trill` | `turn` | `mordent` | `ornament` | `dir`)
+- `positionIndex`: index among elements of same class within the measure (stable across re-renders)
+- Applied by `applySvgColors()` in ScoreView — stroke-only for hairpins (`fill="none"` → only `stroke` changed), fill for glyphs/text
 
 Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `AnnotationOverlay`.
 
@@ -316,12 +325,13 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 - **`annotation.ts` types cleaned** — `NoteColorAnnotation.colorType` is `CHORD_TONE | PASSING_TONE | NEIGHBOR_TONE` only
 - **שלב 1: Library View** — cards grid, sort/filter/search, metadata form modal, back-to-library button in TopBar, two-view routing via `currentView` in libraryStore
 - **שלב 2: StatusBar חכם** — `chordDetector.ts` (pitch-class matching, jazz flat names), StatusBar מציג note names מ-noteMap, זיהוי אקורד אוטומטי, לחיצה על שם האקורד → HarmonyAnnotation. RightPanel pitch מ-noteMap.
+- **שלב 3: סלקציה מלאה** — ר' פירוט בסעיף "Stage 3" למטה.
 
 ## What's pending ⬜
 
 - **FormalStrip** — needs measure-range annotations to render
 - **Mobile/touch** — not started
-- **שלב 3–10** — ר' SPEC.md
+- **שלב 4–10** — ר' SPEC.md
 
 ---
 
@@ -341,3 +351,29 @@ git add . && git commit -m "..." && git push origin master
 Always test with DONNALEE.XML (click "♩ Donna Lee" button on empty state).
 
 **Important:** After HMR, if useEffect deps array changed size — do a full page reload (Ctrl+Shift+R). HMR breaks on deps array size changes in React.
+
+---
+
+## Stage 3 — Full Selection (completed March 2026)
+
+### Selection — `anchorNoteId`
+`Selection` in `selectionStore.ts` now has `anchorNoteId?: string` — the "fixed" end for Shift+arrow extend/shrink:
+- Shift+→: anchor at start → extend right; anchor at end → shrink from left
+- Shift+←: anchor at end → extend left; anchor at start → shrink from right
+
+### `data-notemap-id` attribute
+`buildVrvNoteIdMap` stamps `data-notemap-id` on every `g.note` SVG element. All keyboard navigation reads this attribute — **never** uses ephemeral Verovio IDs in `getDomOrderedNoteIds` / `getMeasureNumForNote`.
+
+### Shift+↑/↓ — system navigation
+Detects `g.system` elements in Verovio SVG. Shift+↑ extends measureStart to the first measure of the system row above; Shift+↓ extends measureEnd to the last measure of the system row below.
+
+### SVG element coloring
+- Click `g.dynam`, `g.artic`, `g.hairpin`, `g.tempo`, `g.fermata`, `g.trill`, `g.turn`, `g.mordent`, `g.ornament`, `g.dir` → color picker popover
+- Proximity-based hit detection: `SVG_HIT_PADDING = 8px` around bbox — handles thin hairpins and small glyphs
+- Notes/harmony checked **first** — clicking a note never opens color picker by mistake
+- **Smart coloring**: elements with `fill="none"` (hairpins, slurs) → only `stroke` changed; glyph/text elements → `fill` changed
+- Stored as `SvgColorAnnotation` identified by `svgClass + positionIndex + measureStart` (stable across re-renders)
+- Verovio class names: `fermata` (not `ferm`), `dir` for text directions
+
+### Drag annotations
+`AnnotationOverlay` → each annotation shape is draggable (`pointerEvents: 'all'`, `cursor: 'move'`). Drag commits `visualOffset: {x,y}` to `annotationStore.updateAnnotation` on mouseup. Live preview during drag via local `useState`.

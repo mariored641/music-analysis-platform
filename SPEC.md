@@ -339,15 +339,15 @@
 
 ---
 
-### שלב 3 — סלקציה מלאה
+### שלב 3 — סלקציה מלאה ✅ (הושלם מרץ 2026)
 **מטרה:** בחירה אינטואיטיבית של כל רכיב בפרטיטורה.
 
-- [ ] Shift+→/← הרחבת/צמצום בחירה תו אחד
-- [ ] Shift+↑/↓ הרחבה לחמשה מעלה/מטה
-- [ ] מיפוי dynamics, articulation, ligatures, tempo ב-buildElementMap
-- [ ] בחירת כל רכיב SVG → צביעה בצבע חופשי
-- [ ] גרירת annotations לשינוי מיקום ויזואלי (drag to reposition)
-- [ ] שינוי anchor note של annotation (מיקום "אמיתי")
+- [x] Shift+→/← הרחבת/צמצום בחירה תו אחד (עם anchorNoteId — extend/shrink)
+- [x] Shift+↑/↓ הרחבה לחמשה מעלה/מטה (g.system detection)
+- [x] מיפוי dynamics, articulation, hairpin, tempo, fermata ב-SVG_COLORABLE
+- [x] בחירת כל רכיב SVG → צביעה בצבע חופשי (SvgColorAnnotation, proximity hit)
+- [x] גרירת annotations לשינוי מיקום ויזואלי (visualOffset, drag-to-reposition)
+- [ ] שינוי anchor note של annotation (מיקום "אמיתי") — נדחה לשלב מאוחר יותר
 
 ---
 
