@@ -4,6 +4,8 @@ import { LeftPanel } from './components/layout/LeftPanel'
 import { RightPanel } from './components/layout/RightPanel'
 import { StatusBar } from './components/layout/StatusBar'
 import { ScoreView } from './components/score/ScoreView'
+import { LibraryView } from './views/LibraryView'
+import { useLibraryStore } from './store/libraryStore'
 import { useAutoSave } from './hooks/useAutoSave'
 import { useKeyboard } from './hooks/useKeyboard'
 import { usePlayback } from './hooks/usePlayback'
@@ -17,7 +19,8 @@ export function App() {
   useKeyboard()
   usePlayback()
 
-  // Set RTL/LTR based on language
+  const currentView = useLibraryStore(s => s.currentView)
+
   useEffect(() => {
     document.dir = i18n.language === 'he' ? 'rtl' : 'ltr'
     const onLangChange = (lng: string) => {
@@ -26,6 +29,10 @@ export function App() {
     i18n.on('languageChanged', onLangChange)
     return () => i18n.off('languageChanged', onLangChange)
   }, [])
+
+  if (currentView === 'library') {
+    return <LibraryView />
+  }
 
   return (
     <div className="app">

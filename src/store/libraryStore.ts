@@ -8,18 +8,27 @@ export interface LibraryPiece {
   fileName: string
   totalMeasures: number
   lastOpened: number
+  dateAdded: number
+  lastModified: number
   key?: string
   timeSignature?: string
+  genre?: string
+  year?: number
+  notes?: string
 }
+
+export type AppView = 'library' | 'analysis'
 
 interface LibraryState {
   pieces: LibraryPiece[]
   activePieceId: string | null
+  currentView: AppView
 
   addPiece: (piece: LibraryPiece) => void
   removePiece: (id: string) => void
   setActive: (id: string | null) => void
   updatePiece: (id: string, patch: Partial<LibraryPiece>) => void
+  setView: (view: AppView) => void
 }
 
 export const useLibraryStore = create<LibraryState>()(
@@ -27,6 +36,9 @@ export const useLibraryStore = create<LibraryState>()(
     (set) => ({
       pieces: [],
       activePieceId: null,
+      currentView: 'library' as AppView,
+
+      setView: (view) => set({ currentView: view }),
 
       addPiece: (piece) => set((s) => {
         const existing = s.pieces.findIndex(p => p.id === piece.id)

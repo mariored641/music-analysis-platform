@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useScoreStore } from '../../store/scoreStore'
 import { usePlaybackStore } from '../../store/playbackStore'
 import { useAnnotationStore } from '../../store/annotationStore'
+import { useLibraryStore } from '../../store/libraryStore'
 import { exportToAnalysisJson, downloadJson } from '../../services/jsonExporter'
 import { ScriptPanel } from '../scripts/ScriptPanel'
 import i18n from '../../i18n/index'
@@ -13,6 +14,7 @@ export function TopBar() {
   const { metadata, xmlString, fileName, isDirty, isSaving, lastSaved } = useScoreStore()
   const { isPlaying, setPlaying, tempo, setTempo } = usePlaybackStore()
   const annotations = useAnnotationStore(s => s.annotations)
+  const setView = useLibraryStore(s => s.setView)
   const [scriptPanelOpen, setScriptPanelOpen] = useState(false)
 
   const toggleLang = () => {
@@ -39,6 +41,9 @@ export function TopBar() {
   return (
     <header className="topbar">
       <div className="topbar-left">
+        <button className="btn-back-library" onClick={() => setView('library')} title={i18n.language === 'he' ? 'חזרה לספריה' : 'Back to library'}>
+          ←
+        </button>
         <span className="topbar-logo">MAP</span>
         {metadata && (
           <div className="topbar-meta">
