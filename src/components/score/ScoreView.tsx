@@ -184,7 +184,7 @@ const SVG_COLORABLE = ['dynam', 'artic', 'hairpin', 'tempo', 'fermata', 'trill',
 
 // Proximity hit-padding in pixels — makes thin elements like hairpins easy to click
 // Also compensates for use-element bbox underreporting (fermata shows as 3x6px)
-const SVG_HIT_PADDING = 18
+const SVG_HIT_PADDING = 8
 
 // Find the nearest SVG colorable element within SVG_HIT_PADDING pixels of the click.
 // Handles thin/stroke-only elements (hairpins, slurs) that are impossible to hit precisely.
