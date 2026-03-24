@@ -351,14 +351,15 @@
 
 ---
 
-### שלב 4 — LeftPanel מחודש + Legend
+### שלב 4 — LeftPanel מחודש + Legend ✅ (הושלם מרץ 2026)
 **מטרה:** LeftPanel עם legend נשלף ו-palette ציור.
 
-- [ ] עיצוב מחדש של שורות שכבות (checkbox + חץ + legend)
-- [ ] Legend נשלף עם צבעים ותיאורים לכל שכבה, ניתן להשאיר פתוח
-- [ ] `ColorPalette.tsx` — עיגולי צבע + חלונית הגדרות (עובי, אטימות, צבע)
-- [ ] `stylusStore.ts` — activeColor, strokes, palette
-- [ ] שיוך צבע ל-layer + label טקסטואלי
+- [x] עיצוב מחדש של שורות שכבות (checkbox + חץ + legend)
+- [x] Legend נשלף עם צבעים ותיאורים לכל שכבה, ניתן להשאיר פתוח
+- [x] `ColorPalette.tsx` — עיגולי צבע + חלונית הגדרות (עובי, אטימות, צבע, שיוך שכבה, תווית)
+- [x] `stylusStore.ts` — activeColor, palette (5 צבעים ברירת מחדל), persisted
+- [x] שיוך צבע ל-layer + label טקסטואלי
+- [x] **עריכת צבעי legend** — לחיצה על נקודת legend פותחת color picker נטיבי; שינוי שמור ב-`layerStore.legendColors`; תווים מסומנים מעדכנים צבע מיידית (store subscription ב-ScoreView)
 
 ---
 

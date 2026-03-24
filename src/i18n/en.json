@@ -21,7 +21,23 @@
     "labels": "Labels",
     "texture": "Texture",
     "freehand": "Freehand",
-    "noteColor": "Note Color"
+    "noteColor": "Note Color",
+    "svgColor": "Element Color",
+    "show": "Show layer",
+    "hide": "Hide layer",
+    "expandLegend": "Open legend",
+    "collapseLegend": "Close legend"
+  },
+  "palette": {
+    "color": "Color",
+    "width": "Width",
+    "opacity": "Opacity",
+    "label": "Label",
+    "labelPlaceholder": "Description...",
+    "linkLayer": "Link to layer",
+    "noLink": "No link",
+    "add": "Add color",
+    "remove": "Remove color"
   },
   "tags": {
     "chord_tone": "Chord Tone",

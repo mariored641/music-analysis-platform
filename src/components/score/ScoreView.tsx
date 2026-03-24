@@ -2,7 +2,7 @@ import { useRef, useEffect, useState, useCallback } from 'react'
 import { useScoreStore } from '../../store/scoreStore'
 import { useSelectionStore } from '../../store/selectionStore'
 import { useAnnotationStore } from '../../store/annotationStore'
-import { useLayerStore } from '../../store/layerStore'
+import { useLayerStore, getEffectiveNoteColors } from '../../store/layerStore'
 import { usePlaybackStore } from '../../store/playbackStore'
 import { useLibraryStore } from '../../store/libraryStore'
 import { useTranslation } from 'react-i18next'
@@ -172,11 +172,6 @@ function lassoIntersects(
   )
 }
 
-const NOTE_COLORS: Record<string, string> = {
-  CHORD_TONE:    '#3b82f6',  // blue
-  PASSING_TONE:  '#a855f7',  // purple
-  NEIGHBOR_TONE: '#22c55e',  // green
-}
 
 // SVG element classes that can be colored by clicking
 // Use class names exactly as Verovio generates them
@@ -257,11 +252,12 @@ function applyNoteColors(
   container: Element,
   annotations: Record<string, any>,
   toVrv: Map<string, string>,
+  noteColors: Record<string, string>,
 ) {
   const noteColorAnns = Object.values(annotations).filter(a => a.layer === 'noteColor')
   let colored = 0, missed = 0
   noteColorAnns.forEach(ann => {
-    const color = NOTE_COLORS[ann.colorType]
+    const color = noteColors[ann.colorType]
     if (!color) return
     ann.noteIds?.forEach((id: string) => {
       const vrvId = toVrv.get(id) ?? id
@@ -385,7 +381,8 @@ export function ScoreView() {
       const freshAnnotations = useAnnotationStore.getState().annotations
       const freshVisible = useLayerStore.getState().visible
       if (freshVisible.noteColor) {
-        applyNoteColors(container, freshAnnotations, localToVrv)
+        const freshNoteColors = getEffectiveNoteColors(useLayerStore.getState().legendColors)
+        applyNoteColors(container, freshAnnotations, localToVrv, freshNoteColors)
       }
       applySvgColors(container, freshAnnotations, freshVisible)
     })
@@ -398,10 +395,27 @@ export function ScoreView() {
     if (!scoreRef.current) return
     const container = scoreRef.current.querySelector('.vrv-svg')
     if (!container) return
-    if (visible.noteColor) applyNoteColors(container, annotations, toVrv)
+    const noteColors = getEffectiveNoteColors(useLayerStore.getState().legendColors)
+    if (visible.noteColor) applyNoteColors(container, annotations, toVrv, noteColors)
     else clearNoteColors(container)
     applySvgColors(container, annotations, visible)
   }, [visible.noteColor, visible.svgColor, annotations, toVrv])
+
+  // Reapply note colors when legend color overrides change (subscription avoids deps-array size change)
+  useEffect(() => {
+    return useLayerStore.subscribe((state, prev) => {
+      if (state.legendColors === prev.legendColors) return
+      if (!scoreRef.current || !state.visible.noteColor) return
+      const container = scoreRef.current.querySelector('.vrv-svg')
+      if (!container) return
+      applyNoteColors(
+        container,
+        useAnnotationStore.getState().annotations,
+        useScoreStore.getState().toVrv,
+        getEffectiveNoteColors(state.legendColors),
+      )
+    })
+  }, [])
 
   // ── Mouse handlers for drag-lasso ─────────────────────────────────────────
 

@@ -21,7 +21,23 @@
     "labels": "תוויות",
     "texture": "מרקם",
     "freehand": "ציור חופשי",
-    "noteColor": "צבע תוים"
+    "noteColor": "צבע תוים",
+    "svgColor": "צבע אלמנטים",
+    "show": "הצג שכבה",
+    "hide": "הסתר שכבה",
+    "expandLegend": "פתח מקרא",
+    "collapseLegend": "סגור מקרא"
+  },
+  "palette": {
+    "color": "צבע",
+    "width": "עובי",
+    "opacity": "שקיפות",
+    "label": "תווית",
+    "labelPlaceholder": "תיאור...",
+    "linkLayer": "שייך לשכבה",
+    "noLink": "ללא שיוך",
+    "add": "הוסף צבע",
+    "remove": "הסר צבע"
   },
   "tags": {
     "chord_tone": "צליל הסכמה",

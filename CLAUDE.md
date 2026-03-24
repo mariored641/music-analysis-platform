@@ -35,7 +35,7 @@ Three-panel fixed layout:
 - **TopBar** — ← back-to-library button, title, language toggle, play button, BPM, JSON export, 🔬 Scripts button
 - **FormalStrip** — horizontal colored strip above score (form annotations)
 - **ScoreView** — main score rendering area with overlays
-- **LeftPanel** — layer toggles (library list moved to LibraryView)
+- **LeftPanel** — layer toggles with collapsible legends + freehand color palette
 - **RightPanel** — selection details, tag count, open questions, analysis summary
 - **StatusBar** — key, time sig, selection info, shortcut hints
 
@@ -162,6 +162,12 @@ Note: Verovio `g.note` elements have NO `pname`/`oct` attributes — positional 
 ### `src/components/layout/`
 `TopBar.tsx`, `LeftPanel.tsx`, `RightPanel.tsx`, `StatusBar.tsx`
 
+### `src/components/stylus/`
+| File | Purpose |
+|------|---------|
+| `ColorPalette.tsx` | Color circles for freehand layer — click circle → popover (color picker, width, opacity, link to layer, label). Reads/writes `stylusStore` |
+| `ColorPalette.css` | Palette + popover styles |
+
 ### `src/components/menus/`
 `ContextMenu.tsx` — dispatcher
 `HarmonyMenu.tsx`, `MelodyMenu.tsx`, `FormMenu.tsx`, `MotifMenu.tsx`, `LabelMenu.tsx`, `NoteColorMenu.tsx`
@@ -177,8 +183,9 @@ Note: Verovio `g.note` elements have NO `pname`/`oct` attributes — positional 
 | `annotationStore.ts` | `annotations: Record<id, Annotation>`, undo stack (immer) |
 | `selectionStore.ts` | `selection` (type, measureStart, measureEnd, noteIds=noteMapIds, anchorMeasure), `contextMenu` |
 | `playbackStore.ts` | `isPlaying`, `currentMeasure`, `bpm` |
-| `layerStore.ts` | `visible: Record<layerId, boolean>` — 8 layers, persisted to localStorage. Methods: `toggle`, `setVisible`, `setAll` |
+| `layerStore.ts` | `visible: Record<layerId, boolean>`, `legendColors: Record<string,string>` (key: `"layerId:itemIndex"`). Methods: `toggle`, `setVisible`, `setAll`, `setLegendColor`. Exports `getEffectiveNoteColors(legendColors)` |
 | `libraryStore.ts` | `pieces[]`, `activePieceId`, `currentView: 'library'\|'analysis'`, `setView()` |
+| `stylusStore.ts` | `palette: PaletteEntry[]` (color/width/opacity/linkedLayer/label), `activeColorId`. Persisted to localStorage |
 
 ### `src/views/`
 | File | Purpose |
@@ -326,6 +333,7 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 - **שלב 1: Library View** — cards grid, sort/filter/search, metadata form modal, back-to-library button in TopBar, two-view routing via `currentView` in libraryStore
 - **שלב 2: StatusBar חכם** — `chordDetector.ts` (pitch-class matching, jazz flat names), StatusBar מציג note names מ-noteMap, זיהוי אקורד אוטומטי, לחיצה על שם האקורד → HarmonyAnnotation. RightPanel pitch מ-noteMap.
 - **שלב 3: סלקציה מלאה** — ר' פירוט בסעיף "Stage 3" למטה.
+- **שלב 4: LeftPanel מחודש + Legend** — ר' פירוט בסעיף "Stage 4" למטה.
 
 ## What's pending ⬜
 
@@ -377,3 +385,31 @@ Detects `g.system` elements in Verovio SVG. Shift+↑ extends measureStart to th
 
 ### Drag annotations
 `AnnotationOverlay` → each annotation shape is draggable (`pointerEvents: 'all'`, `cursor: 'move'`). Drag commits `visualOffset: {x,y}` to `annotationStore.updateAnnotation` on mouseup. Live preview during drag via local `useState`.
+
+---
+
+## Stage 4 — LeftPanel Redesign + Legend (completed March 2026)
+
+### LeftPanel layout
+Each layer row: `[checkbox] [label] [▸ expand]`
+- Clicking the **checkbox area** → toggles layer visibility (`layerStore.toggle`)
+- Clicking **▸** → collapses/expands the legend inline (local `Set<LayerId>` state)
+- Legend persists open while working — no auto-close
+
+### Legend items
+`layers.ts` — each `LayerConfig` has `legend?: LegendItem[]` with `{ color, colorKey?, labelHe, labelEn }`.
+- `colorKey` (on noteColor layer items) links the item to `NOTE_COLORS` key (`CHORD_TONE` / `PASSING_TONE` / `NEIGHBOR_TONE`)
+- Legend dots are `<label>` wrapping a hidden `<input type="color">` → click dot → native color picker
+
+### Editable legend colors
+`layerStore.legendColors: Record<string, string>` — key `"${layerId}:${itemIndex}"`, persisted.
+- `setLegendColor(layerId, itemIndex, color)` saves override
+- `getEffectiveNoteColors(legendColors)` (exported) → merges defaults with user overrides
+- `ScoreView` subscribes via `useLayerStore.subscribe` (NOT in deps array — avoids HMR deps-array-size error) → calls `applyNoteColors` with new colors immediately when any noteColor legend item changes
+
+### ColorPalette (freehand layer)
+`stylusStore.ts` — `palette: PaletteEntry[]` (id/color/width/opacity/linkedLayer/label), `activeColorId`. Persisted.
+`ColorPalette.tsx` — rendered inside freehand layer's expanded legend:
+- Colored circles + `+` add / `×` remove (on hover)
+- Click circle → marks active + opens inline popover (color picker, width slider, opacity slider, text label, link-to-layer select)
+- Popover closes on outside click
