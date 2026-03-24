@@ -7,6 +7,7 @@ type LayerVisibility = Record<LayerId, boolean>
 interface LayerState {
   visible: LayerVisibility
   toggle: (id: LayerId) => void
+  setVisible: (id: LayerId, value: boolean) => void
   setAll: (visible: boolean) => void
 }
 
@@ -26,6 +27,7 @@ export const useLayerStore = create<LayerState>()(
     (set) => ({
       visible: defaults,
       toggle: (id) => set((s) => ({ visible: { ...s.visible, [id]: !s.visible[id] } })),
+      setVisible: (id, value) => set((s) => ({ visible: { ...s.visible, [id]: value } })),
       setAll: (visible) => set((s) => ({
         visible: Object.fromEntries(Object.keys(s.visible).map(k => [k, visible])) as LayerVisibility
       })),

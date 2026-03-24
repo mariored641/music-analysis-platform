@@ -64,6 +64,61 @@ export interface NoteElement {
   staffBboxes: DOMRect[]  // one per g.staff child — used for hit detection and selection display
 }
 
+/**
+ * Builds two ID mappings between noteMap IDs and Verovio SVG element IDs.
+ *
+ * Strategy: positional matching within each measure/staff.
+ * Verovio SVG g.note elements have NO pitch attributes — we sort both
+ * sequences by position (x-coord for SVG, beat for noteMap) and zip them 1:1.
+ *
+ * This works because:
+ *  - Verovio g.note excludes rests (those are g.rest), matching noteMap's step!='R' filter
+ *  - Both sequences are in beat order within each measure
+ *  - DONNALEE.XML: 643 notes, all in staff 1 (first g.staff per measure)
+ *
+ * Returns:
+ *   toVrv   — noteMapId → verovioId   (rendering: apply colors to SVG elements)
+ *   fromVrv — verovioId → noteMapId   (click: translate SVG click → noteMap lookup)
+ */
+function buildVrvNoteIdMap(
+  container: Element,
+  noteMap: import('../../types/score').NoteMap,
+): { toVrv: Map<string, string>; fromVrv: Map<string, string> } {
+  const toVrv   = new Map<string, string>()
+  const fromVrv = new Map<string, string>()
+
+  const measureEls = Array.from(container.querySelectorAll('g.measure'))
+
+  measureEls.forEach((measureEl, index) => {
+    const measureNum = index + 1
+
+    // First g.staff = melody staff (staff 1)
+    const staff1El = measureEl.querySelector(':scope > g.staff')
+    if (!staff1El) return
+
+    // Verovio notes in this staff, sorted left→right (= chronological beat order)
+    const vrvNotes = Array.from(staff1El.querySelectorAll('g.note'))
+      .filter(el => !!el.id)
+      .sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left)
+
+    if (vrvNotes.length === 0) return
+
+    // NoteMap notes for same measure, staff 1, no rests — sorted by beat
+    const nmNotes = Array.from(noteMap.notes.values())
+      .filter(n => n.measureNum === measureNum && n.staff === 1 && n.step !== 'R')
+      .sort((a, b) => a.beat - b.beat)
+
+    // Positional zip — counts must match; if they don't, skip mismatched tail
+    const len = Math.min(vrvNotes.length, nmNotes.length)
+    for (let i = 0; i < len; i++) {
+      toVrv.set(nmNotes[i].id, vrvNotes[i].id)
+      fromVrv.set(vrvNotes[i].id, nmNotes[i].id)
+    }
+  })
+
+  return { toVrv, fromVrv }
+}
+
 // Build element map from Verovio SVG DOM.
 function buildElementMap(container: Element): Map<string, NoteElement> {
   const elementMap = new Map<string, NoteElement>()
@@ -122,12 +177,18 @@ const NOTE_COLORS: Record<string, string> = {
   unanalyzed: '#9ca3af',
 }
 
-function applyNoteColors(container: Element, annotations: Record<string, any>) {
+function applyNoteColors(
+  container: Element,
+  annotations: Record<string, any>,
+  toVrv: Map<string, string>,
+) {
   Object.values(annotations)
     .filter(a => a.layer === 'noteColor')
     .forEach(ann => {
       ann.noteIds?.forEach((id: string) => {
-        const el = container.querySelector(`#${id}`)
+        // id is a noteMap ID — translate to Verovio SVG ID for DOM lookup
+        const vrvId = toVrv.get(id) ?? id
+        const el = container.querySelector(`#${CSS.escape(vrvId)}`)
         if (!el) return
         const color = NOTE_COLORS[ann.colorType] ?? NOTE_COLORS.unanalyzed
         el.querySelectorAll('path, use, ellipse, rect').forEach(shape => {
@@ -153,6 +214,12 @@ export function ScoreView() {
   const annotations = useAnnotationStore(s => s.annotations)
   const { currentMeasure, isPlaying } = usePlaybackStore()
   const highlightedMeasure = isPlaying ? currentMeasure : null
+
+  const setToVrv = useScoreStore(s => s.setToVrv)
+  const toVrv    = useScoreStore(s => s.toVrv)
+  const noteMap  = useScoreStore(s => s.noteMap)
+  // fromVrv: verovioId → noteMapId — only used in click handlers, kept as ref (no re-render needed)
+  const fromVrvRef = useRef(new Map<string, string>())
 
   const scoreRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -208,18 +275,27 @@ export function ScoreView() {
     requestAnimationFrame(() => {
       const eMap = buildElementMap(container)
       setElementMap(eMap)
-      if (visible.noteColor) applyNoteColors(container, annotations)
+      let localToVrv = new Map<string, string>()
+      if (noteMap) {
+        const maps = buildVrvNoteIdMap(container, noteMap)
+        localToVrv = maps.toVrv
+        fromVrvRef.current = maps.fromVrv
+        setToVrv(localToVrv)
+      }
+      if (visible.noteColor) applyNoteColors(container, annotations, localToVrv)
     })
-  }, [svgContent]) // eslint-disable-line react-hooks/exhaustive-deps
+  // noteMap in deps: if noteMap arrives after svgContent (async session restore),
+  // this effect re-fires and builds the ID maps correctly.
+  }, [svgContent, noteMap]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reapply note colors when layer/annotations change
   useEffect(() => {
     if (!scoreRef.current) return
     const container = scoreRef.current.querySelector('.vrv-svg')
     if (!container) return
-    if (visible.noteColor) applyNoteColors(container, annotations)
+    if (visible.noteColor) applyNoteColors(container, annotations, toVrv)
     else clearNoteColors(container)
-  }, [visible.noteColor, annotations])
+  }, [visible.noteColor, annotations, toVrv])
 
   // ── Mouse handlers for drag-lasso ─────────────────────────────────────────
 
@@ -290,7 +366,8 @@ export function ScoreView() {
     container.querySelectorAll('g.note').forEach(noteEl => {
       const bbox = noteEl.getBoundingClientRect()
       if (lassoIntersects(bbox, lassoRect) && noteEl.id) {
-        hitNoteIds.push(noteEl.id)
+        // Translate Verovio ID → noteMap ID (stable, renderer-agnostic)
+        hitNoteIds.push(fromVrvRef.current.get(noteEl.id) ?? noteEl.id)
         const measureEl = noteEl.closest('g.measure')
         const idx = measureEl ? allMeasures.indexOf(measureEl) : -1
         if (idx >= 0) hitMeasureNums.push(idx + 1)
@@ -340,7 +417,9 @@ export function ScoreView() {
       const measureEl = noteEl.closest('g.measure') as Element | null
       const measureIndex = measureEl ? allMeasures.indexOf(measureEl) : -1
       const measureNum = measureIndex >= 0 ? measureIndex + 1 : 1
-      setSelection({ type: 'note', measureStart: measureNum, measureEnd: measureNum, noteIds: [noteEl.id], anchorMeasure: measureNum })
+      // Translate Verovio ID → noteMap ID
+      const noteMapId = fromVrvRef.current.get(noteEl.id) ?? noteEl.id
+      setSelection({ type: 'note', measureStart: measureNum, measureEnd: measureNum, noteIds: [noteMapId], anchorMeasure: measureNum })
       showContextMenu(e.clientX, e.clientY)
       return
     }
@@ -417,6 +496,7 @@ export function ScoreView() {
               containerRef={scoreRef}
               scrollRef={scrollRef}
               playbackMeasure={highlightedMeasure}
+              toVrv={toVrv}
             />
           )}
           {svgContent && (
@@ -425,6 +505,7 @@ export function ScoreView() {
               elementMap={elementMap}
               containerRef={scoreRef}
               scrollRef={scrollRef}
+              toVrv={toVrv}
             />
           )}
           {/* Lasso rect — direct DOM updates, zero React re-renders */}
