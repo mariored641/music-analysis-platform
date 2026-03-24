@@ -1,12 +1,7 @@
 # MAP — Music Analysis Platform
 ## SPEC.md — Vision, Workflow & Implementation Roadmap
 
-> **מקור:** תיאור ויז'ן מלא של מריו (מרץ 2026), מאוחד עם הארכיטקטורה הקיימת מ-CLAUDE.md.
-> **מטרה:** מסמך אחד שמגדיר מה MAP צריך להיות — למריו ולכל סשן קלוד עתידי.
-
----
-
-## 1. תיאור הוויז'ן המקורי — במילים של מריו (מלא, כפי שנאמר)
+## 1. תיאור הוויז'ן המקורי — במילים של מריו
 
 אני פותח את האפליקציה ויש מולי ספריה של כל היצירות שכבר העלתי לאפליקציה, אני יכול למיין/לסנן את הספריה על ידי ז'אנר, א-ב, מהישן לחדש, האחרון שהשתנה/נפתח, מחבר.
 
@@ -48,10 +43,7 @@
 
 הוא **לא** notation editor (לא MuseScore). הוא **לא** player בלבד.
 
-הוא **ה-layer האנליטי מעל הפרטיטורה** — notebook, canvas, סקריפט-IDE, וכלי-תיוג, הכל על גבי score.
-
-### אנלוגיה
-> MuseScore לרנדור + Notion לטקסט + Obsidian לקישורים + Procreate לציור = MAP
+הוא **ה-layer האנליטי מעל הפרטיטורה** — notebook, canvas, סקריפט-IDE, וכלי-תיוג, הכל על גבי score. (MuseScore לרנדור + Notion לטקסט + Obsidian לקישורים + Procreate לציור)
 
 ---
 
@@ -283,16 +275,13 @@
 | `stylusStore` | **חדש** — strokes, palette, activeColor |
 | `researchStore` | **חדש** — research notes + links |
 
-### 5.3 קבצים קיימים שצריך לשנות
+### 5.3 קבצים קיימים שצריך לשנות (שלבים 1–3)
 | קובץ | מה צריך |
 |------|---------|
-| `ScoreView.tsx` | תיקון dangerouslySetInnerHTML → ref-managed div (באג צביעה) |
-| `ScoreView.tsx` | הוספת סלקציה ל-Shift+חצים |
-| `ScoreView.tsx` | מיפוי dynamics/articulation/ligatures (לא רק notes) |
-| `LeftPanel.tsx` | עיצוב מחדש — legend נשלף + stylus palette |
+| `ScoreView.tsx` | Shift+חצים, מיפוי dynamics/articulation |
+| `LeftPanel.tsx` | legend נשלף + stylus palette |
 | `RightPanel.tsx` | מצב Tags + מצב Research Notes |
-| `StatusBar.tsx` | הצגת note names + chord detection + כפתור הוספת אקורד |
-| `annotation.ts` | הסרת CHROMATIC/AMBIGUOUS מה-type |
+| `StatusBar.tsx` | note names + chord detection + הוספת אקורד |
 
 ### 5.4 קבצים חדשים שצריך ליצור
 | קובץ | מה הוא עושה |
@@ -310,9 +299,6 @@
 ---
 
 ## 6. שלבי הקמה — Roadmap
-
-> **כלל:** כל שלב = סשן עבודה אחד עם Claude Code. בתחילת כל סשן: פתיחת CLAUDE.md + SPEC.md.
-> **כלל:** לא מתחילים שלב חדש לפני שהשלב הנוכחי עובד ונבדק עם DONNALEE.XML.
 
 ---
 
@@ -436,13 +422,9 @@
 
 ## 7. חוקי עבודה עם Claude Code
 
-1. **תמיד פתח CLAUDE.md + SPEC.md בתחילת כל סשן**
-2. **עובד על שלב אחד בכל פעם** — לא מתחילים שלב חדש לפני שהשלב הנוכחי עובד ונבדק
-3. **אחרי כל שינוי:** `npm run build` לפני push
-4. **branch:** תמיד main/master, ללא branches
-5. **test file:** תמיד DONNALEE.XML (לחיצה על "♩ Donna Lee" במצב ריק)
-6. **אחרי HMR שינה deps array:** Ctrl+Shift+R (full reload)
-7. **שינויים ב-.analysis.json** על ידי Claude Code → נטענים ב-MAP בפתיחה הבאה (אחרי שלב 7)
+1. פתח CLAUDE.md + SPEC.md בתחילת כל סשן
+2. **שלב אחד בכל פעם** — לא מתחילים שלב חדש לפני שהנוכחי עובד ונבדק עם DONNALEE.XML
+3. שינויים ב-`.analysis.json` ע"י Claude Code → נטענים ב-MAP בפתיחה הבאה (אחרי שלב 7)
 
 ---
 
