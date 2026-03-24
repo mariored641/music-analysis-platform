@@ -315,13 +315,12 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 - **Note color display fixed** — ref-managed div replaces `dangerouslySetInnerHTML`, React re-renders no longer wipe inline styles
 - **`annotation.ts` types cleaned** — `NoteColorAnnotation.colorType` is `CHORD_TONE | PASSING_TONE | NEIGHBOR_TONE` only
 - **שלב 1: Library View** — cards grid, sort/filter/search, metadata form modal, back-to-library button in TopBar, two-view routing via `currentView` in libraryStore
+- **שלב 2: StatusBar חכם** — `chordDetector.ts` (pitch-class matching, jazz flat names), StatusBar מציג note names מ-noteMap, זיהוי אקורד אוטומטי, לחיצה על שם האקורד → HarmonyAnnotation. RightPanel pitch מ-noteMap.
 
 ## What's pending ⬜
 
 - **FormalStrip** — needs measure-range annotations to render
-- **Right panel** — note pitch display from noteMap (not from Verovio attr)
 - **Mobile/touch** — not started
-- **שלב 2** — StatusBar חכם (note names + chord detection)
 - **שלב 3–10** — ר' SPEC.md
 
 ---

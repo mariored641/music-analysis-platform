@@ -69,10 +69,12 @@ export function RightPanel() {
               <span className="detail-label">Notes</span>
               <span className="detail-value">{measureData.notes.length}</span>
             </div>
-            {selection.type === 'note' && (selection as any).notePitch && (
+            {selection.type === 'note' && selection.noteIds?.length === 1 && noteMap && (
               <div className="detail-row">
                 <span className="detail-label">Pitch</span>
-                <span className="detail-value">{(selection as any).notePitch}</span>
+                <span className="detail-value">
+                  {noteMap.notes.get(selection.noteIds[0])?.pitch ?? '—'}
+                </span>
               </div>
             )}
           </div>

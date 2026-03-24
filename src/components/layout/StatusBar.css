@@ -33,3 +33,23 @@
   padding: 0 4px;
   letter-spacing: 0.3px;
 }
+
+.status-chord-btn {
+  font-size: 11px;
+  font-family: inherit;
+  color: #a78bfa;
+  background: transparent;
+  border: 1px solid #4c1d9540;
+  border-radius: 3px;
+  padding: 0 5px;
+  height: 16px;
+  line-height: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.1s, border-color 0.1s;
+}
+.status-chord-btn:hover {
+  background: #4c1d9520;
+  border-color: #a78bfa;
+  color: #c4b5fd;
+}

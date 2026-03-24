@@ -328,14 +328,14 @@
 
 ---
 
-### שלב 2 — StatusBar חכם + chord detection
+### שלב 2 — StatusBar חכם + chord detection ✅ (הושלם מרץ 2026)
 **מטרה:** StatusBar מציג note names + מזהה אקורדים ומאפשר הוספתם.
 
-- [ ] `chordDetector.ts` — מ-noteIds (pitch classes) לשם אקורד
-- [ ] StatusBar מציג שמות תווים מה-noteMap (לא מ-Verovio attr)
-- [ ] כשמספר תווים נבחרים → זיהוי אקורד אוטומטי + כפתור "הוסף אקורד"
-- [ ] לחיצה → harmony annotation נוסף מעל תו ראשון
-- [ ] תיקון הצגת pitch ב-RightPanel מה-noteMap
+- [x] `chordDetector.ts` — מ-noteIds (pitch classes) לשם אקורד
+- [x] StatusBar מציג שמות תווים מה-noteMap (לא מ-Verovio attr)
+- [x] כשמספר תווים נבחרים → זיהוי אקורד אוטומטי + כפתור "הוסף אקורד"
+- [x] לחיצה → harmony annotation נוסף מעל תו ראשון
+- [x] תיקון הצגת pitch ב-RightPanel מה-noteMap
 
 ---
 
