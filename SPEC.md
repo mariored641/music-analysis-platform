@@ -286,7 +286,8 @@
 ### 5.4 קבצים חדשים שצריך ליצור
 | קובץ | מה הוא עושה |
 |------|------------|
-| `src/views/LibraryView.tsx` | מסך ספריה ראשי |
+| `src/views/LibraryView.tsx` | מסך ספריה ראשי ✅ |
+| `src/components/library/LibraryCard.tsx` | card יצירה ✅ |
 | `src/store/stylusStore.ts` | state לציור חופשי + palette |
 | `src/store/researchStore.ts` | state ל-research notes + links |
 | `src/services/syncService.ts` | File System Access API — סנכרון תיקייה |
@@ -312,16 +313,18 @@
 
 ---
 
-### שלב 1 — Library View
+### שלב 1 — Library View ✅ (הושלם מרץ 2026)
 **מטרה:** מסך ביתי שמציג את הספריה לפני הפרטיטורה.
 
-- [ ] `LibraryView.tsx` — רשת cards של יצירות
-- [ ] metadata fields: שם, מחבר, ז'אנר, שנה, הערות
-- [ ] מיון: א-ב, מחבר, ז'אנר, lastModified, lastOpened, dateAdded
-- [ ] סינון: ז'אנר, מחבר
-- [ ] העלאת יצירה חדשה + טופס metadata
-- [ ] ניווט חלק: Library ↔ Analysis View (← חזרה לספריה)
-- [ ] עדכון `libraryStore` לתמוך ב-metadata מלא
+- [x] `LibraryView.tsx` — רשת cards של יצירות (`src/views/LibraryView.tsx`)
+- [x] `LibraryCard.tsx` — card בודד עם שם, מחבר, ז'אנר, שנה, מפתח, מספר תיבות, תאריך פתיחה
+- [x] metadata fields: שם, מחבר, ז'אנר, שנה, הערות (טופס modal בעת העלאה)
+- [x] מיון: א-ב, מחבר, ז'אנר, lastModified, lastOpened, dateAdded
+- [x] סינון: ז'אנר, מחבר; חיפוש טקסט חופשי
+- [x] העלאת יצירה חדשה + טופס metadata pre-filled מה-XML
+- [x] ניווט חלק: Library ↔ Analysis View — `currentView` ב-`libraryStore`, "← חזרה לספריה" ב-TopBar
+- [x] עדכון `libraryStore` — fields חדשים: `genre`, `year`, `notes`, `dateAdded`, `lastModified`
+- [x] מחיקת יצירה מהספריה + IndexedDB
 
 ---
 
@@ -452,8 +455,13 @@
 - Annotations נטענים מ-IndexedDB בכל נתיב פתיחה
 - annotation.ts נוקה — CHROMATIC/AMBIGUOUS הוסרו
 
+✅ **שלב 1 הושלם (מרץ 2026):**
+- LibraryView — cards grid, sort/filter/search, metadata modal
+- LibraryCard — title, composer, genre, year, key, measures, lastOpened
+- libraryStore — genre/year/notes/dateAdded/lastModified + currentView + setView
+- ניווט Library ↔ Analysis View, כפתור "← חזרה לספריה" ב-TopBar
+
 ⬜ **חסר לחלוטין:**
-- Library View (יש רק רשימה בסיסית) — **שלב 1**
 - StatusBar חכם (note names, chord detection) — **שלב 2**
 - Shift+חצים (סלקציה מורחבת) — **שלב 3**
 - מיפוי dynamics/articulation/ligatures — **שלב 3**
