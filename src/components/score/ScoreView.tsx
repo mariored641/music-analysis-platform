@@ -171,10 +171,9 @@ function lassoIntersects(
 }
 
 const NOTE_COLORS: Record<string, string> = {
-  CT: '#3b82f6',
-  'NCT-diatonic': '#222222',
-  'NCT-chromatic': '#f97316',
-  unanalyzed: '#9ca3af',
+  CHORD_TONE:    '#3b82f6',  // blue
+  PASSING_TONE:  '#a855f7',  // purple
+  NEIGHBOR_TONE: '#22c55e',  // green
 }
 
 function applyNoteColors(
@@ -182,25 +181,32 @@ function applyNoteColors(
   annotations: Record<string, any>,
   toVrv: Map<string, string>,
 ) {
-  Object.values(annotations)
-    .filter(a => a.layer === 'noteColor')
-    .forEach(ann => {
-      ann.noteIds?.forEach((id: string) => {
-        // id is a noteMap ID — translate to Verovio SVG ID for DOM lookup
-        const vrvId = toVrv.get(id) ?? id
-        const el = container.querySelector(`#${CSS.escape(vrvId)}`)
-        if (!el) return
-        const color = NOTE_COLORS[ann.colorType] ?? NOTE_COLORS.unanalyzed
-        el.querySelectorAll('path, use, ellipse, rect').forEach(shape => {
-          (shape as SVGElement).style.fill = color
-        })
+  const noteColorAnns = Object.values(annotations).filter(a => a.layer === 'noteColor')
+  let colored = 0, missed = 0
+  noteColorAnns.forEach(ann => {
+    const color = NOTE_COLORS[ann.colorType]
+    if (!color) return
+    ann.noteIds?.forEach((id: string) => {
+      const vrvId = toVrv.get(id) ?? id
+      const el = container.querySelector(`#${CSS.escape(vrvId)}`)
+      if (!el) { missed++; return }
+      const notehead = el.querySelector('.notehead') ?? el.querySelector('use')
+      if (!notehead) return
+      ;(notehead as SVGElement).style.fill = color
+      ;(notehead as SVGElement).style.stroke = color
+      notehead.querySelectorAll('use, path, ellipse').forEach(child => {
+        (child as SVGElement).style.fill = color
+        ;(child as SVGElement).style.stroke = color
       })
+      colored++
     })
+  })
 }
 
 function clearNoteColors(container: Element) {
-  container.querySelectorAll('path, use, ellipse, rect').forEach(el => {
+  container.querySelectorAll('.notehead, .notehead *').forEach(el => {
     (el as SVGElement).style.fill = ''
+    ;(el as SVGElement).style.stroke = ''
   })
 }
 
@@ -237,6 +243,17 @@ export function ScoreView() {
   const lassoRectRef   = useRef<SVGRectElement>(null)
 
   const renderKeyRef = useRef(0)
+  const vrvDivRef = useRef<HTMLDivElement>(null)
+  const prevSvgRef = useRef('')
+
+  // Manually update vrv-svg innerHTML only when svgContent changes.
+  // This prevents React re-renders from wiping inline styles (note colors).
+  useEffect(() => {
+    if (!vrvDivRef.current) return
+    if (svgContent === prevSvgRef.current) return
+    prevSvgRef.current = svgContent
+    vrvDivRef.current.innerHTML = svgContent
+  }, [svgContent])
 
   // Core render function
   const doRender = useCallback((xml: string) => {
@@ -282,7 +299,12 @@ export function ScoreView() {
         fromVrvRef.current = maps.fromVrv
         setToVrv(localToVrv)
       }
-      if (visible.noteColor) applyNoteColors(container, annotations, localToVrv)
+      // Read fresh state directly — avoids stale-closure issue when SVG re-renders
+      // (React StrictMode / re-renders can replace the SVG after the rAF was scheduled)
+      const freshAnnotations = useAnnotationStore.getState().annotations
+      if (useLayerStore.getState().visible.noteColor) {
+        applyNoteColors(container, freshAnnotations, localToVrv)
+      }
     })
   // noteMap in deps: if noteMap arrives after svgContent (async session restore),
   // this effect re-fires and builds the ID maps correctly.
@@ -482,12 +504,7 @@ export function ScoreView() {
         >
           {rendering && <div className="score-loading">Rendering score…</div>}
           {scoreError && <div className="score-error">{scoreError}</div>}
-          {svgContent && (
-            <div
-              className="vrv-svg"
-              dangerouslySetInnerHTML={{ __html: svgContent }}
-            />
-          )}
+          <div className="vrv-svg" ref={vrvDivRef} />
           {svgContent && (
             <AnnotationOverlay
               annotations={annotations}
@@ -533,6 +550,13 @@ function OpenFileButton() {
       if (!file) return
       const text = await file.text()
       const noteMap = parseMusicXml(text)
+      const existing = await loadFile(file.name)
+      if (existing) {
+        useAnnotationStore.getState().loadAnnotations(existing.annotations)
+      } else {
+        useAnnotationStore.getState().loadAnnotations({})
+        await saveFile(file.name, text, {})
+      }
       useScoreStore.getState().setXml(text, file.name)
       useScoreStore.getState().setNoteMap(noteMap)
     }

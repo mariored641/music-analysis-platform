@@ -7,9 +7,10 @@ interface Props {
   elementMap: Map<string, NoteElement>
   containerRef: RefObject<HTMLDivElement | null>
   scrollRef: RefObject<HTMLDivElement | null>
+  toVrv?: Map<string, string>
 }
 
-export function SelectionOverlay({ selection, elementMap, containerRef, scrollRef }: Props) {
+export function SelectionOverlay({ selection, elementMap, containerRef, scrollRef, toVrv }: Props) {
   const [containerRect, setContainerRect] = useState<DOMRect | null>(null)
 
   useEffect(() => {
@@ -44,7 +45,9 @@ export function SelectionOverlay({ selection, elementMap, containerRef, scrollRe
       const staffGroups = new Map<string, { left: number; right: number; top: number; bottom: number }>()
 
       for (const noteId of selection.noteIds) {
-        const noteEl = document.getElementById(noteId)
+        // noteId is a noteMap ID — translate to Verovio SVG ID for DOM lookup
+        const vrvId = toVrv?.get(noteId) ?? noteId
+        const noteEl = document.getElementById(vrvId)
         if (!noteEl) continue
         const noteBbox = noteEl.getBoundingClientRect()
         if (noteBbox.width === 0) continue

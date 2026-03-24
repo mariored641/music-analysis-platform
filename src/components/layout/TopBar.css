@@ -76,7 +76,7 @@
 .save-status.saved { color: #22c55e; }
 .save-status.unsaved { color: #f59e0b; }
 
-.btn-play, .btn-export, .btn-lang {
+.btn-play, .btn-export, .btn-lang, .btn-scripts {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -90,8 +90,13 @@
   transition: background 0.15s;
 }
 
-.btn-play:hover, .btn-export:hover, .btn-lang:hover {
+.btn-play:hover, .btn-export:hover, .btn-lang:hover, .btn-scripts:hover {
   background: #2d2d4e;
+}
+
+.btn-scripts.active {
+  background: #1e3a5f;
+  border-color: #3b82f6;
 }
 
 .btn-play.active {

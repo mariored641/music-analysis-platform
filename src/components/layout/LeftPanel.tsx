@@ -55,7 +55,15 @@ export function LeftPanel() {
       if (!file) return
       const text = await file.text()
       const noteMap = parseMusicXml(text)
-      await saveFile(file.name, text, {})
+
+      // Check if we have saved annotations for this file
+      const existing = await loadFile(file.name)
+      if (existing) {
+        useAnnotationStore.getState().loadAnnotations(existing.annotations)
+      } else {
+        useAnnotationStore.getState().loadAnnotations({})
+        await saveFile(file.name, text, {})
+      }
 
       useScoreStore.getState().setXml(text, file.name)
       useScoreStore.getState().setNoteMap(noteMap)

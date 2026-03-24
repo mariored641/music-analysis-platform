@@ -43,6 +43,8 @@ export interface MotifAnnotation extends BaseAnnotation {
   label: string
   variantType?: 'original' | 'inversion' | 'retrograde' | 'augmentation' | 'diminution' | 'sequence' | 'fragmentation' | 'combination'
   crossRef?: string
+  matchScore?: number
+  scriptId?: string
 }
 
 export interface LabelAnnotation extends BaseAnnotation {
@@ -66,7 +68,8 @@ export interface FreehandAnnotation extends BaseAnnotation {
 
 export interface NoteColorAnnotation extends BaseAnnotation {
   layer: 'noteColor'
-  colorType: 'CT' | 'NCT-diatonic' | 'NCT-chromatic' | 'unanalyzed'
+  colorType: 'CHORD_TONE' | 'PASSING_TONE' | 'NEIGHBOR_TONE'
+  scriptId?: string
 }
 
 export interface OpenQuestion extends BaseAnnotation {

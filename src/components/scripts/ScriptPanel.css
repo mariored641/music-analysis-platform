@@ -1,0 +1,97 @@
+.script-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 280px;
+  background: #1a1a2e;
+  border: 1px solid #2d2d4e;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 500;
+  overflow: hidden;
+}
+
+[dir='rtl'] .script-panel {
+  right: auto;
+  left: 0;
+}
+
+.script-panel-header {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #64748b;
+  border-bottom: 1px solid #2d2d4e;
+}
+
+.script-panel-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.script-item {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #1e2240;
+  color: #e2e8f0;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+
+[dir='rtl'] .script-item {
+  text-align: right;
+}
+
+.script-item:last-child {
+  border-bottom: none;
+}
+
+.script-item:hover {
+  background: #252545;
+}
+
+.script-item.active {
+  background: #1a2a3e;
+}
+
+.script-item-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin-bottom: 3px;
+}
+
+.script-item.active .script-item-name {
+  color: #60a5fa;
+}
+
+.script-active-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  flex-shrink: 0;
+}
+
+.script-item-desc {
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.script-status-msg {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #22c55e;
+  border-top: 1px solid #2d2d4e;
+  background: #111827;
+}

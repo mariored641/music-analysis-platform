@@ -10,9 +10,10 @@ interface Props {
   containerRef: RefObject<HTMLDivElement | null>
   scrollRef?: RefObject<HTMLDivElement | null>
   playbackMeasure?: number
+  toVrv?: Map<string, string>
 }
 
-export function AnnotationOverlay({ annotations, visible, elementMap, containerRef, scrollRef, playbackMeasure }: Props) {
+export function AnnotationOverlay({ annotations, visible, elementMap, containerRef, scrollRef, playbackMeasure, toVrv }: Props) {
   const [containerRect, setContainerRect] = useState<DOMRect | null>(null)
 
   useEffect(() => {
@@ -66,17 +67,22 @@ export function AnnotationOverlay({ annotations, visible, elementMap, containerR
           annotation={ann}
           elementMap={elementMap}
           containerRect={containerRect}
+          toVrv={toVrv}
         />
       ))}
     </svg>
   )
 }
 
-function AnnotationShape({ annotation, elementMap, containerRect }: {
+function AnnotationShape({ annotation, elementMap, containerRect, toVrv }: {
   annotation: Annotation
   elementMap: Map<string, NoteElement>
   containerRect: DOMRect
+  toVrv?: Map<string, string>
 }) {
+  // noteColor annotations are rendered directly on SVG noteheads via applyNoteColors — no overlay rect
+  if (annotation.layer === 'noteColor') return null
+
   const layer = LAYER_MAP.get(annotation.layer)
   if (!layer) return null
 
@@ -88,7 +94,9 @@ function AnnotationShape({ annotation, elementMap, containerRect }: {
 
   if (noteIds.length > 0) {
     noteIds.forEach(id => {
-      const domEl = document.getElementById(id)
+      // id is a noteMap ID — translate to Verovio SVG ID for DOM lookup
+      const vrvId = toVrv?.get(id) ?? id
+      const domEl = document.getElementById(vrvId)
       if (!domEl) return
       const bbox = domEl.getBoundingClientRect()
       if (bbox.width === 0) return

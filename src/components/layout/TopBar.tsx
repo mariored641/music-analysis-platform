@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useScoreStore } from '../../store/scoreStore'
 import { usePlaybackStore } from '../../store/playbackStore'
 import { useAnnotationStore } from '../../store/annotationStore'
 import { exportToAnalysisJson, downloadJson } from '../../services/jsonExporter'
+import { ScriptPanel } from '../scripts/ScriptPanel'
 import i18n from '../../i18n/index'
 import './TopBar.css'
 
@@ -11,6 +13,7 @@ export function TopBar() {
   const { metadata, xmlString, fileName, isDirty, isSaving, lastSaved } = useScoreStore()
   const { isPlaying, setPlaying, tempo, setTempo } = usePlaybackStore()
   const annotations = useAnnotationStore(s => s.annotations)
+  const [scriptPanelOpen, setScriptPanelOpen] = useState(false)
 
   const toggleLang = () => {
     const next = i18n.language === 'he' ? 'en' : 'he'
@@ -72,6 +75,20 @@ export function TopBar() {
               ⬇ JSON
             </button>
           </>
+        )}
+        {metadata && (
+          <div style={{ position: 'relative' }}>
+            <button
+              className={`btn-scripts ${scriptPanelOpen ? 'active' : ''}`}
+              onClick={() => setScriptPanelOpen(p => !p)}
+              title={i18n.language === 'he' ? 'סקריפטים' : 'Scripts'}
+            >
+              🔬
+            </button>
+            {scriptPanelOpen && (
+              <ScriptPanel onClose={() => setScriptPanelOpen(false)} />
+            )}
+          </div>
         )}
         <button className="btn-lang" onClick={toggleLang} title="Switch language">
           {i18n.language === 'he' ? 'EN' : 'עב'}

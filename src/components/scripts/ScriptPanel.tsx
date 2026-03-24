@@ -4,7 +4,7 @@
  * Clicking a script runs it; clicking again clears its results and re-runs.
  */
 
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useScoreStore } from '../../store/scoreStore'
 import { useAnnotationStore } from '../../store/annotationStore'
@@ -54,6 +54,7 @@ export function ScriptPanel({ onClose }: Props) {
   const removeAnnotation = useAnnotationStore(s => s.removeAnnotation)
 
   const panelRef = useRef<HTMLDivElement>(null)
+  const [statusMsg, setStatusMsg] = useState<string | null>(null)
 
   // Close on outside click
   useEffect(() => {
@@ -88,11 +89,12 @@ export function ScriptPanel({ onClose }: Props) {
       const harmonyAnns = Object.values(annotations).filter(
         a => a.layer === 'harmony'
       ) as HarmonyAnnotation[]
-      const { annotations: newAnns, error } = runMelodyColorScript(noteMap, harmonyAnns, xmlString)
+      const { annotations: newAnns, error, count } = runMelodyColorScript(noteMap, harmonyAnns, xmlString)
       if (error) return error
       newAnns.forEach(ann => addAnnotation(ann))
-      // Auto-enable the noteColor layer so colors are immediately visible
       useLayerStore.getState().setVisible('noteColor', true)
+      const msg = isHe ? `✓ סיים — ${count} תווים נצבעו` : `✓ Done — ${count} notes colored`
+      setStatusMsg(msg)
       return null
     }
 
@@ -117,7 +119,7 @@ export function ScriptPanel({ onClose }: Props) {
   }
 
   function handleClick(scriptId: string) {
-    // Always clear previous results, then re-run
+    setStatusMsg(null)
     clearScript(scriptId)
     const error = runScript(scriptId)
     if (error) {
@@ -151,6 +153,9 @@ export function ScriptPanel({ onClose }: Props) {
           )
         })}
       </div>
+      {statusMsg && (
+        <div className="script-status-msg">{statusMsg}</div>
+      )}
     </div>
   )
 }

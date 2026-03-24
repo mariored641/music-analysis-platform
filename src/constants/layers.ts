@@ -21,12 +21,11 @@ export const LAYERS: LayerConfig[] = [
 
 export const LAYER_MAP = new Map(LAYERS.map(l => [l.id, l]))
 
-// Note coloring
-export const NOTE_COLORS = {
-  CT: '#3b82f6',           // chord tone — blue
-  'NCT-diatonic': '#1a1a1a', // diatonic non-chord tone — near black
-  'NCT-chromatic': '#f97316', // chromatic — orange
-  unanalyzed: '#9ca3af',   // gray
+// Note coloring (matches NoteColorAnnotation.colorType)
+export const NOTE_COLORS: Record<string, string> = {
+  CHORD_TONE:    '#3b82f6',  // blue
+  PASSING_TONE:  '#a855f7',  // purple
+  NEIGHBOR_TONE: '#22c55e',  // green
 }
 
 export const FORMAL_SECTION_COLORS: Record<string, string> = {

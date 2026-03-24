@@ -60,10 +60,14 @@ export function usePlayback() {
       for (const [, measure] of noteMap.measures) {
         if (measure.num < currentMeasure) continue
         for (const note of measure.notes) {
-          const beatOffset = (measure.num - 1) * beatsPerMeasure + (note.beat - 1)
-          const timeInBars = beatOffset / beatsPerMeasure
+          // Total beats from start (0-based)
+          const totalBeats = (measure.num - 1) * beatsPerMeasure + (note.beat - 1)
+          const bars = Math.floor(totalBeats / beatsPerMeasure)
+          const beatsInBar = Math.floor(totalBeats % beatsPerMeasure)
+          // Fractional beat → sixteenth-note subdivision (4 sixteenths per beat)
+          const sixteenths = Math.round((totalBeats % 1) * 4)
           events.push({
-            time: `${Math.floor(timeInBars)}:${Math.floor(beatOffset % beatsPerMeasure)}:0`,
+            time: `${bars}:${beatsInBar}:${sixteenths}`,
             note: note.pitch,
             dur: durationToTone(note.type),
             measure: note.measureNum,

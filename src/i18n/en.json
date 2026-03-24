@@ -60,5 +60,16 @@
     "open_questions": "Open Questions",
     "key": "Key",
     "range": "Range"
+  },
+  "scripts": {
+    "panel_title": "Scripts",
+    "melody_color_name": "Melody Colors",
+    "melody_color_desc": "Colors each note by its melodic role (chord tone, passing, neighbor, chromatic). Requires harmony annotations.",
+    "motif_finder_name": "Motif Finder",
+    "motif_finder_desc": "Select 2+ notes to define a motif, then find all occurrences (incl. inversions and retrogrades).",
+    "error_no_score": "No score is open.",
+    "error_no_harmony": "No harmony annotations found. Add chord symbols (Harmony layer) first.",
+    "error_no_chord_symbols": "Harmony annotations contain no chord symbols. Enter a chord symbol in the Harmony menu.",
+    "error_select_notes": "Select at least 2 notes before running Motif Finder."
   }
 }

@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { useSelectionStore } from '../../store/selectionStore'
 import { useScoreStore } from '../../store/scoreStore'
 import { useAnnotationStore } from '../../store/annotationStore'
-import { LAYER_MAP } from '../../constants/layers'
+import { LAYER_MAP, NOTE_COLORS } from '../../constants/layers'
 import './RightPanel.css'
 
 export function RightPanel() {
@@ -15,12 +15,21 @@ export function RightPanel() {
   const annotationList = Object.values(annotations)
   const openQuestions = annotationList.filter(a => (a as any).isQuestion).length
 
-  // Annotations touching the current selection range
+  // Annotations touching the current selection range.
+  // For noteColor annotations on a note selection, narrow to the exact selected note(s).
+  const selNoteIdSet = new Set(selection?.noteIds ?? [])
   const selectionAnnotations = selection
-    ? annotationList.filter(a =>
-        a.measureStart <= (selection.measureEnd ?? selection.measureStart) &&
-        (a.measureEnd ?? a.measureStart) >= selection.measureStart
-      ).sort((a, b) => a.measureStart - b.measureStart)
+    ? annotationList.filter(a => {
+        const inRange =
+          a.measureStart <= (selection.measureEnd ?? selection.measureStart) &&
+          (a.measureEnd ?? a.measureStart) >= selection.measureStart
+        if (!inRange) return false
+        if (a.layer === 'noteColor' && selNoteIdSet.size > 0) {
+          // noteIds on both sides are noteMap IDs — direct compare
+          return (a as any).noteIds?.some((id: string) => selNoteIdSet.has(id)) ?? false
+        }
+        return true
+      }).sort((a, b) => a.measureStart - b.measureStart)
     : []
 
   // Measure info from NoteMap
@@ -87,8 +96,22 @@ export function RightPanel() {
               const layer = LAYER_MAP.get(ann.layer)
               return (
                 <li key={ann.id} className="annotation-item">
-                  <span className="ann-layer-dot" style={{ background: layer?.color }} />
-                  <span className="ann-text">{getAnnotationSummary(ann)}</span>
+                  <span
+                    className="ann-layer-dot"
+                    style={{
+                      background: ann.layer === 'noteColor'
+                        ? (NOTE_COLORS[(ann as any).colorType] ?? layer?.color)
+                        : layer?.color
+                    }}
+                  />
+                  <span
+                    className="ann-text"
+                    style={{
+                      color: ann.layer === 'noteColor'
+                        ? (NOTE_COLORS[(ann as any).colorType] ?? undefined)
+                        : undefined
+                    }}
+                  >{getAnnotationSummary(ann)}</span>
                   <button
                     className="ann-delete"
                     onClick={() => removeAnnotation(ann.id)}
@@ -124,14 +147,21 @@ export function RightPanel() {
   )
 }
 
+const COLOR_TYPE_LABELS: Record<string, string> = {
+  CHORD_TONE:    'Chord Tone',
+  PASSING_TONE:  'Passing Tone',
+  NEIGHBOR_TONE: 'Neighbor Tone',
+}
+
 function getAnnotationSummary(ann: any): string {
   switch (ann.layer) {
-    case 'harmony': return ann.cadenceType || ann.scaleDegree || ann.chordSymbol || 'Harmony'
-    case 'melody':  return ann.noteFunction || ann.chromaticism || 'Melody'
-    case 'form':    return ann.midLevel || ann.highLevel || ann.lowLevel || 'Form'
-    case 'motif':   return `Motif ${ann.label}${ann.variantType && ann.variantType !== 'original' ? ` (${ann.variantType})` : ''}`
-    case 'labels':  return (ann.isQuestion ? '? ' : '') + (ann.text || 'Label')
-    case 'texture': return ann.textureType || 'Texture'
-    default:        return ann.layer
+    case 'harmony':   return ann.cadenceType || ann.scaleDegree || ann.chordSymbol || 'Harmony'
+    case 'melody':    return ann.noteFunction || ann.chromaticism || 'Melody'
+    case 'form':      return ann.midLevel || ann.highLevel || ann.lowLevel || 'Form'
+    case 'motif':     return `Motif ${ann.label}${ann.variantType && ann.variantType !== 'original' ? ` (${ann.variantType})` : ''}`
+    case 'labels':    return (ann.isQuestion ? '? ' : '') + (ann.text || 'Label')
+    case 'texture':   return ann.textureType || 'Texture'
+    case 'noteColor': return COLOR_TYPE_LABELS[ann.colorType] ?? ann.colorType ?? 'Note Color'
+    default:          return ann.layer
   }
 }
