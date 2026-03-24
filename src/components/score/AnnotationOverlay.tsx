@@ -83,30 +83,49 @@ function AnnotationShape({ annotation, elementMap, containerRect }: {
   const color = layer.color
   const noteIds = annotation.noteIds || []
 
-  const bboxes: DOMRect[] = []
+  // Tight bounding boxes — query DOM directly so chord symbols get tspan-accurate bounds
+  const regions: Array<{ left: number; top: number; right: number; bottom: number }> = []
 
-  // Note-level: use element map
-  noteIds.forEach(id => {
-    const el = elementMap.get(id)
-    if (el) bboxes.push(el.bbox)
-  })
+  if (noteIds.length > 0) {
+    noteIds.forEach(id => {
+      const domEl = document.getElementById(id)
+      if (!domEl) return
+      const bbox = domEl.getBoundingClientRect()
+      if (bbox.width === 0) return
 
-  // Measure-level: gather all notes in range
-  if (bboxes.length === 0 && isMeasureLevel(annotation)) {
-    for (const [, el] of elementMap) {
-      if (el.measureNum >= annotation.measureStart &&
-          el.measureNum <= (annotation.measureEnd ?? annotation.measureStart)) {
-        bboxes.push(el.bbox)
+      // Chord symbol (g.harm — no parent g.staff): use tspan bounds for tight rect
+      if (!domEl.closest('g.staff')) {
+        const tspans = Array.from(domEl.querySelectorAll('tspan')).filter(t => t.textContent?.trim())
+        const tboxes = tspans.map(t => t.getBoundingClientRect())
+        const tTop = tboxes.length > 0 ? Math.min(...tboxes.map(b => b.top)) : bbox.top
+        const smallBoxes = tboxes.filter(b => b.height < 15)
+        const tBottom = smallBoxes.length > 0
+          ? Math.max(...smallBoxes.map(b => b.bottom))
+          : bbox.top + bbox.height * 0.7
+        regions.push({ left: bbox.left, top: tTop, right: bbox.right, bottom: tBottom })
+      } else {
+        regions.push({ left: bbox.left, top: bbox.top, right: bbox.right, bottom: bbox.bottom })
       }
+    })
+  }
+
+  // Measure-level fallback: gather all measure staff bboxes in range
+  if (regions.length === 0 && isMeasureLevel(annotation)) {
+    for (let m = annotation.measureStart; m <= (annotation.measureEnd ?? annotation.measureStart); m++) {
+      const el = elementMap.get(`measure-${m - 1}`)
+      if (!el) continue
+      el.staffBboxes.forEach(sb => {
+        regions.push({ left: sb.left, top: sb.top, right: sb.right, bottom: sb.bottom })
+      })
     }
   }
 
-  if (bboxes.length === 0) return null
+  if (regions.length === 0) return null
 
-  const minX = Math.min(...bboxes.map(b => b.left)) - containerRect.left - 2
-  const minY = Math.min(...bboxes.map(b => b.top)) - containerRect.top - 2
-  const maxX = Math.max(...bboxes.map(b => b.right)) - containerRect.left + 2
-  const maxY = Math.max(...bboxes.map(b => b.bottom)) - containerRect.top + 2
+  const minX = Math.min(...regions.map(b => b.left))  - containerRect.left - 2
+  const minY = Math.min(...regions.map(b => b.top))   - containerRect.top  - 2
+  const maxX = Math.max(...regions.map(b => b.right)) - containerRect.left + 2
+  const maxY = Math.max(...regions.map(b => b.bottom))- containerRect.top  + 2
 
   const label = getAnnotationLabel(annotation)
 
