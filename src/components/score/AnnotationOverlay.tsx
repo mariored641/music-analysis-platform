@@ -721,10 +721,9 @@ function DefaultShape({ annotation, elementMap, containerRect, toVrv, onDragEnd,
 
 // ── PlaybackHighlightShape ────────────────────────────────────────────────────
 
-function PlaybackHighlightShape({ measureNum, elementMap, containerRect }: {
+function PlaybackHighlightShape({ measureNum, elementMap }: {
   measureNum: number
   elementMap: Map<string, NoteElement>
-  containerRect: DOMRect
 }) {
   const bboxes: DOMRect[] = []
   for (const el of elementMap.values()) {
@@ -732,15 +731,16 @@ function PlaybackHighlightShape({ measureNum, elementMap, containerRect }: {
   }
   if (bboxes.length === 0) return null
 
-  const minX = Math.min(...bboxes.map(b => b.left)) - containerRect.left - 4
-  const minY = Math.min(...bboxes.map(b => b.top)) - containerRect.top - 8
-  const maxX = Math.max(...bboxes.map(b => b.right)) - containerRect.left + 4
-  const maxY = Math.max(...bboxes.map(b => b.bottom)) - containerRect.top + 8
+  // elementMap bboxes are already container-relative — use directly as SVG coordinates
+  const minX = Math.min(...bboxes.map(b => b.left)) - 4
+  const minY = Math.min(...bboxes.map(b => b.top)) - 8
+  const maxX = Math.max(...bboxes.map(b => b.right)) + 4
+  const maxY = Math.max(...bboxes.map(b => b.bottom)) + 8
 
   return (
     <rect x={minX} y={minY} width={maxX - minX} height={maxY - minY}
-      fill="rgba(59,130,246,0.12)" stroke="rgba(59,130,246,0.3)"
-      strokeWidth="1" rx="3" />
+      fill="rgba(59,130,246,0.14)" stroke="rgba(59,130,246,0.5)"
+      strokeWidth="1.5" rx="3" />
   )
 }
 
@@ -888,7 +888,6 @@ export function AnnotationOverlay({ annotations, visible, elementMap, containerR
           <PlaybackHighlightShape
             measureNum={playbackMeasure}
             elementMap={elementMap}
-            containerRect={containerRect}
           />
         )}
         {annotationList.map(ann => {

@@ -43,7 +43,7 @@ function getSystemMeasureRange(systemEl: Element): { first: number; last: number
 export function useKeyboard() {
   const { undo, redo } = useAnnotationStore()
   const { clearSelection, hideContextMenu, showContextMenu, selection, setSelection } = useSelectionStore()
-  const { isPlaying, setPlaying } = usePlaybackStore()
+  const { isPlaying, isPaused, setPlaying, pausePlayback, resumePlayback } = usePlaybackStore()
   const totalMeasures = useScoreStore(s => s.noteMap?.metadata.totalMeasures ?? 999)
 
   // Keep a ref to the latest selection so arrow key handlers never see stale closures
@@ -73,7 +73,9 @@ export function useKeyboard() {
           if (document.activeElement instanceof HTMLElement) {
             document.activeElement.blur()
           }
-          setPlaying(!isPlaying)
+          if (isPlaying) pausePlayback()
+          else if (isPaused) resumePlayback()
+          else setPlaying(true)
           break
         case 'h':
         case 'H':
@@ -263,5 +265,5 @@ export function useKeyboard() {
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('keyup', onKeyUp)
     }
-  }, [undo, redo, clearSelection, hideContextMenu, showContextMenu, selection, setSelection, isPlaying, setPlaying, totalMeasures])
+  }, [undo, redo, clearSelection, hideContextMenu, showContextMenu, selection, setSelection, isPlaying, isPaused, setPlaying, pausePlayback, resumePlayback, totalMeasures])
 }

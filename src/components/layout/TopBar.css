@@ -94,6 +94,35 @@
 .save-status.saved { color: #22c55e; }
 .save-status.unsaved { color: #f59e0b; }
 
+.transport-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-stop, .btn-loop {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  border: 1px solid #2d2d4e;
+  border-radius: 6px;
+  background: #16213e;
+  color: #e2e8f0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-stop:hover { background: #3a1a1a; border-color: #ef4444; color: #fca5a5; }
+
+.btn-loop:hover { background: #1a2a3a; }
+.btn-loop.active {
+  background: #1a3a2a;
+  border-color: #22c55e;
+  color: #4ade80;
+}
+
 .btn-play, .btn-export, .btn-lang, .btn-scripts, .btn-sync {
   display: flex;
   align-items: center;
@@ -121,6 +150,11 @@
   background: #1e3a5f;
   border-color: #3b82f6;
   color: #60a5fa;
+}
+
+.btn-play.paused {
+  border-color: #f59e0b;
+  color: #fbbf24;
 }
 
 /* Sync folder button states */

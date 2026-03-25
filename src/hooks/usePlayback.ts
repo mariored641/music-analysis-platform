@@ -2,15 +2,34 @@ import { useEffect, useRef } from 'react'
 import { usePlaybackStore } from '../store/playbackStore'
 import { useScoreStore } from '../store/scoreStore'
 
-// Minimal Tone.js playback — synthesizes notes from the parsed NoteMap
 export function usePlayback() {
-  const { isPlaying, setPlaying, setPosition, tempo, currentMeasure } = usePlaybackStore()
+  const {
+    isPlaying, isPaused,
+    setPosition, stopPlayback,
+    tempo, startMeasure,
+    loopEnabled, loopStart, loopEnd,
+  } = usePlaybackStore()
   const noteMap = useScoreStore(s => s.noteMap)
-  const synthRef = useRef<any>(null)
-  const partRef = useRef<any>(null)
-  const toneRef = useRef<any>(null)
 
-  // Initialize Tone.js lazily
+  const synthRef  = useRef<any>(null)
+  const partRef   = useRef<any>(null)
+  const toneRef   = useRef<any>(null)
+
+  // Refs for values that should be captured once at play-start (not re-start on change)
+  const startMeasureRef = useRef(startMeasure)
+  const tempoRef        = useRef(tempo)
+  const loopEnabledRef  = useRef(loopEnabled)
+  const loopStartRef    = useRef(loopStart)
+  const loopEndRef      = useRef(loopEnd)
+  const noteMapRef      = useRef(noteMap)
+
+  useEffect(() => { startMeasureRef.current = startMeasure }, [startMeasure])
+  useEffect(() => { tempoRef.current = tempo }, [tempo])
+  useEffect(() => { loopEnabledRef.current = loopEnabled }, [loopEnabled])
+  useEffect(() => { loopStartRef.current = loopStart }, [loopStart])
+  useEffect(() => { loopEndRef.current = loopEnd }, [loopEnd])
+  useEffect(() => { noteMapRef.current = noteMap }, [noteMap])
+
   const getTone = async () => {
     if (toneRef.current) return toneRef.current
     const Tone = await import('tone')
@@ -18,33 +37,73 @@ export function usePlayback() {
     return Tone
   }
 
-  const stop = async () => {
+  // Live BPM update without restarting
+  useEffect(() => {
+    if (!toneRef.current || !isPlaying) return
+    toneRef.current.getTransport().bpm.value = tempo
+  }, [tempo, isPlaying])
+
+  // Full stop — dispose part + synth, reset transport
+  const doStop = async () => {
     const Tone = await getTone()
-    if (partRef.current) { partRef.current.stop(); partRef.current.dispose(); partRef.current = null }
-    Tone.getTransport().stop()
-    Tone.getTransport().position = 0
-    setPlaying(false)
-    setPosition(1, 0)
+    if (partRef.current) {
+      try { partRef.current.stop(0); partRef.current.dispose() } catch { /* ignore */ }
+      partRef.current = null
+    }
+    if (synthRef.current) {
+      try { synthRef.current.dispose() } catch { /* ignore */ }
+      synthRef.current = null
+    }
+    try {
+      Tone.getTransport().stop()
+      Tone.getTransport().loop = false
+      Tone.getTransport().position = 0
+    } catch { /* ignore */ }
+  }
+
+  // Pause — keep part alive, just suspend transport
+  const doPause = async () => {
+    const Tone = await getTone()
+    try { Tone.getTransport().pause() } catch { /* ignore */ }
   }
 
   useEffect(() => {
-    if (!isPlaying) {
-      stop()
+    // STOPPED
+    if (!isPlaying && !isPaused) {
+      doStop()
       return
     }
-    if (!noteMap) { setPlaying(false); return }
+
+    // PAUSED
+    if (!isPlaying && isPaused) {
+      doPause()
+      return
+    }
+
+    // PLAYING
+    // If part already alive (resume from pause) — just restart transport
+    if (partRef.current) {
+      getTone().then(Tone => {
+        try { Tone.getTransport().start() } catch { /* ignore */ }
+      })
+      return
+    }
+
+    // Fresh start
+    const nm = noteMapRef.current
+    if (!nm) { stopPlayback(); return }
 
     let cancelled = false
 
-    const start = async () => {
+    const freshStart = async () => {
       const Tone = await getTone()
       if (cancelled) return
 
       await Tone.start()
 
-      // Dispose previous
-      if (synthRef.current) { synthRef.current.dispose(); synthRef.current = null }
-      if (partRef.current) { partRef.current.dispose(); partRef.current = null }
+      // Clean up previous if any
+      if (synthRef.current) { try { synthRef.current.dispose() } catch { /* */ } synthRef.current = null }
+      if (partRef.current)  { try { partRef.current.stop(0); partRef.current.dispose() } catch { /* */ } partRef.current = null }
 
       const synth = new Tone.PolySynth(Tone.Synth, {
         oscillator: { type: 'triangle' },
@@ -53,19 +112,18 @@ export function usePlayback() {
       }).toDestination()
       synthRef.current = synth
 
-      // Build note events from NoteMap
+      const beatsPerMeasure = 4
+      const fromMeasure = startMeasureRef.current
       const events: Array<{ time: string; note: string; dur: string; measure: number; beat: number }> = []
-      const beatsPerMeasure = 4 // default; TODO: read from time sig
 
-      for (const [, measure] of noteMap.measures) {
-        if (measure.num < currentMeasure) continue
+      for (const [, measure] of nm.measures) {
+        if (measure.num < fromMeasure) continue
         for (const note of measure.notes) {
-          // Total beats from start (0-based)
-          const totalBeats = (measure.num - 1) * beatsPerMeasure + (note.beat - 1)
-          const bars = Math.floor(totalBeats / beatsPerMeasure)
-          const beatsInBar = Math.floor(totalBeats % beatsPerMeasure)
-          // Fractional beat → sixteenth-note subdivision (4 sixteenths per beat)
-          const sixteenths = Math.round((totalBeats % 1) * 4)
+          // Time offset so fromMeasure starts at t=0
+          const totalBeats = (measure.num - fromMeasure) * beatsPerMeasure + (note.beat - 1)
+          const bars        = Math.floor(totalBeats / beatsPerMeasure)
+          const beatsInBar  = Math.floor(totalBeats % beatsPerMeasure)
+          const sixteenths  = Math.round((totalBeats % 1) * 4)
           events.push({
             time: `${bars}:${beatsInBar}:${sixteenths}`,
             note: note.pitch,
@@ -76,15 +134,30 @@ export function usePlayback() {
         }
       }
 
-      if (events.length === 0) { setPlaying(false); return }
+      if (events.length === 0 || cancelled) { stopPlayback(); return }
 
-      Tone.getTransport().bpm.value = tempo || 120
+      const transport = Tone.getTransport()
+      transport.bpm.value = tempoRef.current || 120
+      transport.stop()
+      transport.position = 0
+      transport.loop = false
+
+      // Configure loop if enabled
+      const doLoop = loopEnabledRef.current
+      const ls = loopStartRef.current
+      const le = loopEndRef.current
+      if (doLoop && ls !== null && le !== null) {
+        const lsBeats = (ls - fromMeasure) * beatsPerMeasure
+        const leBeats = (le + 1 - fromMeasure) * beatsPerMeasure  // end of loopEnd measure
+        if (lsBeats >= 0 && leBeats > lsBeats) {
+          transport.loopStart = `${Math.floor(lsBeats / beatsPerMeasure)}:0:0`
+          transport.loopEnd   = `${Math.floor(leBeats / beatsPerMeasure)}:0:0`
+          transport.loop = true
+        }
+      }
 
       const part = new Tone.Part((time: number, event: any) => {
-        try {
-          synth.triggerAttackRelease(event.note, event.dur, time)
-        } catch { /* skip unparseable notes */ }
-        // Update position display
+        try { synth.triggerAttackRelease(event.note, event.dur, time) } catch { /* skip */ }
         Tone.getDraw().schedule(() => {
           setPosition(event.measure, event.beat)
         }, time)
@@ -92,29 +165,29 @@ export function usePlayback() {
 
       part.start(0)
       partRef.current = part
+      transport.start()
 
-      Tone.getTransport().start()
-
-      // Auto-stop when transport finishes
-      const lastEvent = events[events.length - 1]
-      const lastBarNum = parseFloat(lastEvent.time) // bar index
-      const totalBars = lastBarNum + 1
-      const stopAfterMs = totalBars * beatsPerMeasure * (60000 / (tempo || 120)) + 2000
-      setTimeout(() => {
-        if (!cancelled) stop()
-      }, stopAfterMs)
+      // Auto-stop when piece ends (only if not looping)
+      if (!doLoop) {
+        const lastEvent = events[events.length - 1]
+        const parts = lastEvent.time.split(':').map(Number)
+        const lastBeats = (parts[0] || 0) * beatsPerMeasure + (parts[1] || 0) + (parts[2] || 0) / 4
+        const stopAfterMs = lastBeats * (60000 / (tempoRef.current || 120)) + 2000
+        setTimeout(() => {
+          if (!cancelled) stopPlayback()
+        }, stopAfterMs)
+      }
     }
 
-    start()
+    freshStart()
+    return () => { cancelled = true }
 
-    return () => {
-      cancelled = true
-    }
-  }, [isPlaying])
+  }, [isPlaying, isPaused]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Cleanup on unmount
   useEffect(() => {
-    return () => { stop() }
-  }, [])
+    return () => { doStop() }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 }
 
 function durationToTone(type: string): string {

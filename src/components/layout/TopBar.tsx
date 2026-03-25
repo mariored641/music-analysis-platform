@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useScoreStore } from '../../store/scoreStore'
 import { usePlaybackStore } from '../../store/playbackStore'
+import { useSelectionStore } from '../../store/selectionStore'
 import { useAnnotationStore } from '../../store/annotationStore'
 import { useLibraryStore } from '../../store/libraryStore'
 import { exportToAnalysisJson, downloadJson } from '../../services/jsonExporter'
@@ -16,7 +17,14 @@ import './TopBar.css'
 export function TopBar() {
   const { t } = useTranslation()
   const { metadata, xmlString, fileName, isDirty, isSaving, lastSaved } = useScoreStore()
-  const { isPlaying, setPlaying, tempo, setTempo } = usePlaybackStore()
+  const {
+    isPlaying, isPaused,
+    setPlaying, pausePlayback, resumePlayback, stopPlayback,
+    tempo, setTempo,
+    loopEnabled, loopStart, loopEnd, setLoop, clearLoop,
+    setStartMeasure,
+  } = usePlaybackStore()
+  const selection = useSelectionStore(s => s.selection)
   const annotations = useAnnotationStore(s => s.annotations)
   const researchNotes = useResearchStore(s => s.notes)
   const palette = useStylusStore(s => s.palette)
@@ -34,7 +42,6 @@ export function TopBar() {
 
   const handleSyncClick = async () => {
     if (syncActive) {
-      // Already active — offer to clear (right-click would be nicer, but a confirm works)
       const label = syncFolderName ?? ''
       if (confirm(i18n.language === 'he' ? `נקה תיקיית sync "${label}"?` : `Clear sync folder "${label}"?`)) {
         clearSyncFolder()
@@ -61,6 +68,28 @@ export function TopBar() {
     exportToPdf(metadata.title || 'MAP Score')
   }
 
+  // Play from selection.measureStart (or measure 1 if no selection)
+  const handlePlay = () => {
+    const from = selection?.measureStart ?? 1
+    setStartMeasure(from)
+    setPlaying(true)
+  }
+
+  // Toggle loop on current selection range
+  const handleLoopToggle = () => {
+    if (loopEnabled) {
+      clearLoop()
+    } else if (selection && selection.measureEnd && selection.measureEnd > selection.measureStart) {
+      setLoop(selection.measureStart, selection.measureEnd)
+    } else if (selection) {
+      setLoop(selection.measureStart, selection.measureStart)
+    }
+  }
+
+  const hasRangeSelection = selection !== null &&
+    selection.measureEnd !== undefined &&
+    selection.measureEnd > selection.measureStart
+
   const saveStatus = isSaving
     ? t('app.saving')
     : isDirty
@@ -69,10 +98,12 @@ export function TopBar() {
         ? t('app.saved')
         : ''
 
+  const isHe = i18n.language === 'he'
+
   return (
     <header className="topbar">
       <div className="topbar-left">
-        <button className="btn-back-library" onClick={() => setView('library')} title={i18n.language === 'he' ? 'חזרה לספריה' : 'Back to library'}>
+        <button className="btn-back-library" onClick={() => setView('library')} title={isHe ? 'חזרה לספריה' : 'Back to library'}>
           ←
         </button>
         <span className="topbar-logo">MAP</span>
@@ -100,22 +131,66 @@ export function TopBar() {
               onChange={e => setTempo(Number(e.target.value))}
               title="BPM"
             />
-            <button
-              className={`btn-play ${isPlaying ? 'active' : ''}`}
-              onClick={() => setPlaying(!isPlaying)}
-              title="Space"
-            >
-              {isPlaying ? '⏸' : '▶'} {isPlaying ? t('app.pause') : t('app.play')}
-            </button>
+
+            {/* Transport controls */}
+            <div className="transport-group">
+              {/* Play / Resume button — only shown when stopped or paused */}
+              {!isPlaying && (
+                <button
+                  className={`btn-play ${isPaused ? 'paused' : ''}`}
+                  onClick={isPaused ? resumePlayback : handlePlay}
+                  title={isPaused ? (isHe ? 'המשך נגינה' : 'Resume') : `${isHe ? 'נגן' : 'Play'} (Space)`}
+                >
+                  ▶
+                </button>
+              )}
+
+              {/* Pause button — only shown when playing */}
+              {isPlaying && (
+                <button
+                  className="btn-play active"
+                  onClick={pausePlayback}
+                  title={isHe ? 'השהה (Space)' : 'Pause (Space)'}
+                >
+                  ⏸
+                </button>
+              )}
+
+              {/* Stop button — shown when playing or paused */}
+              {(isPlaying || isPaused) && (
+                <button
+                  className="btn-stop"
+                  onClick={stopPlayback}
+                  title={isHe ? 'עצור' : 'Stop'}
+                >
+                  ⏹
+                </button>
+              )}
+
+              {/* Loop button — shown when there's a range selection, or loop is active */}
+              {(hasRangeSelection || loopEnabled) && (
+                <button
+                  className={`btn-loop ${loopEnabled ? 'active' : ''}`}
+                  onClick={handleLoopToggle}
+                  title={loopEnabled
+                    ? (isHe ? `לולאה פעילה: ${loopStart}–${loopEnd} (לחץ לביטול)` : `Loop active: ${loopStart}–${loopEnd} (click to cancel)`)
+                    : (isHe ? 'לולאה על הסלקציה' : 'Loop selection')
+                  }
+                >
+                  🔁{loopEnabled && loopStart !== null && ` ${loopStart}–${loopEnd}`}
+                </button>
+              )}
+            </div>
+
             <button
               className={`btn-sync ${syncActive ? 'active' : syncFolderName ? 'stale' : ''}`}
               onClick={handleSyncClick}
               title={
                 syncActive
-                  ? (i18n.language === 'he' ? `Sync פעיל: ${syncFolderName}` : `Sync active: ${syncFolderName}`)
+                  ? (isHe ? `Sync פעיל: ${syncFolderName}` : `Sync active: ${syncFolderName}`)
                   : syncFolderName
-                    ? (i18n.language === 'he' ? `לחץ לחיבור מחדש: ${syncFolderName}` : `Click to reconnect: ${syncFolderName}`)
-                    : (i18n.language === 'he' ? 'בחר תיקיית Sync' : 'Pick sync folder')
+                    ? (isHe ? `לחץ לחיבור מחדש: ${syncFolderName}` : `Click to reconnect: ${syncFolderName}`)
+                    : (isHe ? 'בחר תיקיית Sync' : 'Pick sync folder')
               }
             >
               📁{syncFolderName ? ` ${syncFolderName}` : ' Sync'}
@@ -123,7 +198,7 @@ export function TopBar() {
             <button className="btn-export" onClick={handleExport} title={t('app.export')}>
               ⬇ JSON
             </button>
-            <button className="btn-export" onClick={handleExportPdf} title={i18n.language === 'he' ? 'ייצוא PDF' : 'Export PDF'}>
+            <button className="btn-export" onClick={handleExportPdf} title={isHe ? 'ייצוא PDF' : 'Export PDF'}>
               🖨 PDF
             </button>
           </>
@@ -133,7 +208,7 @@ export function TopBar() {
             <button
               className={`btn-scripts ${scriptPanelOpen ? 'active' : ''}`}
               onClick={() => setScriptPanelOpen(p => !p)}
-              title={i18n.language === 'he' ? 'סקריפטים' : 'Scripts'}
+              title={isHe ? 'סקריפטים' : 'Scripts'}
             >
               🔬
             </button>
@@ -143,7 +218,7 @@ export function TopBar() {
           </div>
         )}
         <button className="btn-lang" onClick={toggleLang} title="Switch language">
-          {i18n.language === 'he' ? 'EN' : 'עב'}
+          {isHe ? 'EN' : 'עב'}
         </button>
       </div>
     </header>

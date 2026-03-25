@@ -442,6 +442,23 @@ export function ScoreView() {
     })
   }, [])
 
+  // ── Auto-scroll during playback ─────────────────────────────────────────
+  useEffect(() => {
+    if (!isPlaying || !scrollRef.current || elementMap.size === 0) return
+    const el = elementMap.get(`measure-${currentMeasure - 1}`)
+    if (!el) return
+    const scrollEl = scrollRef.current
+    const elTop    = el.bbox.top
+    const elBottom = el.bbox.bottom
+    const viewH    = scrollEl.clientHeight
+    const scrollT  = scrollEl.scrollTop
+    // Scroll only if measure is outside the middle 60% of the viewport
+    const margin = viewH * 0.2
+    if (elTop - margin < scrollT || elBottom + margin > scrollT + viewH) {
+      scrollEl.scrollTop = Math.max(0, elTop - viewH * 0.35)
+    }
+  }, [currentMeasure, isPlaying, elementMap])
+
   // ── Scroll to measure (from ResearchNotes link clicks) ────────────────────
   useEffect(() => {
     if (!scrollToMeasure || !scrollRef.current || elementMap.size === 0) return

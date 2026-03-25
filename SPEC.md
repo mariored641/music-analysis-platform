@@ -456,12 +456,16 @@
 
 ---
 
-### שלב 10 — Playback משופר
+### שלב 10 — Playback משופר ✅ (הושלם מרץ 2026)
 **מטרה:** נגינה עם cursor נע + התחלה מנקודה.
 
-- [ ] cursor נע ב-ScoreView תוך כדי נגינה
-- [ ] נגינה מהתו/תיבה הנבחרת
-- [ ] transport controls (עצירה, pause, loop section)
+- [x] cursor נע ב-ScoreView תוך כדי נגינה (PlaybackHighlightShape תוקן — הוסר double-subtraction)
+- [x] auto-scroll: ScoreView גולל לעמוד עם התיבה הנגנת
+- [x] נגינה מהתו/תיבה הנבחרת — ▶ מתחיל מ-selection.measureStart
+- [x] transport controls: Pause ⏸ / Resume ▶ / Stop ⏹ ב-TopBar
+- [x] loop section: כפתור 🔁 מופיע כשיש range selection — מלולא טווח
+- [x] Space = play/pause/resume (לפי מצב נוכחי)
+- [x] `playbackStore` מחודש: isPaused, startMeasure, loopEnabled/loopStart/loopEnd
 
 ---
 
