@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useLibraryStore } from '../store/libraryStore'
 import { useScoreStore } from '../store/scoreStore'
 import { useAnnotationStore } from '../store/annotationStore'
+import { useResearchStore } from '../store/researchStore'
 import { parseMusicXml } from '../services/xmlParser'
 import { saveFile, loadFile, deleteFile } from '../services/storageService'
 import { LibraryCard } from '../components/library/LibraryCard'
@@ -92,8 +93,10 @@ export function LibraryView() {
     const existing = await loadFile(id)
     if (existing) {
       useAnnotationStore.getState().loadAnnotations(existing.annotations)
+      useResearchStore.getState().loadNotes(existing.researchNotes ?? [])
     } else {
       useAnnotationStore.getState().loadAnnotations({})
+      useResearchStore.getState().loadNotes([])
       await saveFile(id, pendingXml, {})
     }
 
@@ -129,6 +132,7 @@ export function LibraryView() {
     useScoreStore.getState().setXml(saved.xml, saved.id)
     useScoreStore.getState().setNoteMap(noteMap)
     useAnnotationStore.getState().loadAnnotations(saved.annotations)
+    useResearchStore.getState().loadNotes(saved.researchNotes ?? [])
     useLibraryStore.getState().updatePiece(id, { lastOpened: Date.now() })
     setActive(id)
     setView('analysis')

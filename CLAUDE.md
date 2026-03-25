@@ -336,12 +336,13 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 - **שלב 4: LeftPanel מחודש + Legend** — ר' פירוט בסעיף "Stage 4" למטה.
 - **שלב 4.5: Annotation Visuals Redesign** — ר' פירוט בסעיף "Stage 4.5" למטה.
 - **שלב 5: Stylus / Freehand Drawing** — ר' פירוט בסעיף "Stage 5" למטה.
+- **שלב 6: Research Notes** — ר' פירוט בסעיף "Stage 6" למטה.
 
 ## What's pending ⬜
 
 - **FormalStrip** — needs measure-range annotations to render
 - **Mobile/touch** — not started
-- **שלב 6–10** — ר' SPEC.md
+- **שלב 7–10** — ר' SPEC.md
 
 ---
 
@@ -487,3 +488,32 @@ Added `opacity?: number` and `linkedLayer?: string` to `FreehandAnnotation` in `
 Two buttons added above the palette circles: `✏️ ציור` / `◻ מחק`.
 Active draw button shows the active palette color as background.
 Buttons call `setDrawMode` on click (toggle: click active mode → 'off').
+
+---
+
+## Stage 6 — Research Notes (completed March 2026)
+
+### researchStore (`src/store/researchStore.ts`)
+`ResearchNote { id, text, links: ResearchLink[] }` — `ResearchLink { type: 'measures'|'notes', measureStart, measureEnd?, noteIds?, label }`.
+Actions: `addNote`, `updateNote`, `addLink(noteId, link)`, `removeLink(noteId, index)`, `removeNote`, `loadNotes`, `clearAll`.
+
+### RightPanel tabs
+Two tabs at the top of RightPanel: **תיוגים / Tags** (existing content) | **פתקים / Notes** (ResearchNotes component).
+Tab state is local `useState` in RightPanel. Tab underline uses `#6366f1`.
+
+### ResearchNotes (`src/components/panels/ResearchNotes.tsx`)
+- List of `NoteCard` components (one per research note)
+- Each card: textarea (3 rows, resizable) + link chips row + "🔗 Link selection" button + delete (×) in header
+- **Link to selection**: reads current `selection` from `selectionStore` → creates `ResearchLink` with label `"m.5"` / `"m.5–8"` / `"note m.5"` → `addLink(noteId, link)`
+- **Link chip click**: calls `setSelection` with the stored range/noteIds + `setScrollToMeasure(link.measureStart)`
+- "🔗 Link selection" button disabled (greyed) when no selection active
+- "+ New note" button at bottom with dashed border
+
+### Scroll-to-measure (`selectionStore` + `ScoreView`)
+- `selectionStore` gains `scrollToMeasure: number | null` + `setScrollToMeasure`
+- `ScoreView` has `useEffect([scrollToMeasure, elementMap])` → looks up `elementMap.get('measure-${m-1}')` → `scrollRef.current.scrollTop = bbox.top - 48` → resets to null
+
+### Persistence
+- `storageService.saveFile()` accepts optional `researchNotes?: ResearchNote[]`, stores alongside annotations in IndexedDB (DB version stays at 1 — field is optional)
+- `useAutoSave` subscribes to both `annotations` and `researchNotes`
+- All load sites (`useRestoreSession`, `LibraryView`, `ScoreView` OpenFile/LoadSample) call `useResearchStore.getState().loadNotes(saved.researchNotes ?? [])`

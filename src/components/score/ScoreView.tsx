@@ -2,6 +2,7 @@ import { useRef, useEffect, useState, useCallback } from 'react'
 import { useScoreStore } from '../../store/scoreStore'
 import { useSelectionStore } from '../../store/selectionStore'
 import { useAnnotationStore } from '../../store/annotationStore'
+import { useResearchStore } from '../../store/researchStore'
 import { useLayerStore, getEffectiveNoteColors } from '../../store/layerStore'
 import { usePlaybackStore } from '../../store/playbackStore'
 import { useLibraryStore } from '../../store/libraryStore'
@@ -311,6 +312,8 @@ export function ScoreView() {
   const { t } = useTranslation()
   const { xmlString, metadata } = useScoreStore()
   const { selection, setSelection, showContextMenu, hideContextMenu } = useSelectionStore()
+  const scrollToMeasure = useSelectionStore(s => s.scrollToMeasure)
+  const setScrollToMeasure = useSelectionStore(s => s.setScrollToMeasure)
   const visible = useLayerStore(s => s.visible)
   const annotations = useAnnotationStore(s => s.annotations)
   const { currentMeasure, isPlaying } = usePlaybackStore()
@@ -438,6 +441,16 @@ export function ScoreView() {
       )
     })
   }, [])
+
+  // ── Scroll to measure (from ResearchNotes link clicks) ────────────────────
+  useEffect(() => {
+    if (!scrollToMeasure || !scrollRef.current || elementMap.size === 0) return
+    const el = elementMap.get(`measure-${scrollToMeasure - 1}`)
+    if (el) {
+      scrollRef.current.scrollTop = Math.max(0, el.bbox.top - 48)
+    }
+    setScrollToMeasure(null)
+  }, [scrollToMeasure, elementMap])
 
   // ── Mouse handlers for drag-lasso ─────────────────────────────────────────
 
@@ -774,8 +787,10 @@ function OpenFileButton() {
       const existing = await loadFile(file.name)
       if (existing) {
         useAnnotationStore.getState().loadAnnotations(existing.annotations)
+        useResearchStore.getState().loadNotes(existing.researchNotes ?? [])
       } else {
         useAnnotationStore.getState().loadAnnotations({})
+        useResearchStore.getState().loadNotes([])
         await saveFile(file.name, text, {})
       }
       useScoreStore.getState().setXml(text, file.name)
@@ -794,10 +809,12 @@ function LoadSampleButton() {
     if (saved) {
       text = saved.xml
       useAnnotationStore.getState().loadAnnotations(saved.annotations)
+      useResearchStore.getState().loadNotes(saved.researchNotes ?? [])
     } else {
       const res = await fetch('/DONNALEE.XML')
       text = await res.text()
       await saveFile('DONNALEE.XML', text, {})
+      useResearchStore.getState().loadNotes([])
     }
 
     const noteMap = parseMusicXml(text)

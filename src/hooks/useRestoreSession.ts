@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useLibraryStore } from '../store/libraryStore'
 import { useScoreStore } from '../store/scoreStore'
 import { useAnnotationStore } from '../store/annotationStore'
+import { useResearchStore } from '../store/researchStore'
 import { loadFile } from '../services/storageService'
 import { parseMusicXml } from '../services/xmlParser'
 
@@ -20,6 +21,7 @@ export function useRestoreSession() {
       useScoreStore.getState().setXml(saved.xml, saved.id)
       useScoreStore.getState().setNoteMap(noteMap)
       useAnnotationStore.getState().loadAnnotations(saved.annotations)
+      useResearchStore.getState().loadNotes(saved.researchNotes ?? [])
     }).catch(console.error)
   }, [])
 }

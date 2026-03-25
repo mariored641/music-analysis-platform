@@ -1,10 +1,17 @@
 import { openDB, type IDBPDatabase } from 'idb'
 import type { Annotation } from '../types/annotation'
+import type { ResearchNote } from '../store/researchStore'
 
 interface MapDB {
   files: {
     key: string
-    value: { id: string; xml: string; annotations: Record<string, Annotation>; savedAt: number }
+    value: {
+      id: string
+      xml: string
+      annotations: Record<string, Annotation>
+      researchNotes?: ResearchNote[]
+      savedAt: number
+    }
   }
 }
 
@@ -21,9 +28,14 @@ async function getDb() {
   return db
 }
 
-export async function saveFile(id: string, xml: string, annotations: Record<string, Annotation>) {
+export async function saveFile(
+  id: string,
+  xml: string,
+  annotations: Record<string, Annotation>,
+  researchNotes?: ResearchNote[]
+) {
   const database = await getDb()
-  await database.put('files', { id, xml, annotations, savedAt: Date.now() })
+  await database.put('files', { id, xml, annotations, researchNotes, savedAt: Date.now() })
 }
 
 export async function loadFile(id: string) {

@@ -77,6 +77,17 @@
     "key": "טונאליות",
     "range": "טווח"
   },
+  "research": {
+    "tab_tags": "תיוגים",
+    "tab_notes": "פתקים",
+    "empty": "אין פתקים עדיין",
+    "add": "+ פתק חדש",
+    "placeholder": "כתוב הערה...",
+    "link_selection": "🔗 קשר לבחירה",
+    "delete_note": "מחק פתק",
+    "remove_link": "הסר קישור",
+    "jump": "קפוץ למיקום"
+  },
   "scripts": {
     "panel_title": "סקריפטים",
     "melody_color_name": "צביעת תפקידים מלודיים",

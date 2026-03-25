@@ -77,6 +77,17 @@
     "key": "Key",
     "range": "Range"
   },
+  "research": {
+    "tab_tags": "Tags",
+    "tab_notes": "Notes",
+    "empty": "No notes yet",
+    "add": "+ New note",
+    "placeholder": "Write a note...",
+    "link_selection": "🔗 Link selection",
+    "delete_note": "Delete note",
+    "remove_link": "Remove link",
+    "jump": "Jump to location"
+  },
   "scripts": {
     "panel_title": "Scripts",
     "melody_color_name": "Melody Colors",

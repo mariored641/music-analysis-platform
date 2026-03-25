@@ -1,12 +1,17 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelectionStore } from '../../store/selectionStore'
 import { useScoreStore } from '../../store/scoreStore'
 import { useAnnotationStore } from '../../store/annotationStore'
 import { LAYER_MAP, NOTE_COLORS } from '../../constants/layers'
+import { ResearchNotes } from '../panels/ResearchNotes'
 import './RightPanel.css'
 
 export function RightPanel() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const isHe = i18n.language === 'he'
+  const [tab, setTab] = useState<'tags' | 'notes'>('tags')
+
   const selection = useSelectionStore(s => s.selection)
   const noteMap = useScoreStore(s => s.noteMap)
   const annotations = useAnnotationStore(s => s.annotations)
@@ -15,8 +20,6 @@ export function RightPanel() {
   const annotationList = Object.values(annotations)
   const openQuestions = annotationList.filter(a => (a as any).isQuestion).length
 
-  // Annotations touching the current selection range.
-  // For noteColor annotations on a note selection, narrow to the exact selected note(s).
   const selNoteIdSet = new Set(selection?.noteIds ?? [])
   const selectionAnnotations = selection
     ? annotationList.filter(a => {
@@ -25,126 +28,144 @@ export function RightPanel() {
           (a.measureEnd ?? a.measureStart) >= selection.measureStart
         if (!inRange) return false
         if (a.layer === 'noteColor' && selNoteIdSet.size > 0) {
-          // noteIds on both sides are noteMap IDs — direct compare
           return (a as any).noteIds?.some((id: string) => selNoteIdSet.has(id)) ?? false
         }
         return true
       }).sort((a, b) => a.measureStart - b.measureStart)
     : []
 
-  // Measure info from NoteMap
   const measureData = selection && noteMap
     ? noteMap.measures.get(selection.measureStart)
     : null
 
   return (
     <aside className="right-panel">
-      {/* Selection header */}
-      <section className="panel-section">
-        <div className="panel-section-header">
-          {selection
-            ? (selection.measureEnd && selection.measureEnd !== selection.measureStart
-                ? `m.${selection.measureStart}–${selection.measureEnd}`
-                : `m.${selection.measureStart}`) +
-              ` · ${t(`selection.${selection.type}`)}`
-            : t('selection.none')
-          }
-        </div>
+      {/* Tab toggle */}
+      <div className="rp-tabs">
+        <button
+          className={`rp-tab${tab === 'tags' ? ' rp-tab--active' : ''}`}
+          onClick={() => setTab('tags')}
+        >
+          {isHe ? 'תיוגים' : 'Tags'}
+        </button>
+        <button
+          className={`rp-tab${tab === 'notes' ? ' rp-tab--active' : ''}`}
+          onClick={() => setTab('notes')}
+        >
+          {isHe ? 'פתקים' : 'Notes'}
+        </button>
+      </div>
 
-        {selection && measureData && (
-          <div className="selection-detail">
-            {measureData.keySignature && (
-              <div className="detail-row">
-                <span className="detail-label">Key</span>
-                <span className="detail-value">{measureData.keySignature.fifths}♭/♯ {measureData.keySignature.mode}</span>
-              </div>
-            )}
-            {measureData.timeSignature && (
-              <div className="detail-row">
-                <span className="detail-label">Time</span>
-                <span className="detail-value">{measureData.timeSignature.beats}/{measureData.timeSignature.beatType}</span>
-              </div>
-            )}
-            <div className="detail-row">
-              <span className="detail-label">Notes</span>
-              <span className="detail-value">{measureData.notes.length}</span>
+      {tab === 'tags' ? (
+        <>
+          {/* Selection header */}
+          <section className="panel-section">
+            <div className="panel-section-header">
+              {selection
+                ? (selection.measureEnd && selection.measureEnd !== selection.measureStart
+                    ? `m.${selection.measureStart}–${selection.measureEnd}`
+                    : `m.${selection.measureStart}`) +
+                  ` · ${t(`selection.${selection.type}`)}`
+                : t('selection.none')
+              }
             </div>
-            {selection.type === 'note' && selection.noteIds?.length === 1 && noteMap && (
-              <div className="detail-row">
-                <span className="detail-label">Pitch</span>
-                <span className="detail-value">
-                  {noteMap.notes.get(selection.noteIds[0])?.pitch ?? '—'}
-                </span>
+
+            {selection && measureData && (
+              <div className="selection-detail">
+                {measureData.keySignature && (
+                  <div className="detail-row">
+                    <span className="detail-label">Key</span>
+                    <span className="detail-value">{measureData.keySignature.fifths}♭/♯ {measureData.keySignature.mode}</span>
+                  </div>
+                )}
+                {measureData.timeSignature && (
+                  <div className="detail-row">
+                    <span className="detail-label">Time</span>
+                    <span className="detail-value">{measureData.timeSignature.beats}/{measureData.timeSignature.beatType}</span>
+                  </div>
+                )}
+                <div className="detail-row">
+                  <span className="detail-label">Notes</span>
+                  <span className="detail-value">{measureData.notes.length}</span>
+                </div>
+                {selection.type === 'note' && selection.noteIds?.length === 1 && noteMap && (
+                  <div className="detail-row">
+                    <span className="detail-label">Pitch</span>
+                    <span className="detail-value">
+                      {noteMap.notes.get(selection.noteIds[0])?.pitch ?? '—'}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
-          </div>
-        )}
 
-        {!selection && (
-          <p className="no-selection-hint">
-            {t('app.noScore').includes('Open')
-              ? 'Click a note or measure to select it'
-              : 'לחץ על תו או תיבה לבחירה'}
-          </p>
-        )}
-      </section>
+            {!selection && (
+              <p className="no-selection-hint">
+                {isHe ? 'לחץ על תו או תיבה לבחירה' : 'Click a note or measure to select it'}
+              </p>
+            )}
+          </section>
 
-      {/* Annotations for selection */}
-      {selectionAnnotations.length > 0 && (
-        <section className="panel-section">
-          <div className="panel-section-header">Analysis ({selectionAnnotations.length})</div>
-          <ul className="annotation-list">
-            {selectionAnnotations.map(ann => {
-              const layer = LAYER_MAP.get(ann.layer)
-              return (
-                <li key={ann.id} className="annotation-item">
-                  <span
-                    className="ann-layer-dot"
-                    style={{
-                      background: ann.layer === 'noteColor'
-                        ? (NOTE_COLORS[(ann as any).colorType] ?? layer?.color)
-                        : layer?.color
-                    }}
-                  />
-                  <span
-                    className="ann-text"
-                    style={{
-                      color: ann.layer === 'noteColor'
-                        ? (NOTE_COLORS[(ann as any).colorType] ?? undefined)
-                        : undefined
-                    }}
-                  >{getAnnotationSummary(ann)}</span>
-                  <button
-                    className="ann-delete"
-                    onClick={() => removeAnnotation(ann.id)}
-                    title="Remove"
-                  >×</button>
-                </li>
-              )
-            })}
-          </ul>
-        </section>
+          {/* Annotations for selection */}
+          {selectionAnnotations.length > 0 && (
+            <section className="panel-section">
+              <div className="panel-section-header">Analysis ({selectionAnnotations.length})</div>
+              <ul className="annotation-list">
+                {selectionAnnotations.map(ann => {
+                  const layer = LAYER_MAP.get(ann.layer)
+                  return (
+                    <li key={ann.id} className="annotation-item">
+                      <span
+                        className="ann-layer-dot"
+                        style={{
+                          background: ann.layer === 'noteColor'
+                            ? (NOTE_COLORS[(ann as any).colorType] ?? layer?.color)
+                            : layer?.color
+                        }}
+                      />
+                      <span
+                        className="ann-text"
+                        style={{
+                          color: ann.layer === 'noteColor'
+                            ? (NOTE_COLORS[(ann as any).colorType] ?? undefined)
+                            : undefined
+                        }}
+                      >{getAnnotationSummary(ann)}</span>
+                      <button
+                        className="ann-delete"
+                        onClick={() => removeAnnotation(ann.id)}
+                        title="Remove"
+                      >×</button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          )}
+
+          {/* Stats */}
+          <section className="panel-section stats-section">
+            <div className="stat-row">
+              <span className="stat-label">Tags</span>
+              <span className="stat-value">{annotationList.length}</span>
+            </div>
+            <div className="stat-row">
+              <span className="stat-label">Open ?</span>
+              <span className="stat-value" style={{ color: openQuestions > 0 ? '#f59e0b' : undefined }}>
+                {openQuestions}
+              </span>
+            </div>
+            {noteMap && (
+              <div className="stat-row">
+                <span className="stat-label">Measures</span>
+                <span className="stat-value">{noteMap.metadata.totalMeasures}</span>
+              </div>
+            )}
+          </section>
+        </>
+      ) : (
+        <ResearchNotes />
       )}
-
-      {/* Stats */}
-      <section className="panel-section stats-section">
-        <div className="stat-row">
-          <span className="stat-label">Tags</span>
-          <span className="stat-value">{annotationList.length}</span>
-        </div>
-        <div className="stat-row">
-          <span className="stat-label">Open ?</span>
-          <span className="stat-value" style={{ color: openQuestions > 0 ? '#f59e0b' : undefined }}>
-            {openQuestions}
-          </span>
-        </div>
-        {noteMap && (
-          <div className="stat-row">
-            <span className="stat-label">Measures</span>
-            <span className="stat-value">{noteMap.metadata.totalMeasures}</span>
-          </div>
-        )}
-      </section>
     </aside>
   )
 }
