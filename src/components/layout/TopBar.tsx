@@ -5,6 +5,7 @@ import { usePlaybackStore } from '../../store/playbackStore'
 import { useAnnotationStore } from '../../store/annotationStore'
 import { useLibraryStore } from '../../store/libraryStore'
 import { exportToAnalysisJson, downloadJson } from '../../services/jsonExporter'
+import { pickSyncFolder, clearSyncFolder, getSyncFolderName, hasSyncFolder } from '../../services/syncService'
 import { ScriptPanel } from '../scripts/ScriptPanel'
 import i18n from '../../i18n/index'
 import './TopBar.css'
@@ -16,12 +17,32 @@ export function TopBar() {
   const annotations = useAnnotationStore(s => s.annotations)
   const setView = useLibraryStore(s => s.setView)
   const [scriptPanelOpen, setScriptPanelOpen] = useState(false)
+  const [syncFolderName, setSyncFolderName] = useState<string | null>(() => getSyncFolderName())
+  const [syncActive, setSyncActive] = useState(() => hasSyncFolder())
 
   const toggleLang = () => {
     const next = i18n.language === 'he' ? 'en' : 'he'
     i18n.changeLanguage(next)
     localStorage.setItem('map-lang', next)
     document.dir = next === 'he' ? 'rtl' : 'ltr'
+  }
+
+  const handleSyncClick = async () => {
+    if (syncActive) {
+      // Already active — offer to clear (right-click would be nicer, but a confirm works)
+      const label = syncFolderName ?? ''
+      if (confirm(i18n.language === 'he' ? `נקה תיקיית sync "${label}"?` : `Clear sync folder "${label}"?`)) {
+        clearSyncFolder()
+        setSyncFolderName(null)
+        setSyncActive(false)
+      }
+      return
+    }
+    const name = await pickSyncFolder()
+    if (name) {
+      setSyncFolderName(name)
+      setSyncActive(true)
+    }
   }
 
   const handleExport = () => {
@@ -75,6 +96,19 @@ export function TopBar() {
               title="Space"
             >
               {isPlaying ? '⏸' : '▶'} {isPlaying ? t('app.pause') : t('app.play')}
+            </button>
+            <button
+              className={`btn-sync ${syncActive ? 'active' : syncFolderName ? 'stale' : ''}`}
+              onClick={handleSyncClick}
+              title={
+                syncActive
+                  ? (i18n.language === 'he' ? `Sync פעיל: ${syncFolderName}` : `Sync active: ${syncFolderName}`)
+                  : syncFolderName
+                    ? (i18n.language === 'he' ? `לחץ לחיבור מחדש: ${syncFolderName}` : `Click to reconnect: ${syncFolderName}`)
+                    : (i18n.language === 'he' ? 'בחר תיקיית Sync' : 'Pick sync folder')
+              }
+            >
+              📁{syncFolderName ? ` ${syncFolderName}` : ' Sync'}
             </button>
             <button className="btn-export" onClick={handleExport} title={t('app.export')}>
               ⬇ JSON

@@ -94,7 +94,7 @@
 .save-status.saved { color: #22c55e; }
 .save-status.unsaved { color: #f59e0b; }
 
-.btn-play, .btn-export, .btn-lang, .btn-scripts {
+.btn-play, .btn-export, .btn-lang, .btn-scripts, .btn-sync {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -108,7 +108,7 @@
   transition: background 0.15s;
 }
 
-.btn-play:hover, .btn-export:hover, .btn-lang:hover, .btn-scripts:hover {
+.btn-play:hover, .btn-export:hover, .btn-lang:hover, .btn-scripts:hover, .btn-sync:hover {
   background: #2d2d4e;
 }
 
@@ -121,6 +121,23 @@
   background: #1e3a5f;
   border-color: #3b82f6;
   color: #60a5fa;
+}
+
+/* Sync folder button states */
+.btn-sync {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.btn-sync.active {
+  background: #14291a;
+  border-color: #22c55e;
+  color: #4ade80;
+}
+.btn-sync.stale {
+  border-color: #f59e0b;
+  color: #fbbf24;
 }
 
 .tempo-input {

@@ -6,6 +6,7 @@ import { useAnnotationStore } from '../store/annotationStore'
 import { useResearchStore } from '../store/researchStore'
 import { parseMusicXml } from '../services/xmlParser'
 import { saveFile, loadFile, deleteFile } from '../services/storageService'
+import { readSyncFile } from '../services/syncService'
 import { LibraryCard } from '../components/library/LibraryCard'
 import i18n from '../i18n/index'
 import './LibraryView.css'
@@ -128,11 +129,27 @@ export function LibraryView() {
   const handleLoadPiece = async (id: string) => {
     const saved = await loadFile(id)
     if (!saved) return
+
+    let annotations = saved.annotations
+    let researchNotes = saved.researchNotes ?? []
+
+    // If sync folder is active, check for a newer analysis file
+    const syncData = await readSyncFile(id)
+    if (syncData) {
+      const syncTs = new Date(syncData.savedAt).getTime()
+      if (syncTs > saved.savedAt) {
+        annotations = syncData.annotations
+        researchNotes = syncData.researchNotes
+        // Update IndexedDB with the newer sync data
+        await saveFile(id, saved.xml, annotations, researchNotes)
+      }
+    }
+
     const noteMap = parseMusicXml(saved.xml)
     useScoreStore.getState().setXml(saved.xml, saved.id)
     useScoreStore.getState().setNoteMap(noteMap)
-    useAnnotationStore.getState().loadAnnotations(saved.annotations)
-    useResearchStore.getState().loadNotes(saved.researchNotes ?? [])
+    useAnnotationStore.getState().loadAnnotations(annotations)
+    useResearchStore.getState().loadNotes(researchNotes)
     useLibraryStore.getState().updatePiece(id, { lastOpened: Date.now() })
     setActive(id)
     setView('analysis')
