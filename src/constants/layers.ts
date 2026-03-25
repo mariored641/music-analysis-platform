@@ -33,11 +33,11 @@ export const LAYERS: LayerConfig[] = [
     labelHe: 'מלודיה', labelEn: 'Melody',
     color: '#22c55e', bgColor: 'rgba(34,197,94,0.15)',
     legend: [
-      { color: '#22c55e', labelHe: 'CT — תו הסכמה', labelEn: 'CT — Chord tone' },
-      { color: '#86efac', labelHe: 'PT — תו מעבר', labelEn: 'PT — Passing tone' },
-      { color: '#bbf7d0', labelHe: 'NT — תו שכן', labelEn: 'NT — Neighbor tone' },
-      { color: '#d1fae5', labelHe: 'SUS — השהיה', labelEn: 'SUS — Suspension' },
-      { color: '#a7f3d0', labelHe: 'APP — אפוג\'יאטורה', labelEn: 'APP — Appoggiatura' },
+      { color: '#3b82f6', colorKey: 'CT',  labelHe: 'CT — תו הסכמה',    labelEn: 'CT — Chord tone' },
+      { color: '#a855f7', colorKey: 'PT',  labelHe: 'PT — תו מעבר',      labelEn: 'PT — Passing tone' },
+      { color: '#22c55e', colorKey: 'NT',  labelHe: 'NT — תו שכן',       labelEn: 'NT — Neighbor tone' },
+      { color: '#f97316', colorKey: 'SUS', labelHe: 'SUS — השהיה',       labelEn: 'SUS — Suspension' },
+      { color: '#f59e0b', colorKey: 'APP', labelHe: "APP — אפוג'יאטורה", labelEn: "APP — Appoggiatura" },
     ],
   },
   {

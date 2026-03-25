@@ -132,32 +132,28 @@ function deriveDefaultTab(selType?: string): MenuTab {
 }
 
 function getTabsForSelection(selType: string) {
-  if (selType === 'note') return [
-    { id: 'melody', label: 'Melody' },
-    { id: 'harmony', label: 'Harm.' },
+  const all = [
+    { id: 'harmony',   label: 'Harm.' },
+    { id: 'melody',    label: 'Melody' },
+    { id: 'form',      label: 'Form' },
+    { id: 'motif',     label: 'Motif' },
+    { id: 'label',     label: 'Label' },
     { id: 'noteColor', label: 'Color' },
-    { id: 'label', label: 'Label' },
-    { id: 'question', label: '?' },
+    { id: 'question',  label: '?' },
   ]
-  if (selType === 'notes') return [
-    { id: 'motif', label: 'Motif' },
-    { id: 'noteColor', label: 'Color' },
-    { id: 'melody', label: 'Melody' },
-    { id: 'label', label: 'Label' },
-    { id: 'question', label: '?' },
-  ]
-  if (selType === 'measure') return [
-    { id: 'harmony', label: 'Harm.' },
-    { id: 'form', label: 'Form' },
-    { id: 'label', label: 'Label' },
-    { id: 'question', label: '?' },
-  ]
-  return [
-    { id: 'form', label: 'Form' },
-    { id: 'harmony', label: 'Harm.' },
-    { id: 'motif', label: 'Motif' },
-    { id: 'question', label: '?' },
-  ]
+  const priority: Record<string, string> = {
+    note:    'melody',
+    notes:   'motif',
+    measure: 'harmony',
+    measures:'form',
+  }
+  const firstId = priority[selType] || 'harmony'
+  const idx = all.findIndex(t => t.id === firstId)
+  if (idx > 0) {
+    const [item] = all.splice(idx, 1)
+    all.unshift(item)
+  }
+  return all
 }
 
 function QuestionMenu({ onApply }: { onApply: (a: any) => void }) {

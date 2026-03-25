@@ -64,3 +64,28 @@ export function getEffectiveNoteColors(legendColors: Record<string, string>): Re
   })
   return result
 }
+
+/**
+ * Returns the effective MELODY_COLORS map, overriding defaults with any user-defined
+ * legend colors for the melody layer items that have a colorKey.
+ */
+export function getEffectiveMelodyColors(legendColors: Record<string, string>): Record<string, string> {
+  const melodyLayer = LAYERS.find(l => l.id === 'melody')
+  const result: Record<string, string> = {
+    CT:  '#3b82f6',
+    PT:  '#a855f7',
+    NT:  '#22c55e',
+    SUS: '#f97316',
+    APP: '#f59e0b',
+    ESC: '#ec4899',
+    ANT: '#06b6d4',
+    PED: '#8b5cf6',
+  }
+  melodyLayer?.legend?.forEach((item, i) => {
+    if (item.colorKey) {
+      const custom = legendColors[`melody:${i}`]
+      if (custom) result[item.colorKey] = custom
+    }
+  })
+  return result
+}

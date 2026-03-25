@@ -122,18 +122,37 @@ function buildVrvNoteIdMap(
 }
 
 // Build element map from Verovio SVG DOM.
+// Stores positions RELATIVE to the container element (not viewport),
+// so they remain correct after the user scrolls.
 function buildElementMap(container: Element): Map<string, NoteElement> {
   const elementMap = new Map<string, NoteElement>()
+  const containerRect = container.getBoundingClientRect()
   const measureEls = Array.from(container.querySelectorAll('g.measure'))
 
   measureEls.forEach((el, index) => {
     const measureNum = index + 1
-    const bbox = (el as Element).getBoundingClientRect()
-    if (bbox.width === 0) return
+    const absBox = (el as Element).getBoundingClientRect()
+    if (absBox.width === 0) return
+
+    // Container-relative bbox (scroll-independent)
+    const bbox = new DOMRect(
+      absBox.left - containerRect.left,
+      absBox.top - containerRect.top,
+      absBox.width,
+      absBox.height
+    )
 
     const staffEls = Array.from(el.querySelectorAll('g.staff'))
     const staffBboxes = staffEls
-      .map(s => s.getBoundingClientRect())
+      .map(s => {
+        const sb = s.getBoundingClientRect()
+        return new DOMRect(
+          sb.left - containerRect.left,
+          sb.top - containerRect.top,
+          sb.width,
+          sb.height
+        )
+      })
       .filter(b => b.width > 0)
 
     const id = `measure-${index}`
@@ -144,15 +163,18 @@ function buildElementMap(container: Element): Map<string, NoteElement> {
 }
 
 // Find which measure+staff a screen coordinate hits.
-// Only matches inside actual g.staff bounds — clicking between staves or in margins returns null.
+// elementMap stores container-relative positions, so we convert clientX/Y first.
 function findMeasureAtPoint(
   clientX: number, clientY: number,
-  elementMap: Map<string, NoteElement>
+  elementMap: Map<string, NoteElement>,
+  containerRect: DOMRect
 ): { measureNum: number; staffIndex: number } | null {
+  const x = clientX - containerRect.left
+  const y = clientY - containerRect.top
   for (const el of elementMap.values()) {
     for (let i = 0; i < el.staffBboxes.length; i++) {
       const b = el.staffBboxes[i]
-      if (clientX >= b.left && clientX <= b.right && clientY >= b.top && clientY <= b.bottom) {
+      if (x >= b.left && x <= b.right && y >= b.top && y <= b.bottom) {
         return { measureNum: el.measureNum, staffIndex: i }
       }
     }
@@ -564,7 +586,9 @@ export function ScoreView() {
       }
     }
 
-    const hit = findMeasureAtPoint(e.clientX, e.clientY, elementMap)
+    const cRect = scoreRef.current?.getBoundingClientRect()
+    if (!cRect) { hideContextMenu(); setSelection(null); return }
+    const hit = findMeasureAtPoint(e.clientX, e.clientY, elementMap, cRect)
     if (!hit) {
       hideContextMenu()
       setSelection(null)
@@ -587,7 +611,9 @@ export function ScoreView() {
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
-    const hit = findMeasureAtPoint(e.clientX, e.clientY, elementMap)
+    const cRect = scoreRef.current?.getBoundingClientRect()
+    if (!cRect) return
+    const hit = findMeasureAtPoint(e.clientX, e.clientY, elementMap, cRect)
     if (!hit) return
     setSelection({ type: 'measure', measureStart: hit.measureNum, measureEnd: hit.measureNum, noteIds: [], anchorMeasure: hit.measureNum, staffIndex: hit.staffIndex })
     showContextMenu(e.clientX, e.clientY)

@@ -334,12 +334,13 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 - **שלב 2: StatusBar חכם** — `chordDetector.ts` (pitch-class matching, jazz flat names), StatusBar מציג note names מ-noteMap, זיהוי אקורד אוטומטי, לחיצה על שם האקורד → HarmonyAnnotation. RightPanel pitch מ-noteMap.
 - **שלב 3: סלקציה מלאה** — ר' פירוט בסעיף "Stage 3" למטה.
 - **שלב 4: LeftPanel מחודש + Legend** — ר' פירוט בסעיף "Stage 4" למטה.
+- **שלב 4.5: Annotation Visuals Redesign** — ר' פירוט בסעיף "Stage 4.5" למטה.
 
 ## What's pending ⬜
 
 - **FormalStrip** — needs measure-range annotations to render
 - **Mobile/touch** — not started
-- **שלב 4–10** — ר' SPEC.md
+- **שלב 5–10** — ר' SPEC.md
 
 ---
 
@@ -413,3 +414,50 @@ Each layer row: `[checkbox] [label] [▸ expand]`
 - Colored circles + `+` add / `×` remove (on hover)
 - Click circle → marks active + opens inline popover (color picker, width slider, opacity slider, text label, link-to-layer select)
 - Popover closes on outside click
+
+---
+
+## Stage 4.5 — Annotation Visuals Redesign (completed March 2026)
+
+### Visual shapes per layer
+
+| Layer | Shape |
+|-------|-------|
+| **harmony** | Floating text above staff — chord function + degree (e.g. "T I") in small pill |
+| **melody** | Note head recoloring — direct DOM via `applyNoteColors` (no SVG overlay rect) |
+| **motif** | Metaball blob — organic capsule connecting selected notes, semi-transparent fill |
+| **form** | Thick colored bar below all staves in the measure range |
+| **labels** | Zigzag polyline above the selection range |
+| **freehand** | Free canvas (no overlay shape) |
+| **texture** | Skipped (no shape rendered) |
+
+### `elementMap` — container-relative positions (critical fix)
+`buildElementMap` in `ScoreView.tsx` now stores **container-relative** bboxes by subtracting `containerRect` at build time:
+```typescript
+const containerRect = container.getBoundingClientRect()
+const bbox = new DOMRect(
+  absBox.left - containerRect.left, absBox.top - containerRect.top,
+  absBox.width, absBox.height
+)
+```
+All helper functions in `AnnotationOverlay.tsx` (`getStaffTopY`, `getMeasureXRange`, `getRowBottomY`) use positions as-is — **no further subtraction** needed.
+`findMeasureAtPoint` now accepts `containerRect` param and converts clientX/Y to container-relative before hit-testing.
+
+### Motif metaball shape
+Catmull-Rom spline connecting note centers with constant radius capsule:
+- Backbone = smoothed spline through `{cx, cy}` points (sorted by measure+beat)
+- Endcaps = semicircle arcs (left cap: sweep `0 0 1`, right cap: sweep `0 0 0`)
+- Multi-row support: cuts between rows at row boundary, draws a segment per row
+
+### Harmony annotation click → context menu
+Clicking a harmony annotation shape:
+1. `onClick={e => e.stopPropagation()}` — prevents propagation to score container (which would clear selection)
+2. `onMouseDown` → calls `setSelection` + `showContextMenu(x, y, 'harmony')` directly
+3. Opens context menu pre-set to harmony tab for editing
+
+### Melody colors from legend
+`getEffectiveMelodyColors(legendColors)` (exported from `layerStore.ts`) merges hardcoded defaults with user legend overrides for CT/PT/NT/SUS/APP/ESC/ANT/PED.
+`AnnotationOverlay` subscribes to `legendColors` and passes `melodyColors` through `ShapeProps` to `MelodyShape`.
+
+### All context menu tabs always visible
+`getTabsForSelection` always returns all 7 tabs — just reorders them so the most relevant tab for the selection type is first.
