@@ -89,3 +89,59 @@ html, body, #root {
 [dir="rtl"] .score-view {
   order: 2;
 }
+
+/* ── Print / PDF export ─────────────────────────────────────────── */
+@media print {
+  body.map-printing {
+    background: white !important;
+    color: black !important;
+  }
+
+  body.map-printing .topbar,
+  body.map-printing .left-panel,
+  body.map-printing .right-panel,
+  body.map-printing .status-bar {
+    display: none !important;
+  }
+
+  body.map-printing .app {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body.map-printing .app-body {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  body.map-printing .score-view {
+    flex: unset !important;
+    width: 100% !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  body.map-printing .score-scroll {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  body.map-printing .score-container {
+    height: auto !important;
+  }
+
+  /* Page break after each Verovio SVG page */
+  body.map-printing .vrv-svg svg {
+    display: block !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Annotation + selection overlays follow the score */
+  body.map-printing .annotation-overlay,
+  body.map-printing .freehand-canvas {
+    display: block !important;
+  }
+}

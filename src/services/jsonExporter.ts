@@ -1,12 +1,16 @@
 import type { Annotation, HarmonyAnnotation, MelodyAnnotation, FormAnnotation, MotifAnnotation, LabelAnnotation, TextureAnnotation, FreehandAnnotation } from '../types/annotation'
 import type { AnalysisJson } from '../types/analysis'
 import type { ScoreMetadata } from '../types/score'
+import type { ResearchNote } from '../store/researchStore'
+import type { PaletteEntry } from '../store/stylusStore'
 import { extractSourceMarkings } from './xmlParser'
 
 export function exportToAnalysisJson(
   xmlString: string,
   metadata: ScoreMetadata,
-  annotations: Record<string, Annotation>
+  annotations: Record<string, Annotation>,
+  researchNotes: ResearchNote[] = [],
+  palette: PaletteEntry[] = [],
 ): AnalysisJson {
   const sourceMarkings = extractSourceMarkings(xmlString)
   const annotationList = Object.values(annotations)
@@ -90,8 +94,30 @@ export function exportToAnalysisJson(
         measure: a.measureStart,
         path: a.path,
         color: a.color,
+        strokeWidth: a.strokeWidth,
+        opacity: a.opacity ?? 1,
+        linkedLayer: a.linkedLayer,
       })),
     },
+    research_notes: researchNotes.map(n => ({
+      id: n.id,
+      text: n.text,
+      links: n.links.map(l => ({
+        type: l.type,
+        measureStart: l.measureStart,
+        measureEnd: l.measureEnd,
+        noteIds: l.noteIds,
+        label: l.label,
+      })),
+    })),
+    color_palette: palette.map(p => ({
+      id: p.id,
+      color: p.color,
+      width: p.width,
+      opacity: p.opacity,
+      linkedLayer: p.linkedLayer,
+      label: p.label,
+    })),
   }
 }
 

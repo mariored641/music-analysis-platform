@@ -5,7 +5,10 @@ import { usePlaybackStore } from '../../store/playbackStore'
 import { useAnnotationStore } from '../../store/annotationStore'
 import { useLibraryStore } from '../../store/libraryStore'
 import { exportToAnalysisJson, downloadJson } from '../../services/jsonExporter'
+import { exportToPdf } from '../../services/pdfExporter'
 import { pickSyncFolder, clearSyncFolder, getSyncFolderName, hasSyncFolder } from '../../services/syncService'
+import { useResearchStore } from '../../store/researchStore'
+import { useStylusStore } from '../../store/stylusStore'
 import { ScriptPanel } from '../scripts/ScriptPanel'
 import i18n from '../../i18n/index'
 import './TopBar.css'
@@ -15,6 +18,8 @@ export function TopBar() {
   const { metadata, xmlString, fileName, isDirty, isSaving, lastSaved } = useScoreStore()
   const { isPlaying, setPlaying, tempo, setTempo } = usePlaybackStore()
   const annotations = useAnnotationStore(s => s.annotations)
+  const researchNotes = useResearchStore(s => s.notes)
+  const palette = useStylusStore(s => s.palette)
   const setView = useLibraryStore(s => s.setView)
   const [scriptPanelOpen, setScriptPanelOpen] = useState(false)
   const [syncFolderName, setSyncFolderName] = useState<string | null>(() => getSyncFolderName())
@@ -47,8 +52,13 @@ export function TopBar() {
 
   const handleExport = () => {
     if (!xmlString || !metadata || !fileName) return
-    const json = exportToAnalysisJson(xmlString, metadata, annotations)
+    const json = exportToAnalysisJson(xmlString, metadata, annotations, researchNotes, palette)
     downloadJson(json, fileName)
+  }
+
+  const handleExportPdf = () => {
+    if (!metadata) return
+    exportToPdf(metadata.title || 'MAP Score')
   }
 
   const saveStatus = isSaving
@@ -112,6 +122,9 @@ export function TopBar() {
             </button>
             <button className="btn-export" onClick={handleExport} title={t('app.export')}>
               ⬇ JSON
+            </button>
+            <button className="btn-export" onClick={handleExportPdf} title={i18n.language === 'he' ? 'ייצוא PDF' : 'Export PDF'}>
+              🖨 PDF
             </button>
           </>
         )}

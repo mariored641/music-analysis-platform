@@ -25,6 +25,8 @@ export interface AnalysisJson {
     open_questions: QuestionEntry[]
     freehand_notes: FreehandEntry[]
   }
+  research_notes: ResearchNoteEntry[]
+  color_palette: PaletteEntryExport[]
 }
 
 export interface SourceMarking {
@@ -92,4 +94,28 @@ export interface FreehandEntry {
   measure: number
   path: string
   color: string
+  strokeWidth: number
+  opacity: number
+  linkedLayer?: string
+}
+
+export interface ResearchNoteEntry {
+  id: string
+  text: string
+  links: Array<{
+    type: 'measures' | 'notes'
+    measureStart: number
+    measureEnd?: number
+    noteIds?: string[]
+    label: string
+  }>
+}
+
+export interface PaletteEntryExport {
+  id: string
+  color: string
+  width: number
+  opacity: number
+  linkedLayer?: string
+  label?: string
 }
