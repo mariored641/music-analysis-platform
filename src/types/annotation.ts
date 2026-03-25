@@ -65,6 +65,8 @@ export interface FreehandAnnotation extends BaseAnnotation {
   path: string // SVG path data
   color: string
   strokeWidth: number
+  opacity?: number
+  linkedLayer?: string
 }
 
 export interface NoteColorAnnotation extends BaseAnnotation {

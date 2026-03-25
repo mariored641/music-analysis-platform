@@ -402,15 +402,17 @@
 
 ---
 
-### שלב 5 — Stylus / Freehand Drawing
+### שלב 5 — Stylus / Freehand Drawing ✅ (הושלם מרץ 2026)
 **מטרה:** ציור חופשי עם עט מגע.
 
-- [ ] שכבת Canvas שקופה מעל ScoreView
-- [ ] pen/touch input (PointerEvents)
-- [ ] שמירת strokes ב-analysis.json
-- [ ] שיוך stroke לשכבה + label
-- [ ] הצגת strokes לפי visibility של שכבה
-- [ ] מחיקת stroke בודד
+- [x] שכבת Canvas שקופה מעל ScoreView
+- [x] pen/touch input (PointerEvents + setPointerCapture)
+- [x] שמירת strokes ב-annotationStore → IndexedDB (auto-save)
+- [x] שיוך stroke לשכבה + opacity מה-palette
+- [x] הצגת strokes לפי visibility של שכבה (freehand + linkedLayer)
+- [x] מחיקת stroke בודד (מצב מחיקה — לחיצה על קו)
+- [x] כפתורי Draw/Erase ב-LeftPanel (ColorPalette), לא floating toolbar
+- [x] drawMode ב-stylusStore (off/draw/erase)
 
 ---
 
@@ -488,6 +490,13 @@
 - Script 2: Motif Finder
 - ScriptPanel UI
 - Auto-save (שמירה עובדת, טעינה חסרה)
+
+✅ **שלב 5 הושלם (מרץ 2026):**
+- FreehandCanvas מחודש — PointerEvents, stylusStore, drawMode (off/draw/erase)
+- Draw/Erase כפתורים ב-LeftPanel תחת שכבת ציור חופשי (ColorPalette)
+- Strokes נשמרים ב-annotationStore → IndexedDB; תומך ב-opacity/linkedLayer
+- מחיקת stroke בודד בלחיצה במצב Erase
+- Visibility לפי freehand layer + linkedLayer
 
 ✅ **שלב 4.5 הושלם (מרץ 2026):**
 - ויזואליות ייחודית לכל קטגוריה: הרמוניה (טקסט+עוגן), מלודיה (צביעת ראש תו מ-legend), מוטיב (metaball blob), מבנה (קו+סמנים), תוויות (זיגזג)

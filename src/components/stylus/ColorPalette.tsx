@@ -6,7 +6,8 @@ import './ColorPalette.css'
 
 export function ColorPalette() {
   const { t } = useTranslation()
-  const { palette, activeColorId, setActiveColor, addPaletteEntry, updatePaletteEntry, removePaletteEntry } = useStylusStore()
+  const { palette, activeColorId, drawMode, setActiveColor, setDrawMode, addPaletteEntry, updatePaletteEntry, removePaletteEntry } = useStylusStore()
+  const activeEntry = palette.find(e => e.id === activeColorId)
   const [editingId, setEditingId] = useState<string | null>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
 
@@ -29,6 +30,25 @@ export function ColorPalette() {
 
   return (
     <div className="color-palette">
+      {/* Draw / Erase mode toggles */}
+      <div className="palette-mode-row">
+        <button
+          className={`palette-mode-btn ${drawMode === 'draw' ? 'active' : ''}`}
+          style={drawMode === 'draw' ? { background: activeEntry?.color ?? '#ec4899' } : {}}
+          onClick={() => setDrawMode(drawMode === 'draw' ? 'off' : 'draw')}
+          title="ציור חופשי"
+        >
+          ✏️ {drawMode === 'draw' ? 'פעיל' : 'ציור'}
+        </button>
+        <button
+          className={`palette-mode-btn ${drawMode === 'erase' ? 'active erase' : ''}`}
+          onClick={() => setDrawMode(drawMode === 'erase' ? 'off' : 'erase')}
+          title="מחק קו"
+        >
+          ◻ {drawMode === 'erase' ? 'מחיקה' : 'מחק'}
+        </button>
+      </div>
+
       <div className="palette-circles">
         {palette.map(entry => (
           <div

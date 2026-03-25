@@ -14,7 +14,8 @@
       "Bash(Get-Process node:*)",
       "Bash(Stop-Process -Force)",
       "Bash(pkill -f \"vite\")",
-      "Bash(pkill -f \"node.*vite\")"
+      "Bash(pkill -f \"node.*vite\")",
+      "Bash(taskkill /F /IM node.exe)"
     ]
   }
 }

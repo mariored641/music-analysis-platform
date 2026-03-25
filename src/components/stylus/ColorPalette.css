@@ -2,6 +2,40 @@
   padding: 6px 8px 4px;
 }
 
+/* Draw / Erase mode row */
+.palette-mode-row {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 7px;
+}
+
+.palette-mode-btn {
+  flex: 1;
+  background: #1e1e3a;
+  border: 1px solid #2d2d4e;
+  border-radius: 4px;
+  color: #9ca3af;
+  font-size: 10px;
+  padding: 3px 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.palette-mode-btn:hover {
+  background: #2d2d4e;
+  color: #e2e8f0;
+}
+
+.palette-mode-btn.active {
+  color: #fff;
+  border-color: transparent;
+}
+
+.palette-mode-btn.active.erase {
+  background: #ef4444;
+}
+
 .palette-circles {
   display: flex;
   flex-wrap: wrap;

@@ -335,12 +335,13 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 - **שלב 3: סלקציה מלאה** — ר' פירוט בסעיף "Stage 3" למטה.
 - **שלב 4: LeftPanel מחודש + Legend** — ר' פירוט בסעיף "Stage 4" למטה.
 - **שלב 4.5: Annotation Visuals Redesign** — ר' פירוט בסעיף "Stage 4.5" למטה.
+- **שלב 5: Stylus / Freehand Drawing** — ר' פירוט בסעיף "Stage 5" למטה.
 
 ## What's pending ⬜
 
 - **FormalStrip** — needs measure-range annotations to render
 - **Mobile/touch** — not started
-- **שלב 5–10** — ר' SPEC.md
+- **שלב 6–10** — ר' SPEC.md
 
 ---
 
@@ -461,3 +462,28 @@ Clicking a harmony annotation shape:
 
 ### All context menu tabs always visible
 `getTabsForSelection` always returns all 7 tabs — just reorders them so the most relevant tab for the selection type is first.
+
+---
+
+## Stage 5 — Stylus / Freehand Drawing (completed March 2026)
+
+### FreehandAnnotation type
+Added `opacity?: number` and `linkedLayer?: string` to `FreehandAnnotation` in `annotation.ts`.
+
+### drawMode in stylusStore
+`stylusStore` now holds `drawMode: 'off' | 'draw' | 'erase'` (not persisted — resets on reload).
+`setDrawMode(mode)` exported. FreehandCanvas reads mode from store (no local state).
+
+### FreehandCanvas — full rewrite
+- **PointerEvents** (`onPointerDown/Move/Up/Cancel` + `setPointerCapture`) — supports pen, touch, mouse
+- **No floating toolbar** — mode controls live in LeftPanel (ColorPalette)
+- Color/width/opacity read from `stylusStore.activeEntry`
+- `touchAction: none` when drawing (prevents scroll interference on touch screens)
+- **Erase mode**: `onPointerDown` → finds nearest stroke via segment-distance test (threshold 14px) → `removeAnnotation`
+- **linkedLayer visibility**: stroke hidden if its `linkedLayer` is toggled off in layerStore
+- Strokes saved to `annotationStore` → auto-saved to IndexedDB; Ctrl+Z undoes
+
+### ColorPalette — draw/erase buttons
+Two buttons added above the palette circles: `✏️ ציור` / `◻ מחק`.
+Active draw button shows the active palette color as background.
+Buttons call `setDrawMode` on click (toggle: click active mode → 'off').

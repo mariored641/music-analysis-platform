@@ -2,6 +2,8 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { v4 as uuid } from 'uuid'
 
+export type DrawMode = 'off' | 'draw' | 'erase'
+
 export interface PaletteEntry {
   id: string
   color: string
@@ -14,7 +16,9 @@ export interface PaletteEntry {
 interface StylusState {
   activeColorId: string | null
   palette: PaletteEntry[]
+  drawMode: DrawMode
   setActiveColor: (id: string | null) => void
+  setDrawMode: (mode: DrawMode) => void
   addPaletteEntry: () => void
   updatePaletteEntry: (id: string, changes: Partial<PaletteEntry>) => void
   removePaletteEntry: (id: string) => void
@@ -33,8 +37,10 @@ export const useStylusStore = create<StylusState>()(
     (set) => ({
       activeColorId: 'default-red',
       palette: DEFAULT_PALETTE,
+      drawMode: 'off' as DrawMode,
 
       setActiveColor: (id) => set({ activeColorId: id }),
+      setDrawMode: (mode) => set({ drawMode: mode }),
 
       addPaletteEntry: () => set((s) => ({
         palette: [...s.palette, { id: uuid(), color: '#ffffff', width: 3, opacity: 0.8 }],
