@@ -337,12 +337,14 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 - **שלב 4.5: Annotation Visuals Redesign** — ר' פירוט בסעיף "Stage 4.5" למטה.
 - **שלב 5: Stylus / Freehand Drawing** — ר' פירוט בסעיף "Stage 5" למטה.
 - **שלב 6: Research Notes** — ר' פירוט בסעיף "Stage 6" למטה.
+- **שלב 7: File System Sync** — syncService, 📁 Sync button in TopBar, auto-write + read-back on open.
+- **שלב 8: Export** — JSON מעודכן (researchNotes + palette + full freehand strokes), `pdfExporter.ts` (window.print + CSS print), כפתור 🖨 PDF ב-TopBar.
 
 ## What's pending ⬜
 
 - **FormalStrip** — needs measure-range annotations to render
 - **Mobile/touch** — not started
-- **שלב 7–10** — ר' SPEC.md
+- **שלב 9–10** — ר' SPEC.md
 
 ---
 

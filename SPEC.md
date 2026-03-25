@@ -437,12 +437,12 @@
 
 ---
 
-### שלב 8 — Export
+### שלב 8 — Export ✅ (הושלם מרץ 2026)
 **מטרה:** ייצוא PDF ו-JSON מלא.
 
-- [ ] JSON export מעודכן (כולל strokes + research notes + palette)
-- [ ] `pdfExporter.ts` — פרטיטורה + overlays
-- [ ] כפתורי ייצוא ב-TopBar
+- [x] JSON export מעודכן (כולל strokes + research notes + palette)
+- [x] `pdfExporter.ts` — פרטיטורה + overlays (window.print + CSS print)
+- [x] כפתורי ייצוא ב-TopBar (⬇ JSON + 🖨 PDF)
 
 ---
 
