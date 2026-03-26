@@ -339,9 +339,11 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 - **שלב 6: Research Notes** — ר' פירוט בסעיף "Stage 6" למטה.
 - **שלב 7: File System Sync** — syncService, 📁 Sync button in TopBar, auto-write + read-back on open.
 - **שלב 8: Export** — JSON מעודכן (researchNotes + palette + full freehand strokes), `pdfExporter.ts` (window.print + CSS print), כפתור 🖨 PDF ב-TopBar.
+- **שלב 10: Playback משופר** — cursor נע (PlaybackHighlightShape תוקן), auto-scroll תיבה פעילה, נגינה מהסלקציה, Pause/Resume/Stop controls, Loop section (🔁). `playbackStore`: isPaused/startMeasure/loop. Space = play→pause→resume.
 
 ## What's pending ⬜
 
+- **שלב 9** — Scripts נוספים (Roman numerals, ניתוח הרמוני מלא)
 - **FormalStrip** — needs measure-range annotations to render
 - **Mobile/touch** — not started
 - **שלב 9–10** — ר' SPEC.md
