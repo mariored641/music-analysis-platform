@@ -340,13 +340,13 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 - **שלב 7: File System Sync** — syncService, 📁 Sync button in TopBar, auto-write + read-back on open.
 - **שלב 8: Export** — JSON מעודכן (researchNotes + palette + full freehand strokes), `pdfExporter.ts` (window.print + CSS print), כפתור 🖨 PDF ב-TopBar.
 - **שלב 10: Playback משופר** — cursor נע (PlaybackHighlightShape תוקן), auto-scroll תיבה פעילה, נגינה מהסלקציה, Pause/Resume/Stop controls, Loop section (🔁). `playbackStore`: isPaused/startMeasure/loop. Space = play→pause→resume.
+- **שלב 9: Roman Numeral Analysis** — `romanNumeralScript.ts`. 3 מצבים אוטומטיים: (A) עדכון harmony annotations קיימים בסטור, (A-XML) יצירה מ-`<harmony>` elements ב-XML (lead sheets / jazz), (B) chordify כל הסולמות (קלאסי). מנגנון RN: diatonic degrees, secondary dominants (V7/X), secondary leading tones (viiø7/X), chromatic degrees (bVI, bVII, #IV), harmonic function T/S/D. HarmonyShape מציג chord symbol + RN מוערמים. `detectChordFromPcs()` הופרד מ-`detectChord()`. `parseAllStavesNotes()` נוסף ל-xmlParser. `scriptId` הועבר ל-BaseAnnotation.
 
 ## What's pending ⬜
 
-- **שלב 9** — Scripts נוספים (Roman numerals, ניתוח הרמוני מלא)
+- **שלב 9 המשך** — ניתוח הרמוני מלא (voice leading, modulations)
 - **FormalStrip** — needs measure-range annotations to render
 - **Mobile/touch** — not started
-- **שלב 9–10** — ר' SPEC.md
 
 ---
 
