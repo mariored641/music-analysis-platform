@@ -212,6 +212,80 @@ export function parseHarmonies(xmlString: string): HarmonyItem[] {
   return items
 }
 
+// ── All-staves note extraction (for chordify / harmonic analysis) ──────────────
+
+export interface AllStavesNote {
+  measureNum: number
+  beat: number
+  duration: number
+  step: string
+  alter: number
+  staff: number
+}
+
+/**
+ * Parse ALL notes from ALL staves (including staff 2 for piano left-hand).
+ * Used by romanNumeralScript for chordify-based chord detection.
+ */
+export function parseAllStavesNotes(xmlString: string): AllStavesNote[] {
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(xmlString, 'application/xml')
+
+  const result: AllStavesNote[] = []
+  let currentDivisions = 1
+
+  doc.querySelectorAll('measure').forEach(measureEl => {
+    const num = parseInt(measureEl.getAttribute('number') || '1')
+
+    const divEl = measureEl.querySelector('attributes > divisions')
+    if (divEl) currentDivisions = parseInt(divEl.textContent || '1')
+
+    let currentBeat = 1
+
+    Array.from(measureEl.children).forEach(child => {
+      const tag = child.tagName
+
+      if (tag === 'backup') {
+        const dur = parseInt(child.querySelector('duration')?.textContent || '0')
+        currentBeat -= dur / currentDivisions
+        return
+      }
+      if (tag === 'forward') {
+        const dur = parseInt(child.querySelector('duration')?.textContent || '0')
+        currentBeat += dur / currentDivisions
+        return
+      }
+      if (tag !== 'note') return
+
+      const isChord = !!child.querySelector('chord')
+      const isRest = !!child.querySelector('rest')
+      const staff = parseInt(child.querySelector('staff')?.textContent || '1')
+      const durEl = child.querySelector('duration')
+      const dur = durEl ? parseInt(durEl.textContent || '1') / currentDivisions : 1
+
+      if (!isRest) {
+        const pitchEl = child.querySelector('pitch')
+        if (pitchEl) {
+          const step = pitchEl.querySelector('step')?.textContent || 'C'
+          const rawAlter = parseFloat(pitchEl.querySelector('alter')?.textContent || '0')
+          result.push({
+            measureNum: num,
+            beat: currentBeat,
+            duration: dur,
+            step,
+            alter: isNaN(rawAlter) ? 0 : rawAlter,
+            staff,
+          })
+        }
+      }
+
+      if (!isChord) currentBeat += dur
+    })
+  })
+
+  return result
+}
+
 export function extractSourceMarkings(xmlString: string) {
   const parser = new DOMParser()
   const doc = parser.parseFromString(xmlString, 'application/xml')

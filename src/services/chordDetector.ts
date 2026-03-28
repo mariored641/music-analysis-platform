@@ -33,6 +33,41 @@ const TEMPLATES: Template[] = [
 ]
 
 /**
+ * Detect chord name from a set of pitch classes (0–11).
+ * Returns e.g. "Cm7", "F7", "Bbmaj7", or null if no match.
+ */
+export function detectChordFromPcs(pcs: Set<number>): string | null {
+  if (pcs.size < 2) return null
+
+  let bestScore = -1
+  let bestName: string | null = null
+
+  for (const tpl of TEMPLATES) {
+    for (let root = 0; root < 12; root++) {
+      const tplPcs = new Set([...tpl.intervals].map(iv => (root + iv) % 12))
+
+      let matched = 0
+      for (const pc of pcs) {
+        if (tplPcs.has(pc)) matched++
+      }
+      if (matched < pcs.size) continue
+
+      const isExact = tpl.size === pcs.size
+      const score = isExact
+        ? 1000 + tpl.size * 10
+        : pcs.size * 10 - (tpl.size - pcs.size)
+
+      if (score > bestScore) {
+        bestScore = score
+        bestName = `${ROOT_NAMES[root]}${tpl.quality}`
+      }
+    }
+  }
+
+  return bestName
+}
+
+/**
  * Detect chord name from an array of noteMap IDs.
  * Returns e.g. "Cm7", "F7", "Bbmaj7", or null if no match.
  *
@@ -43,7 +78,6 @@ const TEMPLATES: Template[] = [
 export function detectChord(noteIds: string[], noteMap: NoteMap): string | null {
   if (noteIds.length < 2) return null
 
-  // Collect unique pitch classes
   const pcs = new Set<number>()
   for (const id of noteIds) {
     const note = noteMap.notes.get(id)
@@ -52,34 +86,5 @@ export function detectChord(noteIds: string[], noteMap: NoteMap): string | null 
     pcs.add(pc)
   }
 
-  if (pcs.size < 2) return null
-
-  let bestScore = -1
-  let bestName: string | null = null
-
-  for (const tpl of TEMPLATES) {
-    for (let root = 0; root < 12; root++) {
-      const tplPcs = new Set([...tpl.intervals].map(iv => (root + iv) % 12))
-
-      // All selected PCs must be contained in the template (no foreign tones)
-      let matched = 0
-      for (const pc of pcs) {
-        if (tplPcs.has(pc)) matched++
-      }
-      if (matched < pcs.size) continue
-
-      // Score: exact match wins over superset; among equal type, larger templates win
-      const isExact = tpl.size === pcs.size
-      const score = isExact
-        ? 1000 + tpl.size * 10        // exact: prefer larger (7th > triad)
-        : pcs.size * 10 - (tpl.size - pcs.size)  // partial: penalize extra tones
-
-      if (score > bestScore) {
-        bestScore = score
-        bestName = `${ROOT_NAMES[root]}${tpl.quality}`
-      }
-    }
-  }
-
-  return bestName
+  return detectChordFromPcs(pcs)
 }

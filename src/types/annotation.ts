@@ -11,6 +11,7 @@ interface BaseAnnotation {
   noteIds?: string[]
   createdAt: number
   visualOffset?: { x: number; y: number }  // drag-to-reposition
+  scriptId?: string  // set when created/updated by a script
 }
 
 export interface HarmonyAnnotation extends BaseAnnotation {

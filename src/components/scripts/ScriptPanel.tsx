@@ -11,6 +11,7 @@ import { useAnnotationStore } from '../../store/annotationStore'
 import { useLayerStore } from '../../store/layerStore'
 import { runMelodyColorScript } from '../../services/melodyColorScript'
 import { runMotifScript, SCRIPT_ID as MOTIF_ID } from '../../services/motifScript'
+import { runRomanNumeralScript, SCRIPT_ID as RN_ID } from '../../services/romanNumeralScript'
 import type { HarmonyAnnotation } from '../../types/annotation'
 import './ScriptPanel.css'
 
@@ -41,6 +42,13 @@ const SCRIPTS: ScriptDef[] = [
     descEn: 'Select 2+ notes to define a motif, then find all occurrences (incl. inversions and retrogrades).',
     descHe: 'בחר 2 תווים או יותר כמוטיב, ומצא את כל המופעים ביצירה (כולל היפוך ורטרוגרד).',
   },
+  {
+    id: RN_ID,
+    labelEn: 'Roman Numeral Analysis',
+    labelHe: 'ניתוח ספרות רומיות',
+    descEn: 'Adds Roman numerals to harmony annotations. If no chord symbols exist, auto-detects chords from all staves first (classical mode).',
+    descHe: 'מוסיף ספרות רומיות לאנוטציות ההרמוניה. אם אין סמלי אקורד, מזהה אקורדים אוטומטית מכל הסולמות (מצב קלאסי).',
+  },
 ]
 
 export function ScriptPanel({ onClose }: Props) {
@@ -50,7 +58,8 @@ export function ScriptPanel({ onClose }: Props) {
   const noteMap   = useScoreStore(s => s.noteMap)
   const xmlString = useScoreStore(s => s.xmlString)
   const annotations    = useAnnotationStore(s => s.annotations)
-  const addAnnotation  = useAnnotationStore(s => s.addAnnotation)
+  const addAnnotation    = useAnnotationStore(s => s.addAnnotation)
+  const updateAnnotation = useAnnotationStore(s => s.updateAnnotation)
   const removeAnnotation = useAnnotationStore(s => s.removeAnnotation)
 
   const panelRef = useRef<HTMLDivElement>(null)
@@ -68,16 +77,36 @@ export function ScriptPanel({ onClose }: Props) {
   }, [onClose])
 
   function isActive(scriptId: string): boolean {
-    return Object.values(annotations).some(
-      a => (a as any).scriptId === scriptId
-    )
+    if (scriptId === RN_ID) {
+      return Object.values(annotations).some(a =>
+        a.scriptId === RN_ID ||
+        (a.layer === 'harmony' && !!(a as HarmonyAnnotation).scaleDegree)
+      )
+    }
+    return Object.values(annotations).some(a => a.scriptId === scriptId)
   }
 
   function clearScript(scriptId: string) {
-    // Read fresh state (not stale closure) to avoid missing previously-added annotations
     const fresh = useAnnotationStore.getState().annotations
+    const { updateAnnotation: updateAnn, removeAnnotation: removeAnn } = useAnnotationStore.getState()
+
+    if (scriptId === RN_ID) {
+      Object.values(fresh)
+        .filter(a => a.scriptId === RN_ID)
+        .forEach(a => {
+          if (a.id.startsWith('rn-')) {
+            // Mode A-XML and Mode B: fully script-created → remove
+            removeAnn(a.id)
+          } else {
+            // Mode A in-place: reset the fields we added
+            updateAnn(a.id, { scaleDegree: undefined, function: undefined, scriptId: undefined })
+          }
+        })
+      return
+    }
+
     const toRemove = Object.values(fresh)
-      .filter(a => (a as any).scriptId === scriptId)
+      .filter(a => a.scriptId === scriptId)
       .map(a => a.id)
     toRemove.forEach(id => removeAnnotation(id))
   }
@@ -112,6 +141,29 @@ export function ScriptPanel({ onClose }: Props) {
           : `Found: ${summary} occurrences`
         alert(msg)
       }
+      return null
+    }
+
+    if (scriptId === RN_ID) {
+      const harmonyAnns = Object.values(annotations).filter(
+        a => a.layer === 'harmony'
+      ) as HarmonyAnnotation[]
+      const { mode, annotations: rnAnns, error, count } = runRomanNumeralScript(noteMap, harmonyAnns, xmlString ?? '')
+      if (error) return error
+      if (mode === 'update') {
+        rnAnns.forEach(ann => updateAnnotation(ann.id, {
+          scaleDegree: ann.scaleDegree,
+          function: ann.function,
+          scriptId: RN_ID,
+        }))
+      } else {
+        rnAnns.forEach(ann => addAnnotation(ann))
+      }
+      useLayerStore.getState().setVisible('harmony', true)
+      const msg = isHe
+        ? `✓ סיים — ${count} אקורדים נותחו`
+        : `✓ Done — ${count} chords analyzed`
+      setStatusMsg(msg)
       return null
     }
 
@@ -174,5 +226,8 @@ function errorMessage(scriptId: string, error: string, isHe: boolean): string {
   if (error === 'NO_MOTIF_ANNOTATIONS') return isHe
     ? 'לא נמצאו מוטיבים מסומנים. בחר תווים → תפריט ימני → מוטיב → תייג כ-A/B/C.'
     : 'No tagged motifs found. Select notes → right-click → Motif → tag as A/B/C first.'
+  if (error === 'NO_NOTES') return isHe
+    ? 'לא נמצאו תווים בפרטיטורה.'
+    : 'No notes found in the score.'
   return isHe ? `שגיאה: ${error}` : `Error: ${error}`
 }

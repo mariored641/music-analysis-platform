@@ -292,8 +292,13 @@ function HarmonyShape({ annotation, elementMap, containerRect, toVrv, onDragEnd,
   const layer = LAYER_MAP.get('harmony')!
   const { offset, handleMouseDown } = useDrag(ann.visualOffset, off => onDragEnd(ann.id, off))
 
-  const text = ann.chordSymbol || ann.scaleDegree || ann.cadenceType || ''
-  if (!text) return null
+  const chordText  = ann.chordSymbol || ''
+  const rnText     = ann.scaleDegree || ''
+  const cadenceText = ann.cadenceType || ''
+  const primaryText = chordText || rnText || cadenceText
+  if (!primaryText) return null
+  // Show RN below chord symbol when both are present
+  const showRn = !!(chordText && rnText)
 
   const anchorNoteId = ann.noteIds?.[0]
   let anchorX: number | null = null
@@ -312,7 +317,9 @@ function HarmonyShape({ annotation, elementMap, containerRect, toVrv, onDragEnd,
   if (anchorX === null || staffTopY === null) return null
 
   const textX = anchorX + offset.x
-  const textY = (staffTopY - 18) + offset.y
+  // When stacked, push both lines higher so the block clears the staff
+  const baseY  = showRn ? staffTopY - 30 : staffTopY - 18
+  const textY  = baseY + offset.y
   const anchorActive = isSelected && selectedAnchor === 'start'
 
   return (
@@ -342,6 +349,7 @@ function HarmonyShape({ annotation, elementMap, containerRect, toVrv, onDragEnd,
           strokeDasharray="3,3" opacity="0.65"
         />
       )}
+      {/* Primary label: chord symbol (or scale degree / cadence if no chord) */}
       <text
         x={textX} y={textY}
         fontSize="15"
@@ -351,8 +359,23 @@ function HarmonyShape({ annotation, elementMap, containerRect, toVrv, onDragEnd,
         textAnchor="middle"
         style={{ userSelect: 'none' }}
       >
-        {text}
+        {primaryText}
       </text>
+      {/* Secondary label: Roman numeral below the chord symbol */}
+      {showRn && (
+        <text
+          x={textX} y={textY + 14}
+          fontSize="11"
+          fontFamily="Georgia, 'Times New Roman', serif"
+          fontStyle="italic"
+          fill={layer.color}
+          textAnchor="middle"
+          opacity="0.85"
+          style={{ userSelect: 'none' }}
+        >
+          {rnText}
+        </text>
+      )}
       {/* Clickable anchor dot at note position */}
       {isSelected && anchorNoteY !== null && (
         <circle
