@@ -5,6 +5,7 @@ import { RightPanel } from './components/layout/RightPanel'
 import { StatusBar } from './components/layout/StatusBar'
 import { ScoreView } from './components/score/ScoreView'
 import { LibraryView } from './views/LibraryView'
+import { RendererTestView } from './views/RendererTestView'
 import { useLibraryStore } from './store/libraryStore'
 import { useAutoSave } from './hooks/useAutoSave'
 import { useKeyboard } from './hooks/useKeyboard'
@@ -14,6 +15,14 @@ import i18n from './i18n/index'
 import './App.css'
 
 export function App() {
+  // Dev route: /renderer-test → Checkpoint A test page (no hooks needed)
+  if (window.location.pathname === '/renderer-test') {
+    return <RendererTestView />
+  }
+  return <MainApp />
+}
+
+function MainApp() {
   useRestoreSession()
   useAutoSave()
   useKeyboard()

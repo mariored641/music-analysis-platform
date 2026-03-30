@@ -1,0 +1,806 @@
+/**
+ * MAP Native Renderer — Stage 4: Vertical Layout Engine
+ *
+ * Computes vertical geometry for all notes and symbols:
+ *   - System / staff y-positions (stacking from top margin)
+ *   - Note staff-line numbers and y-coordinates (clef-offset formula, §4b)
+ *   - Stem directions (voice-override + middle-line heuristic, §4c/4d)
+ *   - Ledger lines (§4e)
+ *   - Beam geometry — primary + secondary/tertiary segments (§4f)
+ *   - Barline y-extents
+ *   - Chord-symbol y-positions
+ *   - Key / time signature / clef positions
+ *   - Tie arcs (simple bezier, no cross-system for now)
+ *
+ * Input:  ExtractedScore + HorizontalLayout
+ * Output: RenderedScore  (all coordinates in SVG pixels)
+ */
+
+import type {
+  ExtractedScore,
+  ExtractedMeasure,
+  ExtractedNote,
+} from './extractorTypes'
+import type { HorizontalLayout, HLayoutMeasure } from './horizontalLayout'
+import { DEFAULT_RENDER_OPTIONS } from './horizontalLayout'
+import type {
+  RenderedScore,
+  RenderedPage,
+  RenderedSystem,
+  RenderedStaff,
+  RenderedMeasure,
+  RenderedNote,
+  RenderedBeam,
+  BeamSegment,
+  RenderedBarline,
+  RenderedChordSymbol,
+  RenderedTie,
+  RenderedTuplet,
+  RenderedLedgerLine,
+  RenderedKeySignature,
+  RenderedTimeSignature,
+  RenderedClefSymbol,
+  DOMRectLike,
+  ClefType,
+  NoteheadType,
+  AccidentalType,
+  RenderOptions,
+} from './types'
+
+// ─── Pitch → staff-line constants ────────────────────────────────────────────
+
+const STEP_TO_DIATONIC: Record<string, number> = {
+  C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6,
+}
+
+/**
+ * Clef anchor offsets (RENDERER_ALGORITHMS.md §21 / NATIVE_RENDERER_PLAN.md §4b).
+ * staffLine = clefOffset − (diatonicStep + octave × 7)
+ * Line 0 = top staff line, increases downward.
+ * Lines 0,2,4,6,8 are the 5 staff lines; odd = spaces.
+ */
+const CLEF_OFFSET: Record<string, number> = {
+  treble:     38,   // F5=0, E4=8, middle C (C4)=10 (ledger below)
+  bass:       26,   // A3=0, G2=8, middle C (C4)=-2 (ledger above)
+  alto:       32,   // G4=0 … (C4=4 = middle line)
+  tenor:      30,
+  percussion: 38,
+}
+
+function pitchToStaffLine(step: string, octave: number, clef: ClefType): number {
+  const diatonic = STEP_TO_DIATONIC[step] ?? 0
+  return (CLEF_OFFSET[clef] ?? 38) - (diatonic + octave * 7)
+}
+
+// ─── Key-signature accidental staff-line positions ───────────────────────────
+
+// Treble: sharps on F5(0), C5(3), G5(-1), D5(2), A4(5), E5(1), B4(4)
+const TREBLE_SHARP_LINES = [0, 3, -1, 2, 5, 1, 4]
+// Treble: flats on B4(4), E5(1), A4(5), D5(2), G5(-1)... wait actually:
+// Flats in treble: Bb4(4), Eb5(1), Ab4(5), Db5(2), Gb4(6), Cb5(3), Fb4(7)
+const TREBLE_FLAT_LINES  = [4, 1, 5, 2, 6, 3, 7]
+// Bass clef:
+const BASS_SHARP_LINES   = [2, 5,  1, 4, 7, 3, 6]
+const BASS_FLAT_LINES    = [6, 3, 7, 4, 8, 5, 9]
+
+function getKeySigLines(fifths: number, clef: ClefType): number[] {
+  if (fifths === 0) return []
+  const count = Math.abs(fifths)
+  const isSharp = fifths > 0
+  if (clef === 'bass') {
+    return (isSharp ? BASS_SHARP_LINES : BASS_FLAT_LINES).slice(0, count)
+  }
+  return (isSharp ? TREBLE_SHARP_LINES : TREBLE_FLAT_LINES).slice(0, count)
+}
+
+// ─── Accidental width by type (× sp) ─────────────────────────────────────────
+
+const ACCIDENTAL_WIDTH_SP: Record<string, number> = {
+  'sharp':           1.0,
+  'flat':            1.2,
+  'natural':         0.9,
+  'double-sharp':    1.1,
+  'double-flat':     1.4,
+  'courtesy-sharp':  1.4,
+  'courtesy-flat':   1.6,
+  'courtesy-natural':1.3,
+}
+
+// ─── Notehead type from MusicXML duration type ───────────────────────────────
+
+function noteheadFromType(type: string): NoteheadType {
+  if (type === 'whole')  return 'whole'
+  if (type === 'half')   return 'half'
+  return 'quarter'  // covers eighth, 16th, 32nd, 64th
+}
+
+// ─── AccidentalType from AccidentalSign ──────────────────────────────────────
+
+function accidentalTypeFrom(sign: string): AccidentalType {
+  const map: Record<string, AccidentalType> = {
+    'sharp':        'sharp',
+    'flat':         'flat',
+    'natural':      'natural',
+    'double-sharp': 'double-sharp',
+    'double-flat':  'double-flat',
+  }
+  return map[sign] ?? 'natural'
+}
+
+// ─── Beam-group ID assignment ─────────────────────────────────────────────────
+
+/**
+ * Returns a map from noteId → beamGroupId for all notes in a measure.
+ * Works on notes already sorted by beat order.
+ */
+function assignBeamGroupIds(notes: ExtractedNote[]): Map<string, string> {
+  const map = new Map<string, string>()
+  let currentGroupId: string | null = null
+
+  for (const note of notes) {
+    if (note.isRest || note.isGrace || !note.beamStates?.length) continue
+    const primary = note.beamStates.find(b => b.level === 1)
+    if (!primary) continue
+
+    if (primary.value === 'begin') {
+      currentGroupId = `beam-m${note.measureNum}b${Math.round(note.beat * 100)}`
+    }
+    if (currentGroupId) map.set(note.id, currentGroupId)
+    if (primary.value === 'end') currentGroupId = null
+  }
+
+  return map
+}
+
+// ─── Ledger lines ─────────────────────────────────────────────────────────────
+
+function computeLedgerLines(
+  staffLine: number,
+  noteX: number,
+  noteheadRx: number,
+  halfSp: number,
+  staffTop: number,
+): RenderedLedgerLine[] {
+  const lines: RenderedLedgerLine[] = []
+  const ledgerPad = 3  // extra width on each side beyond notehead
+  const x1 = noteX - noteheadRx - ledgerPad
+  const x2 = noteX + noteheadRx + ledgerPad
+
+  if (staffLine < 0) {
+    // Above staff: need ledger lines at 0, -2, -4, ... down to nearest even ≤ staffLine
+    const top = Math.floor(staffLine / 2) * 2   // e.g. staffLine=-3 → top=-4
+    for (let sl = 0; sl >= top && sl > staffLine - 1; sl -= 2) {
+      // sl is -2, -4, ... but we actually need lines down from 0 going up:
+      // ledger lines are at even staffLines BELOW 0 going negative
+      // We need ledger lines at -2, -4 up to the note
+    }
+    // Corrected: ledger lines at staffLine = -2, -4, ... going up, stopping at note's sl
+    // Note is at staffLine (negative). Need lines at all even sl from -2 down to ceil(staffLine/2)*2
+    const lowestNeeded = (staffLine % 2 === 0) ? staffLine : staffLine + 1
+    for (let sl = -2; sl >= lowestNeeded; sl -= 2) {
+      lines.push({ y: staffTop + sl * halfSp, x1, x2 })
+    }
+  } else if (staffLine > 8) {
+    // Below staff: ledger lines at 10, 12, ... up to note's staffLine
+    const highestNeeded = (staffLine % 2 === 0) ? staffLine : staffLine - 1
+    for (let sl = 10; sl <= highestNeeded; sl += 2) {
+      lines.push({ y: staffTop + sl * halfSp, x1, x2 })
+    }
+  }
+
+  return lines
+}
+
+// ─── Beam geometry ────────────────────────────────────────────────────────────
+
+function buildBeams(
+  renderedNotes: RenderedNote[],
+  extNotes: ExtractedNote[],
+  beamThickness: number,
+  beamGap: number,
+): RenderedBeam[] {
+  // Index rendered notes by noteId
+  const rNoteMap = new Map<string, RenderedNote>()
+  for (const n of renderedNotes) rNoteMap.set(n.noteId, n)
+
+  // Index extracted notes by noteId
+  const eNoteMap = new Map<string, ExtractedNote>()
+  for (const n of extNotes) eNoteMap.set(n.id, n)
+
+  // Group rendered notes by beam group
+  const groups = new Map<string, RenderedNote[]>()
+  for (const n of renderedNotes) {
+    if (!n.beamGroupId) continue
+    if (!groups.has(n.beamGroupId)) groups.set(n.beamGroupId, [])
+    groups.get(n.beamGroupId)!.push(n)
+  }
+
+  const beams: RenderedBeam[] = []
+
+  for (const [groupId, gNotes] of groups) {
+    if (gNotes.length < 2) continue
+    gNotes.sort((a, b) => a.x - b.x)
+
+    const stemUp = gNotes[0].stemUp
+    const first  = gNotes[0]
+    const last   = gNotes[gNotes.length - 1]
+
+    // Stem tips for angle calculation
+    const y1raw = stemUp ? first.stemYTop  : first.stemYBottom
+    const y2raw = stemUp ? last.stemYTop   : last.stemYBottom
+
+    const dx = last.x - first.x || 1
+    const rawAngle = (y2raw - y1raw) / dx
+    const angle    = Math.max(-0.1, Math.min(0.1, rawAngle))
+    const y2       = y1raw + angle * dx
+
+    // beamY(x) = y1raw + angle * (x - first.x)
+    const beamY = (x: number) => y1raw + angle * (x - first.x)
+
+    // Primary beam: level 1 — connects all notes
+    const allSegments: BeamSegment[][] = [[
+      { x1: first.stemX, y1: beamY(first.stemX), x2: last.stemX, y2: beamY(last.stemX) },
+    ]]
+
+    // Secondary / tertiary beams
+    const maxLevels = getMaxBeamLevel(gNotes, eNoteMap)
+    for (let level = 2; level <= maxLevels; level++) {
+      const levelOffset = (level - 1) * (beamThickness + beamGap)
+      const dir = stemUp ? 1 : -1  // inward toward noteheads
+      const segs = buildSubBeams(gNotes, eNoteMap, level, beamY, levelOffset * dir)
+      if (segs.length) allSegments.push(segs)
+    }
+
+    // Adjust stem tips for all beamed notes to sit on the primary beam
+    for (const rn of gNotes) {
+      const beamMid = beamY(rn.stemX)
+      if (stemUp) {
+        rn.stemYTop = beamMid
+      } else {
+        rn.stemYBottom = beamMid
+      }
+    }
+
+    beams.push({
+      groupId,
+      noteIds: gNotes.map(n => n.noteId),
+      stemUp,
+      levels: maxLevels,
+      segments: allSegments,
+    })
+  }
+
+  return beams
+}
+
+function getMaxBeamLevel(
+  gNotes: RenderedNote[],
+  eNoteMap: Map<string, ExtractedNote>,
+): number {
+  let max = 1
+  for (const n of gNotes) {
+    const en = eNoteMap.get(n.noteId)
+    if (!en?.beamStates) continue
+    for (const bs of en.beamStates) {
+      if (bs.level > max) max = bs.level
+    }
+  }
+  return max
+}
+
+function buildSubBeams(
+  gNotes: RenderedNote[],
+  eNoteMap: Map<string, ExtractedNote>,
+  level: number,
+  beamY: (x: number) => number,
+  extraOffset: number,  // positive = downward for stemUp
+): BeamSegment[] {
+  const segs: BeamSegment[] = []
+  let subStart: RenderedNote | null = null
+
+  const beamYLevel = (x: number) => beamY(x) + extraOffset
+
+  for (const rn of gNotes) {
+    const en = eNoteMap.get(rn.noteId)
+    const bs = en?.beamStates?.find(b => b.level === level)
+
+    if (!bs) {
+      if (subStart) {
+        // Close unclosed sub-group
+        segs.push({
+          x1: subStart.stemX, y1: beamYLevel(subStart.stemX),
+          x2: rn.stemX,       y2: beamYLevel(rn.stemX),
+        })
+      }
+      subStart = null
+      continue
+    }
+
+    if (bs.value === 'forward hook') {
+      const hookW = 8
+      segs.push({ x1: rn.stemX, y1: beamYLevel(rn.stemX), x2: rn.stemX + hookW, y2: beamYLevel(rn.stemX + hookW) })
+      continue
+    }
+    if (bs.value === 'backward hook') {
+      const hookW = 8
+      segs.push({ x1: rn.stemX - hookW, y1: beamYLevel(rn.stemX - hookW), x2: rn.stemX, y2: beamYLevel(rn.stemX) })
+      continue
+    }
+    if (bs.value === 'begin') {
+      subStart = rn
+    } else if (bs.value === 'continue' && subStart) {
+      // just extend
+    } else if (bs.value === 'end') {
+      const start = subStart ?? rn
+      segs.push({
+        x1: start.stemX, y1: beamYLevel(start.stemX),
+        x2: rn.stemX,    y2: beamYLevel(rn.stemX),
+      })
+      subStart = null
+    }
+  }
+
+  return segs
+}
+
+// ─── Ties (simple in-measure bezier arcs) ────────────────────────────────────
+
+function buildTies(renderedNotes: RenderedNote[], noteheadRy: number, sp: number): RenderedTie[] {
+  // Find consecutive tie-start → tie-end pairs within the same measure
+  const ties: RenderedTie[] = []
+
+  for (let i = 0; i < renderedNotes.length; i++) {
+    const a = renderedNotes[i]
+    if (!a.tieStart) continue
+
+    // Find the next note with tieEnd that has the same pitch (staffLine)
+    for (let j = i + 1; j < renderedNotes.length; j++) {
+      const b = renderedNotes[j]
+      if (b.tieEnd && b.staffLine === a.staffLine) {
+        // Arc above if stem down, below if stem up
+        const above      = !a.stemUp
+        const arcHeight  = above ? -sp * 1.5 : sp * 1.5
+        const arcY       = a.y + arcHeight
+        const x1         = a.x + 6
+        const x2         = b.x - 6
+        const spread     = (x2 - x1) * 0.35
+        ties.push({
+          fromNoteId: a.noteId,
+          toNoteId:   b.noteId,
+          above,
+          crossSystem: false,
+          path: {
+            x1, y1: a.y,
+            cx1: x1 + spread, cy1: arcY,
+            cx2: x2 - spread, cy2: arcY,
+            x2, y2: b.y,
+          },
+        })
+        break
+      }
+    }
+  }
+
+  return ties
+}
+
+// ─── Barlines ─────────────────────────────────────────────────────────────────
+
+function buildBarlines(
+  extMeasure: ExtractedMeasure,
+  hMeasure: HLayoutMeasure,
+  staffTop: number,
+  staffHeight: number,
+  isLastMeasure: boolean,
+): RenderedBarline[] {
+  const barlines: RenderedBarline[] = []
+  const yTop    = staffTop
+  const yBottom = staffTop + staffHeight
+
+  // Left barline (start of measure)
+  const leftStyle = extMeasure.barlineLeft?.style ?? 'regular'
+  if (leftStyle !== 'none') {
+    barlines.push({ x: hMeasure.x, yTop, yBottom, type: leftStyle as RenderedBarline['type'] })
+  }
+
+  // Right barline (end of measure)
+  const rightStyle = extMeasure.barlineRight?.style ?? 'regular'
+  const rightX = hMeasure.x + hMeasure.width
+  const effectiveRight = (isLastMeasure && rightStyle === 'regular') ? 'final' : rightStyle
+  barlines.push({ x: rightX, yTop, yBottom, type: effectiveRight as RenderedBarline['type'] })
+
+  return barlines
+}
+
+// ─── Key signature layout ─────────────────────────────────────────────────────
+
+function buildKeySignature(
+  fifths: number,
+  clef: ClefType,
+  x: number,
+  staffTop: number,
+  halfSp: number,
+): RenderedKeySignature {
+  const lines = getKeySigLines(fifths, clef)
+  const accType = fifths > 0 ? 'sharp' : 'flat'
+  const accWidth = 8  // px per accidental symbol
+  const accs = lines.map((sl, i) => ({
+    x: x + i * accWidth,
+    y: staffTop + sl * halfSp,
+    type: accType as 'sharp' | 'flat',
+  }))
+  return { fifths, x, staffIndex: 0, accidentals: accs }
+}
+
+// ─── Helper: DOMRectLike ──────────────────────────────────────────────────────
+
+function makeDOMRect(x: number, y: number, width: number, height: number): DOMRectLike {
+  return { x, y, width, height, top: y, left: x, right: x + width, bottom: y + height }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main entry point
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function computeVerticalLayout(
+  score: ExtractedScore,
+  hLayout: HorizontalLayout,
+  renderOptions?: RenderOptions,
+): RenderedScore {
+  const opts = { ...DEFAULT_RENDER_OPTIONS, ...renderOptions }
+  const sp          = opts.spatium       // 10 px
+  const lineSpacing = sp                 // distance between adjacent staff lines
+  const halfSp      = lineSpacing / 2   // 5 px — one diatonic step
+
+  const staffHeight   = 4 * lineSpacing   // 40 px
+  const noteheadRx    = sp * 0.55         // ellipse semi-axis x
+  const noteheadRy    = sp * 0.42         // ellipse semi-axis y
+  const stemLength    = sp * 3.5          // standard un-beamed stem
+  const beamThickness = sp * 0.5          // beam rectangle height
+  const beamGap       = sp * 0.25         // gap between beam levels
+  const dotRadius     = sp * 0.12
+  const dotOffsetX    = sp * 0.8
+  const accidentalW   = sp * 0.8          // approximate glyph width for spacing
+  const accidentalGap = sp * 0.3
+
+  // Determine clef from metadata (single-staff scores: treble)
+  // TODO: extend for grand staff
+  const clef: ClefType = 'treble'
+
+  // ── System y-positions ───────────────────────────────────────────────────
+  // aboveStaffSpace: room for chord symbols above each system
+  const aboveStaffSpace = sp * 3.0    // 30 px
+
+  // systemStride: vertical distance from one system's staffTop to the next
+  // = staffHeight + systemSpacing + aboveStaffSpace of NEXT system
+  const systemSpacingPx = opts.systemSpacingSp * sp
+  const systemStride    = staffHeight + systemSpacingPx + aboveStaffSpace
+
+  // Compute absolute systemY (top of staff lines) for each system
+  const { systems: hSystems, pages: hPages } = hLayout
+  const systemY: number[] = []
+  {
+    let currentPageIdx = -1
+    let currentPageY  = 0
+    let sysOnPage     = 0
+
+    for (const hSys of hSystems) {
+      if (hSys.pageIndex !== currentPageIdx) {
+        // New page
+        currentPageIdx = hSys.pageIndex
+        currentPageY   = hSys.pageIndex * opts.pageHeight + opts.marginTop + aboveStaffSpace
+        sysOnPage      = 0
+      }
+      systemY.push(currentPageY + sysOnPage * systemStride)
+      sysOnPage++
+    }
+  }
+
+  // ── Build rendered objects ───────────────────────────────────────────────
+  const allRenderedNotes: RenderedNote[] = []
+  const elementMap = new Map<string, DOMRectLike>()
+
+  // BUG 1: Use only staff indices that actually have notes, not metadata.staffCount
+  // (DONNALEE.XML reports staffCount=2 due to <staves>2</staves> but has only one active staff)
+  const activeStaffIndices = new Set(
+    score.measures.flatMap(m => m.notes.filter(n => !n.isRest).map(n => n.staffIndex))
+  )
+  const effectiveStaffCount = Math.max(1, activeStaffIndices.size)
+
+  const renderedSystems: RenderedSystem[] = hSystems.map((hSys, sysIdx) => {
+    const staffTop = systemY[sysIdx]
+
+    // ── Staves for this system ────────────────────────────────────────────
+    const staves: RenderedStaff[] = []
+    for (let si = 0; si < effectiveStaffCount; si++) {
+      const sy = staffTop + si * (staffHeight + opts.staffSpacingSp * sp)
+      staves.push({
+        staffIndex: si,
+        y: sy,
+        lineSpacing,
+        height: staffHeight,
+        clef,
+        lineYs: [sy, sy + sp, sy + 2 * sp, sy + 3 * sp, sy + 4 * sp],
+      })
+    }
+
+    const primaryStaffTop = staves[0].y
+
+    // ── Measures ─────────────────────────────────────────────────────────
+    const measures: RenderedMeasure[] = hSys.measureNums.map(measureNum => {
+      const hMeasure  = hLayout.measures.get(measureNum)!
+      const extMeasure = score.measures[measureNum - 1]!
+      const isFirstInSys = hSys.measureNums[0] === measureNum
+      const isLastMeasure = measureNum === score.metadata.measureCount
+
+      // ── Pre-pass: beam group IDs ────────────────────────────────────
+      const beamGroupIds = assignBeamGroupIds(extMeasure.notes)
+
+      // ── Notes ───────────────────────────────────────────────────────
+      // Determine if this measure has multiple voices
+      const hasVoice2 = extMeasure.notes.some(n => n.voice === 2)
+
+      const noteList: RenderedNote[] = []
+
+      for (const en of extMeasure.notes) {
+        if (en.isGrace) continue  // grace notes: skip for now
+
+        const noteX = hLayout.noteX.get(en.id) ?? hMeasure.x + 20
+
+        // ── Staff line & y ─────────────────────────────────────────
+        let staffLine = 4   // default: middle (B4 in treble)
+        let noteY     = primaryStaffTop + 4 * halfSp
+
+        if (!en.isRest && en.step && en.octave !== undefined) {
+          staffLine = pitchToStaffLine(en.step, en.octave, clef)
+          noteY     = primaryStaffTop + staffLine * halfSp
+        } else if (en.isRest) {
+          // Rest vertical position by voice
+          staffLine = (hasVoice2 && en.voice === 2) ? 6 : 2
+          noteY     = primaryStaffTop + staffLine * halfSp
+        }
+
+        // ── Stem direction ─────────────────────────────────────────
+        let stemUp: boolean
+        if (hasVoice2) {
+          stemUp = en.voice === 1   // voice 1 always up, voice 2 always down
+        } else {
+          stemUp = staffLine >= 4   // at/below middle → stem up
+        }
+
+        // ── Notehead type ──────────────────────────────────────────
+        const nhType  = noteheadFromType(en.type)
+        const hasStem = nhType !== 'whole'
+
+        // ── Stem positions ─────────────────────────────────────────
+        const stemX      = stemUp ? noteX + noteheadRx : noteX - noteheadRx
+        const stemYTop   = stemUp ? noteY - stemLength : noteY
+        const stemYBot   = stemUp ? noteY              : noteY + stemLength
+
+        // ── Accidental ─────────────────────────────────────────────
+        let accidental: AccidentalType | undefined
+        let accidentalX: number | undefined
+        if (en.showAccidental && en.accidentalToShow) {
+          accidental  = accidentalTypeFrom(en.accidentalToShow)
+          const accW  = (ACCIDENTAL_WIDTH_SP[accidental] ?? 1.0) * sp
+          const accGap = sp * 0.2
+          accidentalX = noteX - noteheadRx - accGap - accW
+          // Clamp: never left of measure start
+          accidentalX = Math.max(hMeasure.x + 2, accidentalX)
+        }
+
+        // ── Dots ───────────────────────────────────────────────────
+        const dotted       = en.dotCount >= 1
+        const doubleDotted = en.dotCount >= 2
+        // If note is on a line, shift dot up to adjacent space
+        const dotY  = staffLine % 2 === 0 ? noteY - halfSp : noteY
+        const dotX  = dotted       ? noteX + noteheadRx + dotOffsetX          : undefined
+        const dot2X = doubleDotted ? noteX + noteheadRx + dotOffsetX + sp * 0.5 : undefined
+
+        // ── Ledger lines ───────────────────────────────────────────
+        const ledgerLines = computeLedgerLines(
+          staffLine, noteX, noteheadRx, halfSp, primaryStaffTop,
+        )
+
+        // ── Bounding box ───────────────────────────────────────────
+        const bboxLeft   = (accidentalX ?? noteX) - noteheadRx - 2
+        const bboxTop    = hasStem ? (stemUp ? stemYTop   : noteY - noteheadRy) : noteY - noteheadRy
+        const bboxBottom = hasStem ? (stemUp ? noteY + noteheadRy : stemYBot)   : noteY + noteheadRy
+        const bboxRight  = noteX + noteheadRx + (dotted ? dotOffsetX + dotRadius + 4 : 2)
+
+        noteList.push({
+          noteId:      en.id,
+          measureNum:  en.measureNum,
+          beat:        en.beat,
+          staffIndex:  en.staffIndex,
+          voice:       en.voice,
+          x:           noteX,
+          y:           noteY,
+          bbox:        makeDOMRect(bboxLeft, bboxTop, bboxRight - bboxLeft, bboxBottom - bboxTop),
+          staffLine,
+          noteheadType: nhType,
+          stemUp,
+          hasStem,
+          stemX,
+          stemYTop,
+          stemYBottom: stemYBot,
+          accidental,
+          accidentalX,
+          dotted,
+          doubleDotted,
+          dotX,
+          dot2X,
+          ledgerLines,
+          isRest:      en.isRest,
+          isGrace:     false,
+          beamGroupId: beamGroupIds.get(en.id),
+          tieStart:    en.tieStart,
+          tieEnd:      en.tieStop,
+          slurStart:   en.slurStart,
+          slurEnd:     en.slurStop,
+        })
+      }
+
+      allRenderedNotes.push(...noteList)
+
+      // ── Beams ───────────────────────────────────────────────────
+      const beams = buildBeams(noteList, extMeasure.notes, beamThickness, beamGap)
+
+      // ── Chord symbols ──────────────────────────────────────────
+      const chordY   = primaryStaffTop - sp * 2.2  // above top staff line
+      const chordSymbols: RenderedChordSymbol[] = extMeasure.harmonies.map(h => ({
+        measureNum: h.measureNum,
+        beat:       h.beat,
+        x:          hLayout.noteX.get(`note-m${h.measureNum}b${Math.round(h.beat * 100)}-stub`)
+                    ?? (hMeasure.x + hMeasure.width * ((h.beat - 1) / score.metadata.beats)),
+        y:          chordY,
+        text:       h.label,
+        svgId:      `chord-m${h.measureNum}b${Math.round(h.beat * 100)}`,
+      }))
+
+      // Better x for chord symbols: from horizontal layout beat map
+      const beatToX = new Map<number, number>()
+      for (const seg of hLayout.measures.get(measureNum)!.segments) {
+        beatToX.set(Math.round(seg.beat * 100), seg.x)
+      }
+      for (const cs of chordSymbols) {
+        const beatKey = Math.round(cs.beat * 100)
+        const x = beatToX.get(beatKey)
+        if (x !== undefined) cs.x = x
+      }
+
+      // ── Barlines ───────────────────────────────────────────────
+      const barlines = buildBarlines(
+        extMeasure, hMeasure, primaryStaffTop, staffHeight, isLastMeasure,
+      )
+
+      // ── Ties ───────────────────────────────────────────────────
+      const ties = buildTies(noteList, noteheadRy, sp)
+
+      // ── Tuplets ─────────────────────────────────────────────────
+      const extNoteMap = new Map(extMeasure.notes.map(n => [n.id, n]))
+      const tupletGroups = new Map<string, RenderedNote[]>()
+      for (const rn of noteList) {
+        const en = extNoteMap.get(rn.noteId)
+        if (en?.tupletId) {
+          if (!tupletGroups.has(en.tupletId)) tupletGroups.set(en.tupletId, [])
+          tupletGroups.get(en.tupletId)!.push(rn)
+        }
+      }
+      const tuplets: RenderedTuplet[] = []
+      for (const [tid, tnotes] of tupletGroups) {
+        if (tnotes.length < 2) continue
+        tnotes.sort((a, b) => a.x - b.x)
+        const first = tnotes[0]
+        const last  = tnotes[tnotes.length - 1]
+        const en    = extNoteMap.get(first.noteId)
+        const num   = en?.tupletActual ?? 3
+        // Bracket above when stems go up (bracket sits above stem tips)
+        const above = first.stemUp
+
+        const bracketY = above
+          ? Math.min(...tnotes.map(n => n.stemYTop))    - sp * 1.2
+          : Math.max(...tnotes.map(n => n.stemYBottom)) + sp * 0.8
+
+        tuplets.push({
+          tupletId: tid,
+          noteIds:  tnotes.map(n => n.noteId),
+          number:   num,
+          numberX:  (first.x + last.x) / 2,
+          numberY:  bracketY,
+          above,
+          bracket: {
+            x1: first.x - sp * 0.5, y1: bracketY,
+            x2: last.x  + sp * 0.5, y2: bracketY,
+            hookHeight: sp * 0.8,
+          },
+        })
+      }
+
+      // ── elementMap entry ───────────────────────────────────────
+      elementMap.set(
+        `measure-${measureNum - 1}`,
+        makeDOMRect(hMeasure.x, primaryStaffTop, hMeasure.width, staffHeight),
+      )
+
+      // ── Header elements (first measure of each system) ─────────
+      const keySigX   = hSys.x + 36                                      // after clef
+      const timeSigX  = keySigX + Math.abs(score.metadata.fifths) * 8 + 4
+
+      return {
+        measureNum,
+        staffIndex: 0,
+        x:          hMeasure.x,
+        width:      hMeasure.width,
+        y:          primaryStaffTop,
+        systemIndex: sysIdx,
+        notes:       noteList,
+        chordSymbols,
+        beams,
+        barlines,
+        ties,
+        slurs:        [],
+        dynamics:     [],
+        articulations: [],
+        ornaments:    [],
+        tuplets,
+        repeatStart:  extMeasure.barlineLeft?.style === 'repeat-start',
+        repeatEnd:    extMeasure.barlineRight?.style === 'repeat-end',
+        clefDisplay: isFirstInSys ? {
+          clef,
+          x:          hSys.x + 4,
+          y:          primaryStaffTop + 2 * lineSpacing,  // anchor at 3rd staff line
+          staffIndex: 0,
+          isChange:   false,
+        } as RenderedClefSymbol : undefined,
+        keySignatureChange: isFirstInSys ? buildKeySignature(
+          score.metadata.fifths, clef,
+          keySigX, primaryStaffTop, halfSp,
+        ) : undefined,
+        timeSignatureDisplay: isFirstInSys ? {
+          beats:        score.metadata.beats,
+          beatType:     score.metadata.beatType,
+          x:            timeSigX,
+          staffIndex:   0,
+          yNumerator:   primaryStaffTop + lineSpacing,
+          yDenominator: primaryStaffTop + 3 * lineSpacing,
+        } as RenderedTimeSignature : undefined,
+      } as RenderedMeasure
+    })
+
+    return {
+      systemIndex: sysIdx,
+      pageIndex:   hSys.pageIndex,
+      x:           hSys.x,
+      y:           primaryStaffTop,
+      width:       hSys.width,
+      staves,
+      measures,
+      headerWidth: hSys.headerWidth,
+    } as RenderedSystem
+  })
+
+  // ── Group systems into pages ─────────────────────────────────────────────
+  const renderedPages: RenderedPage[] = hPages.map(hp => ({
+    pageIndex: hp.pageIndex,
+    width:     opts.pageWidth,
+    height:    opts.pageHeight,
+    systems:   hp.systemIndices.map(si => renderedSystems[si]),
+  }))
+
+  // ── Assemble RenderedScore ───────────────────────────────────────────────
+  return {
+    pages: renderedPages,
+    metadata: {
+      title:         score.metadata.title,
+      composer:      score.metadata.composer,
+      keySignature:  `${score.metadata.fifths}`,
+      timeSignature: `${score.metadata.beats}/${score.metadata.beatType}`,
+      tempo:         score.metadata.tempo,
+      measureCount:  score.metadata.measureCount,
+      pageCount:     renderedPages.length,
+    },
+    allNotes:   allRenderedNotes,
+    elementMap,
+  }
+}
