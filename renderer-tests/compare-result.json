@@ -1,0 +1,177 @@
+{
+  "results": [
+    {
+      "id": "01-noteheads",
+      "title": "01 — Noteheads",
+      "status": "fail",
+      "diffPixels": 101594,
+      "totalPixels": 12534402,
+      "matchPct": 99.2,
+      "refPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\reference\\01-noteheads.png",
+      "curPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\current\\01-noteheads.png",
+      "diffPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\diff\\01-noteheads.diff.png"
+    },
+    {
+      "id": "02-accidentals",
+      "title": "02 — Accidentals",
+      "status": "fail",
+      "diffPixels": 44820,
+      "totalPixels": 12534402,
+      "matchPct": 99.6,
+      "refPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\reference\\02-accidentals.png",
+      "curPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\current\\02-accidentals.png",
+      "diffPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\diff\\02-accidentals.diff.png"
+    },
+    {
+      "id": "03-rests",
+      "title": "03 — Rests",
+      "status": "fail",
+      "diffPixels": 65964,
+      "totalPixels": 12534402,
+      "matchPct": 99.5,
+      "refPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\reference\\03-rests.png",
+      "curPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\current\\03-rests.png",
+      "diffPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\diff\\03-rests.diff.png"
+    },
+    {
+      "id": "04-beams",
+      "title": "04 — Beams",
+      "status": "fail",
+      "diffPixels": 109924,
+      "totalPixels": 12534402,
+      "matchPct": 99.1,
+      "refPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\reference\\04-beams.png",
+      "curPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\current\\04-beams.png",
+      "diffPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\diff\\04-beams.diff.png"
+    },
+    {
+      "id": "05-stems",
+      "title": "05 — Stems",
+      "status": "fail",
+      "diffPixels": 32935,
+      "totalPixels": 12534402,
+      "matchPct": 99.7,
+      "refPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\reference\\05-stems.png",
+      "curPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\current\\05-stems.png",
+      "diffPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\diff\\05-stems.diff.png"
+    },
+    {
+      "id": "06-key-signatures",
+      "title": "06 — Key Signatures",
+      "status": "fail",
+      "diffPixels": 77317,
+      "totalPixels": 12534402,
+      "matchPct": 99.4,
+      "refPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\reference\\06-key-signatures.png",
+      "curPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\current\\06-key-signatures.png",
+      "diffPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\diff\\06-key-signatures.diff.png"
+    },
+    {
+      "id": "07-time-signatures",
+      "title": "07 — Time Signatures",
+      "status": "fail",
+      "diffPixels": 81436,
+      "totalPixels": 12534402,
+      "matchPct": 99.4,
+      "refPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\reference\\07-time-signatures.png",
+      "curPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\current\\07-time-signatures.png",
+      "diffPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\diff\\07-time-signatures.diff.png"
+    },
+    {
+      "id": "08-ledger-lines",
+      "title": "08 — Ledger Lines",
+      "status": "fail",
+      "diffPixels": 44344,
+      "totalPixels": 12534402,
+      "matchPct": 99.6,
+      "refPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\reference\\08-ledger-lines.png",
+      "curPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\current\\08-ledger-lines.png",
+      "diffPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\diff\\08-ledger-lines.diff.png"
+    },
+    {
+      "id": "09-tuplets",
+      "title": "09 — Tuplets",
+      "status": "fail",
+      "diffPixels": 50607,
+      "totalPixels": 12534402,
+      "matchPct": 99.6,
+      "refPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\reference\\09-tuplets.png",
+      "curPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\current\\09-tuplets.png",
+      "diffPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\diff\\09-tuplets.diff.png"
+    },
+    {
+      "id": "10-ties",
+      "title": "10 — Ties",
+      "status": "fail",
+      "diffPixels": 39048,
+      "totalPixels": 12534402,
+      "matchPct": 99.7,
+      "refPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\reference\\10-ties.png",
+      "curPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\current\\10-ties.png",
+      "diffPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\diff\\10-ties.diff.png"
+    },
+    {
+      "id": "11-chord-symbols",
+      "title": "11 — Chord Symbols",
+      "status": "fail",
+      "diffPixels": 41631,
+      "totalPixels": 12534402,
+      "matchPct": 99.7,
+      "refPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\reference\\11-chord-symbols.png",
+      "curPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\current\\11-chord-symbols.png",
+      "diffPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\diff\\11-chord-symbols.diff.png"
+    },
+    {
+      "id": "12-barlines",
+      "title": "12 — Barlines",
+      "status": "fail",
+      "diffPixels": 26948,
+      "totalPixels": 12534402,
+      "matchPct": 99.8,
+      "refPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\reference\\12-barlines.png",
+      "curPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\current\\12-barlines.png",
+      "diffPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\diff\\12-barlines.diff.png"
+    },
+    {
+      "id": "13-dots",
+      "title": "13 — Dotted Notes",
+      "status": "fail",
+      "diffPixels": 57559,
+      "totalPixels": 12534402,
+      "matchPct": 99.5,
+      "refPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\reference\\13-dots.png",
+      "curPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\current\\13-dots.png",
+      "diffPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\diff\\13-dots.diff.png"
+    },
+    {
+      "id": "14-chords",
+      "title": "14 — Multi-note Chords",
+      "status": "fail",
+      "diffPixels": 53038,
+      "totalPixels": 12534402,
+      "matchPct": 99.6,
+      "refPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\reference\\14-chords.png",
+      "curPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\current\\14-chords.png",
+      "diffPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\diff\\14-chords.diff.png"
+    },
+    {
+      "id": "15-mixed",
+      "title": "15 — Mixed Jazz Excerpt",
+      "status": "fail",
+      "diffPixels": 71547,
+      "totalPixels": 12534402,
+      "matchPct": 99.4,
+      "refPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\reference\\15-mixed.png",
+      "curPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\current\\15-mixed.png",
+      "diffPath": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\renderer-tests\\diff\\15-mixed.diff.png"
+    }
+  ],
+  "summary": {
+    "total": 15,
+    "passCount": 0,
+    "failCount": 15,
+    "newCount": 0,
+    "missingCount": 0,
+    "timestamp": "2026-04-02T17:03:41.313Z"
+  }
+}

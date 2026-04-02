@@ -22,7 +22,17 @@ import type {
   ExtractedNote,
 } from './extractorTypes'
 import type { HorizontalLayout, HLayoutMeasure } from './horizontalLayout'
-import { DEFAULT_RENDER_OPTIONS } from './horizontalLayout'
+import {
+  DEFAULT_RENDER_OPTIONS,
+  CLEF_LEFT_MARGIN_SP,
+  CLEF_GLYPH_WIDTH_SP,
+  CLEF_KEY_DIST_SP,
+  CLEF_TIMESIG_DIST_SP,
+  KEY_ACC_STRIDE_SP,
+  KEY_TIMESIG_DIST_SP,
+  TIMESIG_GLYPH_WIDTH_SP,
+  BAR_NOTE_DIST_SP,
+} from './horizontalLayout'
 import type {
   RenderedScore,
   RenderedPage,
@@ -221,7 +231,31 @@ function buildBeams(
     if (gNotes.length < 2) continue
     gNotes.sort((a, b) => a.x - b.x)
 
-    const stemUp = gNotes[0].stemUp
+    // Determine group stem direction by average staff-line position.
+    // avgStaffLine >= 4 means the group is at/below the middle line → stems up.
+    const avgStaffLine = gNotes.reduce((sum, n) => sum + n.staffLine, 0) / gNotes.length
+    const stemUp = avgStaffLine >= 4
+
+    // Normalize every note in the group to the group's stem direction.
+    // Notes whose individual stemUp disagrees would produce stems that pass
+    // through the notehead ("double legs") — fix stemX and the non-beam endpoint.
+    for (const rn of gNotes) {
+      if (rn.stemUp !== stemUp) {
+        const rx = Math.abs(rn.stemX - rn.x)
+        rn.stemX = stemUp ? rn.x + rx : rn.x - rx
+        if (stemUp) {
+          // Was down-stem: stemYTop = y, stemYBottom = y + stemLen
+          rn.stemYTop    = 2 * rn.y - rn.stemYBottom  // → y - stemLen
+          rn.stemYBottom = rn.y
+        } else {
+          // Was up-stem: stemYTop = y - stemLen, stemYBottom = y
+          rn.stemYBottom = 2 * rn.y - rn.stemYTop     // → y + stemLen
+          rn.stemYTop    = rn.y
+        }
+        rn.stemUp = stemUp
+      }
+    }
+
     const first  = gNotes[0]
     const last   = gNotes[gNotes.length - 1]
 
@@ -420,15 +454,37 @@ function buildKeySignature(
   x: number,
   staffTop: number,
   halfSp: number,
+  prevFifths: number = 0,
 ): RenderedKeySignature {
+  const sp = halfSp * 2
+  const accStride = KEY_ACC_STRIDE_SP * sp  // per-accidental stride (glyph width + gap)
+  const accs: Array<{ x: number; y: number; type: 'sharp' | 'flat' | 'natural' }> = []
+  let xOff = 0
+
+  // Cancellation naturals (only for inline key changes, not system header)
+  if (prevFifths !== 0) {
+    const cancels = prevFifths > 0
+      ? Math.max(0, prevFifths - Math.max(0, fifths))
+      : Math.max(0, -prevFifths - Math.max(0, -fifths))
+    if (cancels > 0) {
+      const oldLines = getKeySigLines(prevFifths, clef)
+      // Cancellation naturals shown in reverse order (removing last-added accidentals first)
+      for (let i = 0; i < cancels; i++) {
+        const sl = oldLines[Math.abs(prevFifths) - 1 - i]
+        accs.push({ x: x + xOff, y: staffTop + sl * halfSp, type: 'natural' })
+        xOff += accStride
+      }
+    }
+  }
+
+  // New key accidentals
   const lines = getKeySigLines(fifths, clef)
   const accType = fifths > 0 ? 'sharp' : 'flat'
-  const accWidth = 8  // px per accidental symbol
-  const accs = lines.map((sl, i) => ({
-    x: x + i * accWidth,
-    y: staffTop + sl * halfSp,
-    type: accType as 'sharp' | 'flat',
-  }))
+  for (const sl of lines) {
+    accs.push({ x: x + xOff, y: staffTop + sl * halfSp, type: accType as 'sharp' | 'flat' })
+    xOff += accStride
+  }
+
   return { fifths, x, staffIndex: 0, accidentals: accs }
 }
 
@@ -468,13 +524,21 @@ export function computeVerticalLayout(
   const clef: ClefType = 'treble'
 
   // ── System y-positions ───────────────────────────────────────────────────
-  // aboveStaffSpace: room for chord symbols above each system
-  const aboveStaffSpace = sp * 3.0    // 30 px
+  // staffUpperBorder (webmscore Sid::staffUpperBorder = 7sp): space above staff lines
+  // for chord symbols, slurs, dynamics etc. — also keeps systems off the margin/title
+  const staffUpperBorder = sp * 7.0
+  // staffLowerBorder (webmscore Sid::staffLowerBorder = 7sp): space below staff lines
+  const staffLowerBorder = sp * 7.0
 
-  // systemStride: vertical distance from one system's staffTop to the next
-  // = staffHeight + systemSpacing + aboveStaffSpace of NEXT system
+  // systemStride: staffTop-to-staffTop distance =
+  //   staffUpperBorder + staffHeight + staffLowerBorder + minSystemDistance
+  // (matches webmscore: 7 + 4 + 7 + 8.5 = 26.5sp)
   const systemSpacingPx = opts.systemSpacingSp * sp
-  const systemStride    = staffHeight + systemSpacingPx + aboveStaffSpace
+  const systemStride    = staffUpperBorder + staffHeight + staffLowerBorder + systemSpacingPx
+
+  // Title height: extra vertical space reserved on the first page for score title.
+  // Measured empirically from webmscore reference images: title frame ≈ 10sp
+  const titleHeight = score.metadata.title ? sp * 10.0 : 0
 
   // Compute absolute systemY (top of staff lines) for each system
   const { systems: hSystems, pages: hPages } = hLayout
@@ -488,7 +552,8 @@ export function computeVerticalLayout(
       if (hSys.pageIndex !== currentPageIdx) {
         // New page
         currentPageIdx = hSys.pageIndex
-        currentPageY   = hSys.pageIndex * opts.pageHeight + opts.marginTop + aboveStaffSpace
+        const titleOffset = hSys.pageIndex === 0 ? titleHeight : 0
+        currentPageY   = hSys.pageIndex * opts.pageHeight + opts.marginTop + staffUpperBorder + titleOffset
         sysOnPage      = 0
       }
       systemY.push(currentPageY + sysOnPage * systemStride)
@@ -497,6 +562,17 @@ export function computeVerticalLayout(
   }
 
   // ── Build rendered objects ───────────────────────────────────────────────
+
+  // Precompute prevFifths for each measure (key state before the measure's own key change)
+  const prevFifthsPerMeasure = new Map<number, number>()
+  {
+    let runningFifths = score.metadata.fifths
+    for (const m of score.measures) {
+      prevFifthsPerMeasure.set(m.num, runningFifths)
+      if (m.keyChange) runningFifths = m.keyChange.fifths
+    }
+  }
+
   const allRenderedNotes: RenderedNote[] = []
   const elementMap = new Map<string, DOMRectLike>()
 
@@ -724,8 +800,15 @@ export function computeVerticalLayout(
       )
 
       // ── Header elements (first measure of each system) ─────────
-      const keySigX   = hSys.x + 36                                      // after clef
-      const timeSigX  = keySigX + Math.abs(score.metadata.fifths) * 8 + 4
+      // All positions use sp-based constants matching webmscore styledef.cpp
+      const clefX = hSys.x + CLEF_LEFT_MARGIN_SP * sp
+      const keySigX = clefX + CLEF_GLYPH_WIDTH_SP * sp + CLEF_KEY_DIST_SP * sp
+      const fifths  = score.metadata.fifths
+      const timeSigLeftEdge = fifths !== 0
+        ? keySigX + Math.abs(fifths) * KEY_ACC_STRIDE_SP * sp + KEY_TIMESIG_DIST_SP * sp
+        : clefX + CLEF_GLYPH_WIDTH_SP * sp + CLEF_TIMESIG_DIST_SP * sp
+      // timeSig is rendered with text-anchor="middle", so pass center x
+      const timeSigCenterX = timeSigLeftEdge + TIMESIG_GLYPH_WIDTH_SP / 2 * sp
 
       return {
         measureNum,
@@ -748,19 +831,25 @@ export function computeVerticalLayout(
         repeatEnd:    extMeasure.barlineRight?.style === 'repeat-end',
         clefDisplay: isFirstInSys ? {
           clef,
-          x:          hSys.x + 4,
-          y:          primaryStaffTop + 2 * lineSpacing,  // anchor at 3rd staff line
+          x:          clefX,
+          y:          primaryStaffTop,  // renderClef adds 3*sp to get G-line anchor
           staffIndex: 0,
           isChange:   false,
         } as RenderedClefSymbol : undefined,
-        keySignatureChange: isFirstInSys ? buildKeySignature(
-          score.metadata.fifths, clef,
-          keySigX, primaryStaffTop, halfSp,
-        ) : undefined,
+        keySignatureChange: isFirstInSys
+          ? buildKeySignature(fifths, clef, keySigX, primaryStaffTop, halfSp)
+          : extMeasure.keyChange
+            ? buildKeySignature(
+                extMeasure.keyChange.fifths, clef,
+                hMeasure.x + BAR_NOTE_DIST_SP * sp,
+                primaryStaffTop, halfSp,
+                prevFifthsPerMeasure.get(measureNum) ?? fifths,
+              )
+            : undefined,
         timeSignatureDisplay: isFirstInSys ? {
           beats:        score.metadata.beats,
           beatType:     score.metadata.beatType,
-          x:            timeSigX,
+          x:            timeSigCenterX,
           staffIndex:   0,
           yNumerator:   primaryStaffTop + lineSpacing,
           yDenominator: primaryStaffTop + 3 * lineSpacing,

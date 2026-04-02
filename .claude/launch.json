@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "MAP Dev",
-      "runtimeExecutable": "C:/Program Files/nodejs/node.exe",
-      "runtimeArgs": ["node_modules/vite/bin/vite.js", "--port", "3002"],
+      "runtimeExecutable": "C:/Program Files/nodejs/npm.cmd",
+      "runtimeArgs": ["run", "dev", "--", "--port", "3002"],
       "cwd": "C:/Users/DELL/Documents/MAP - Music Analysis Platform",
       "port": 3002
     }

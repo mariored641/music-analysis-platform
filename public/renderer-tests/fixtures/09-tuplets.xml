@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 4.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">
+<score-partwise version="4.0">
+  <work><work-title>Test 09: Tuplets</work-title></work>
+  <part-list><score-part id="P1"><part-name print-object="no">Piano</part-name></score-part></part-list>
+  <part id="P1">
+    <!-- Measure 1: triplet eighth notes (3 in space of 2, filling 1 beat each) -->
+    <!-- divisions=12: quarter=12, triplet-eighth = 12*2/3 = 8 -->
+    <measure number="1">
+      <attributes>
+        <divisions>12</divisions>
+        <key><fifths>0</fifths><mode>major</mode></key>
+        <time><beats>4</beats><beat-type>4</beat-type></time>
+        <clef><sign>G</sign><line>2</line></clef>
+      </attributes>
+      <!-- Beat 1: triplet -->
+      <note>
+        <pitch><step>C</step><octave>5</octave></pitch><duration>8</duration><type>eighth</type>
+        <time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification>
+        <beam number="1">begin</beam>
+        <notations><tuplet type="start" bracket="yes" number="1"/></notations>
+      </note>
+      <note>
+        <pitch><step>D</step><octave>5</octave></pitch><duration>8</duration><type>eighth</type>
+        <time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification>
+        <beam number="1">continue</beam>
+      </note>
+      <note>
+        <pitch><step>E</step><octave>5</octave></pitch><duration>8</duration><type>eighth</type>
+        <time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification>
+        <beam number="1">end</beam>
+        <notations><tuplet type="stop" number="1"/></notations>
+      </note>
+      <!-- Beat 2: triplet -->
+      <note>
+        <pitch><step>F</step><octave>5</octave></pitch><duration>8</duration><type>eighth</type>
+        <time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification>
+        <beam number="1">begin</beam>
+        <notations><tuplet type="start" bracket="yes" number="1"/></notations>
+      </note>
+      <note>
+        <pitch><step>G</step><octave>5</octave></pitch><duration>8</duration><type>eighth</type>
+        <time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification>
+        <beam number="1">continue</beam>
+      </note>
+      <note>
+        <pitch><step>A</step><octave>5</octave></pitch><duration>8</duration><type>eighth</type>
+        <time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification>
+        <beam number="1">end</beam>
+        <notations><tuplet type="stop" number="1"/></notations>
+      </note>
+      <!-- Beats 3-4: two normal quarter notes -->
+      <note><pitch><step>G</step><octave>5</octave></pitch><duration>12</duration><type>quarter</type></note>
+      <note><pitch><step>C</step><octave>5</octave></pitch><duration>12</duration><type>quarter</type></note>
+    </measure>
+    <!-- Measure 2: triplet quarter notes (3 in space of 2 beats) -->
+    <!-- triplet quarter = 12*2/3 = 8 units -->
+    <measure number="2">
+      <note>
+        <pitch><step>C</step><octave>5</octave></pitch><duration>8</duration><type>quarter</type>
+        <time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification>
+        <notations><tuplet type="start" bracket="yes" number="1"/></notations>
+      </note>
+      <note>
+        <pitch><step>E</step><octave>5</octave></pitch><duration>8</duration><type>quarter</type>
+        <time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification>
+      </note>
+      <note>
+        <pitch><step>G</step><octave>5</octave></pitch><duration>8</duration><type>quarter</type>
+        <time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification>
+        <notations><tuplet type="stop" number="1"/></notations>
+      </note>
+      <!-- 2nd triplet quarter group -->
+      <note>
+        <pitch><step>F</step><octave>5</octave></pitch><duration>8</duration><type>quarter</type>
+        <time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification>
+        <notations><tuplet type="start" bracket="yes" number="1"/></notations>
+      </note>
+      <note>
+        <pitch><step>A</step><octave>5</octave></pitch><duration>8</duration><type>quarter</type>
+        <time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification>
+      </note>
+      <note>
+        <pitch><step>C</step><octave>6</octave></pitch><duration>8</duration><type>quarter</type>
+        <time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification>
+        <notations><tuplet type="stop" number="1"/></notations>
+      </note>
+    </measure>
+    <!-- Measure 3: quintuplet (5 in space of 4 = 1 measure 4/4) -->
+    <!-- quintuplet 16th = 12*4/5... not integer, use divisions=20: quarter=20, quin-16th=4 -->
+    <measure number="3">
+      <attributes><divisions>20</divisions></attributes>
+      <note>
+        <pitch><step>C</step><octave>5</octave></pitch><duration>4</duration><type>16th</type>
+        <time-modification><actual-notes>5</actual-notes><normal-notes>4</normal-notes></time-modification>
+        <beam number="1">begin</beam><beam number="2">begin</beam>
+        <notations><tuplet type="start" bracket="yes" number="1"/></notations>
+      </note>
+      <note>
+        <pitch><step>D</step><octave>5</octave></pitch><duration>4</duration><type>16th</type>
+        <time-modification><actual-notes>5</actual-notes><normal-notes>4</normal-notes></time-modification>
+        <beam number="1">continue</beam><beam number="2">end</beam>
+      </note>
+      <note>
+        <pitch><step>E</step><octave>5</octave></pitch><duration>4</duration><type>16th</type>
+        <time-modification><actual-notes>5</actual-notes><normal-notes>4</normal-notes></time-modification>
+        <beam number="1">continue</beam><beam number="2">begin</beam>
+      </note>
+      <note>
+        <pitch><step>F</step><octave>5</octave></pitch><duration>4</duration><type>16th</type>
+        <time-modification><actual-notes>5</actual-notes><normal-notes>4</normal-notes></time-modification>
+        <beam number="1">continue</beam><beam number="2">end</beam>
+      </note>
+      <note>
+        <pitch><step>G</step><octave>5</octave></pitch><duration>4</duration><type>16th</type>
+        <time-modification><actual-notes>5</actual-notes><normal-notes>4</normal-notes></time-modification>
+        <beam number="1">end</beam><beam number="2">begin</beam>
+        <notations><tuplet type="stop" number="1"/></notations>
+      </note>
+      <!-- remaining 3 beats -->
+      <note><pitch><step>G</step><octave>5</octave></pitch><duration>20</duration><type>quarter</type></note>
+      <note><pitch><step>E</step><octave>5</octave></pitch><duration>20</duration><type>quarter</type></note>
+      <note><pitch><step>C</step><octave>5</octave></pitch><duration>20</duration><type>quarter</type></note>
+    </measure>
+    <measure number="4">
+      <attributes><divisions>4</divisions></attributes>
+      <barline location="right"><bar-style>light-heavy</bar-style></barline>
+    </measure>
+  </part>
+</score-partwise>

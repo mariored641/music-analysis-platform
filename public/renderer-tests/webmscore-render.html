@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>webmscore reference render</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #ffffff; }
+  #output { display: block; }
+  #status { font-family: monospace; font-size: 12px; color: #666; padding: 8px; }
+  #output svg { display: block; }
+</style>
+</head>
+<body>
+<div id="status">Loading webmscore…</div>
+<div id="output"></div>
+
+<script type="module">
+// Read URL params
+const params  = new URLSearchParams(location.search)
+const fixture = params.get('fixture')  // e.g. "renderer-tests/fixtures/01-noteheads.xml"
+const pageIdx = parseInt(params.get('page') ?? '0')
+
+const status = document.getElementById('status')
+const output = document.getElementById('output')
+
+async function main() {
+  if (!fixture) {
+    status.textContent = 'ERROR: ?fixture= param required'
+    return
+  }
+
+  try {
+    // Use the CDN build — fetches WASM/data from jsDelivr (avoids Vite transform issues)
+    // Requires internet access (one-time for reference generation)
+    const { default: WebMscore } = await import('https://cdn.jsdelivr.net/npm/webmscore@1.2.1/webmscore.cdn.mjs')
+
+    status.textContent = 'webmscore loaded, waiting for WASM…'
+    await WebMscore.ready
+
+    status.textContent = `WASM ready (v${await WebMscore.version()}), loading fixture…`
+
+    // Fetch the MusicXML fixture
+    const xmlRes  = await fetch('/' + fixture)
+    if (!xmlRes.ok) throw new Error(`Fixture fetch failed: ${xmlRes.status} ${fixture}`)
+    const xmlBuf  = new Uint8Array(await xmlRes.arrayBuffer())
+
+    status.textContent = 'Rendering score…'
+
+    const score   = await WebMscore.load('xml', xmlBuf, [])
+    const npages  = await score.npages()
+    const pg      = Math.min(pageIdx, npages - 1)
+
+    // Render to SVG (index pg)
+    const svgStr  = await score.saveSvg(pg, true)
+    await score.destroy()
+
+    // Insert SVG into page
+    output.innerHTML = svgStr
+    status.style.display = 'none'
+
+    // Signal Playwright we are ready
+    document.documentElement.setAttribute('data-ready', 'true')
+
+  } catch (err) {
+    status.textContent = 'ERROR: ' + err.message
+    status.style.color  = 'red'
+    console.error(err)
+  }
+}
+
+main()
+</script>
+</body>
+</html>

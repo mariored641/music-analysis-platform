@@ -52,10 +52,10 @@ export function SelectionOverlay({ selection, elementMap, containerRef, scrollRe
         const noteBbox = noteEl.getBoundingClientRect()
         if (noteBbox.width === 0) continue
 
-        const staffEl = noteEl.closest('g.staff')
+        // Try g.staff (Verovio), fall back to g.measure (native renderer)
+        const staffEl = noteEl.closest('g.staff') ?? noteEl.closest('g.measure')
         if (!staffEl) {
           // Harmony/chord symbol — use tspan bounds for tight rect
-          // SVG text bbox includes large descender area; small tspans (quality suffix) are more accurate
           const tspans = Array.from(noteEl.querySelectorAll('tspan')).filter(t => t.textContent?.trim())
           const tboxes = tspans.map(t => t.getBoundingClientRect())
           const tTop = tboxes.length > 0 ? Math.min(...tboxes.map(b => b.top)) : noteBbox.top
@@ -72,7 +72,9 @@ export function SelectionOverlay({ selection, elementMap, containerRef, scrollRe
           continue
         }
 
-        const groupKey = staffEl.id || String(Array.from(staffEl.parentElement?.children ?? []).indexOf(staffEl))
+        const groupKey = (staffEl as SVGGElement).dataset?.measure
+          ?? staffEl.id
+          ?? String(Array.from(staffEl.parentElement?.children ?? []).indexOf(staffEl))
         const staffBbox = staffEl.getBoundingClientRect()
 
         const existing = staffGroups.get(groupKey)

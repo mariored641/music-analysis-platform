@@ -40,6 +40,7 @@ import {
   LELAND_NOTEHEAD_WHOLE,
   LELAND_SHARP,
   LELAND_FLAT,
+  LELAND_NATURAL,
   LELAND_TIME_SIG,
   ENGRAVING,
   smuflFontSize,
@@ -135,14 +136,16 @@ function renderClef(clef: RenderedClefSymbol, sp: number): string {
 
 // ─── Key signature ────────────────────────────────────────────────────────────
 function renderKeySig(ks: RenderedKeySignature, sp: number): string {
-  if (ks.fifths === 0) return ''
-  const glyph = ks.fifths > 0 ? LELAND_SHARP : LELAND_FLAT
-  const fs    = smuflFontSize(sp)
+  if (ks.accidentals.length === 0) return ''
+  const fs = smuflFontSize(sp)
   // Accidental anchor: SMuFL baseline = center of accidental glyph
   // The layout computes acc.y as the note-center y for each accidental position
-  return ks.accidentals.map(acc =>
-    `<text x="${n(acc.x)}" y="${n(acc.y)}" font-family="${LELAND_FONT}" font-size="${n(fs)}" fill="${INK}">${glyph}</text>`
-  ).join('\n')
+  return ks.accidentals.map(acc => {
+    const glyph = acc.type === 'sharp' ? LELAND_SHARP
+                : acc.type === 'flat'  ? LELAND_FLAT
+                : LELAND_NATURAL
+    return `<text x="${n(acc.x)}" y="${n(acc.y)}" font-family="${LELAND_FONT}" font-size="${n(fs)}" fill="${INK}">${glyph}</text>`
+  }).join('\n')
 }
 
 // ─── Time signature ───────────────────────────────────────────────────────────
@@ -402,10 +405,24 @@ function renderSystem(system: RenderedSystem, sp: number): string {
   return parts.join('\n')
 }
 
+// ─── Title ────────────────────────────────────────────────────────────────────
+function renderTitle(title: string, pageWidth: number, marginTop: number, sp: number): string {
+  if (!title) return ''
+  const cx = pageWidth / 2
+  // Title sits in the title frame: staffUpperBorder(7sp) + title frame top pad(~2sp) from marginTop
+  // This places the title baseline at about marginTop + 9sp
+  // webmscore title: 22pt Edwin at 360dpi = 110px. Baseline at marginTop + ~83px (title bbox top=marginTop, height=81px)
+  const fontSize = Math.round(22 * (360 / 72))  // 22pt at 360dpi = 110px
+  const y = marginTop + 83
+  return `<text x="${n(cx)}" y="${n(y)}" text-anchor="middle" font-family="Edwin, 'Times New Roman', serif" font-size="${fontSize}" fill="${INK}" class="score-title">${esc(title)}</text>`
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
-function renderPage(page: RenderedPage, sp: number): string {
+function renderPage(page: RenderedPage, sp: number, title: string, pageWidth: number, marginTop: number): string {
   const parts: string[] = [`<g class="page" data-page="${page.pageIndex}">`]
   parts.push(`<rect x="0" y="${n(page.pageIndex * page.height)}" width="${n(page.width)}" height="${n(page.height)}" fill="white"/>`)
+  if (page.pageIndex === 0 && title) parts.push(renderTitle(title, pageWidth, marginTop, sp))
+
   for (const system of page.systems) parts.push(renderSystem(system, sp))
   parts.push(`</g>`)
   return parts.join('\n')
@@ -420,15 +437,16 @@ export function renderToSVG(
   const sp          = opts.spatium
   const totalHeight = renderedScore.pages.length * opts.pageHeight
   const width       = opts.pageWidth
+  const title       = renderedScore.metadata.title
 
   const parts: string[] = [
     `<svg xmlns="http://www.w3.org/2000/svg" class="map-score" width="${width}" height="${totalHeight}" viewBox="0 0 ${width} ${totalHeight}" style="background:white;">`,
     renderFontDefs(),
-    `<!-- MAP Native Renderer — ${esc(renderedScore.metadata.title)} -->`,
+    `<!-- MAP Native Renderer — ${esc(title)} -->`,
     `<g class="score-content">`,
   ]
 
-  for (const page of renderedScore.pages) parts.push(renderPage(page, sp))
+  for (const page of renderedScore.pages) parts.push(renderPage(page, sp, title, width, opts.marginTop))
 
   parts.push(`</g>`)
   parts.push(`</svg>`)

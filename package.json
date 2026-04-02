@@ -1,1 +1,45 @@
-{"name":"map-music-analysis-platform","private":true,"version":"0.1.0","type":"module","scripts":{"dev":"vite","build":"vite build","preview":"vite preview"},"dependencies":{"i18next":"^25.0.0","idb":"^8.0.3","immer":"^11.1.4","react":"^19.0.0","react-dom":"^19.0.0","react-i18next":"^16.0.0","tone":"^15.0.4","uuid":"^11.0.0","verovio":"^6.1.0","zustand":"^5.0.12"},"devDependencies":{"@types/react":"^19.0.0","@types/react-dom":"^19.0.0","@types/uuid":"^10.0.0","@vitejs/plugin-react":"^4.3.4","typescript":"^5.7.0","vite":"^6.0.0","vite-plugin-pwa":"^0.21.0"}}
+{
+  "name": "map-music-analysis-platform",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:r": "npm run test:r:capture && npm run test:r:compare",
+    "test:r:capture": "npx playwright test renderer-tests/capture.spec.ts",
+    "test:r:compare": "npx tsx renderer-tests/scripts/compare.ts",
+    "test:r:report": "npx tsx renderer-tests/scripts/compare.ts && npx tsx renderer-tests/scripts/report.ts",
+    "test:r:update": "npx tsx renderer-tests/scripts/update-refs.ts",
+    "test:r:update:all": "npx tsx renderer-tests/scripts/update-refs.ts --all",
+    "test:r:refs": "npx tsx renderer-tests/scripts/generate-refs-playwright.ts"
+  },
+  "dependencies": {
+    "i18next": "^25.0.0",
+    "idb": "^8.0.3",
+    "immer": "^11.1.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-i18next": "^16.0.0",
+    "tone": "^15.0.4",
+    "uuid": "^11.0.0",
+    "verovio": "^6.1.0",
+    "webmscore": "^1.2.1",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.45.0",
+    "@types/pngjs": "^6.0.5",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/uuid": "^10.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "pixelmatch": "^5.3.0",
+    "pngjs": "^7.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0",
+    "vite-plugin-pwa": "^0.21.0"
+  }
+}

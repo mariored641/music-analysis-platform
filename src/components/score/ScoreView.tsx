@@ -8,8 +8,8 @@ import { usePlaybackStore } from '../../store/playbackStore'
 import { useLibraryStore } from '../../store/libraryStore'
 import { useTranslation } from 'react-i18next'
 import { parseMusicXml, parseHarmonies, type HarmonyItem } from '../../services/xmlParser'
-import { prepareMusicXML } from '../../services/xmlSanitizer'
 import { saveFile, loadFile } from '../../services/storageService'
+import { renderScore } from '../../renderer/index'
 import { AnnotationOverlay } from './AnnotationOverlay'
 import { HarmonyOverlay } from './HarmonyOverlay'
 import { FormalStrip } from './FormalStrip'
@@ -17,44 +17,6 @@ import { FreehandCanvas } from './FreehandCanvas'
 import { SelectionOverlay } from './SelectionOverlay'
 import { ContextMenu } from '../menus/ContextMenu'
 import './ScoreView.css'
-
-// ── Verovio worker ────────────────────────────────────────────────────────────
-// Rendering runs off the main thread via verovio.worker.ts
-
-import VrvWorker from '../../workers/verovio.worker?worker'
-
-let _worker: Worker | null = null
-let _pendingRenders = new Map<number, { resolve: (s: string[]) => void; reject: (e: Error) => void }>()
-let _renderId = 0
-
-function getVrvWorker(): Worker {
-  if (_worker) return _worker
-  _worker = new VrvWorker()
-  _worker.onmessage = (e: MessageEvent) => {
-    const { type, id, svgs, message } = e.data
-    const pending = _pendingRenders.get(id)
-    if (!pending) return
-    _pendingRenders.delete(id)
-    if (type === 'result') pending.resolve(svgs)
-    else pending.reject(new Error(message ?? 'Worker render error'))
-  }
-  _worker.onerror = (e) => {
-    console.error('[VrvWorker]', e.message)
-    _pendingRenders.forEach(p => p.reject(new Error(e.message)))
-    _pendingRenders.clear()
-    _worker = null  // allow re-creation on next call
-  }
-  return _worker
-}
-
-function renderWithVerovio(xmlString: string): Promise<string[]> {
-  return new Promise((resolve, reject) => {
-    const id = ++_renderId
-    _pendingRenders.set(id, { resolve, reject })
-    const preparedXml = prepareMusicXML(xmlString)
-    getVrvWorker().postMessage({ type: 'render', xml: preparedXml, id })
-  })
-}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -65,64 +27,7 @@ export interface NoteElement {
   staffBboxes: DOMRect[]  // one per g.staff child — used for hit detection and selection display
 }
 
-/**
- * Builds two ID mappings between noteMap IDs and Verovio SVG element IDs.
- *
- * Strategy: positional matching within each measure/staff.
- * Verovio SVG g.note elements have NO pitch attributes — we sort both
- * sequences by position (x-coord for SVG, beat for noteMap) and zip them 1:1.
- *
- * This works because:
- *  - Verovio g.note excludes rests (those are g.rest), matching noteMap's step!='R' filter
- *  - Both sequences are in beat order within each measure
- *  - DONNALEE.XML: 643 notes, all in staff 1 (first g.staff per measure)
- *
- * Returns:
- *   toVrv   — noteMapId → verovioId   (rendering: apply colors to SVG elements)
- *   fromVrv — verovioId → noteMapId   (click: translate SVG click → noteMap lookup)
- */
-function buildVrvNoteIdMap(
-  container: Element,
-  noteMap: import('../../types/score').NoteMap,
-): { toVrv: Map<string, string>; fromVrv: Map<string, string> } {
-  const toVrv   = new Map<string, string>()
-  const fromVrv = new Map<string, string>()
-
-  const measureEls = Array.from(container.querySelectorAll('g.measure'))
-
-  measureEls.forEach((measureEl, index) => {
-    const measureNum = index + 1
-
-    // First g.staff = melody staff (staff 1)
-    const staff1El = measureEl.querySelector(':scope > g.staff')
-    if (!staff1El) return
-
-    // Verovio notes in this staff, sorted left→right (= chronological beat order)
-    const vrvNotes = Array.from(staff1El.querySelectorAll('g.note'))
-      .filter(el => !!el.id)
-      .sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left)
-
-    if (vrvNotes.length === 0) return
-
-    // NoteMap notes for same measure, staff 1, no rests — sorted by beat
-    const nmNotes = Array.from(noteMap.notes.values())
-      .filter(n => n.measureNum === measureNum && n.staff === 1 && n.step !== 'R')
-      .sort((a, b) => a.beat - b.beat)
-
-    // Positional zip — counts must match; if they don't, skip mismatched tail
-    const len = Math.min(vrvNotes.length, nmNotes.length)
-    for (let i = 0; i < len; i++) {
-      toVrv.set(nmNotes[i].id, vrvNotes[i].id)
-      fromVrv.set(vrvNotes[i].id, nmNotes[i].id)
-      // Stamp noteMap ID on the SVG element — used by keyboard navigation
-      ;(vrvNotes[i] as SVGGElement).dataset.notemapId = nmNotes[i].id
-    }
-  })
-
-  return { toVrv, fromVrv }
-}
-
-// Build element map from Verovio SVG DOM.
+// Build element map from native renderer SVG DOM.
 // Stores positions RELATIVE to the container element (not viewport),
 // so they remain correct after the user scrolls.
 function buildElementMap(container: Element): Map<string, NoteElement> {
@@ -143,18 +48,21 @@ function buildElementMap(container: Element): Map<string, NoteElement> {
       absBox.height
     )
 
+    // Native renderer has no g.staff wrappers — fall back to measure bbox as single staff
     const staffEls = Array.from(el.querySelectorAll('g.staff'))
-    const staffBboxes = staffEls
-      .map(s => {
-        const sb = s.getBoundingClientRect()
-        return new DOMRect(
-          sb.left - containerRect.left,
-          sb.top - containerRect.top,
-          sb.width,
-          sb.height
-        )
-      })
-      .filter(b => b.width > 0)
+    const staffBboxes = staffEls.length > 0
+      ? staffEls
+          .map(s => {
+            const sb = s.getBoundingClientRect()
+            return new DOMRect(
+              sb.left - containerRect.left,
+              sb.top - containerRect.top,
+              sb.width,
+              sb.height
+            )
+          })
+          .filter(b => b.width > 0)
+      : [bbox]   // native renderer: one implicit staff per measure = the measure bbox itself
 
     const id = `measure-${index}`
     elementMap.set(id, { id, measureNum, bbox, staffBboxes })
@@ -357,22 +265,23 @@ export function ScoreView() {
     vrvDivRef.current.innerHTML = svgContent
   }, [svgContent])
 
-  // Core render function
+  // Core render function — synchronous native renderer
   const doRender = useCallback((xml: string) => {
     const key = ++renderKeyRef.current
     setRendering(true)
     setScoreError(null)
 
-    renderWithVerovio(xml).then(svgs => {
+    try {
+      const result = renderScore(xml)
       if (key !== renderKeyRef.current) return
-      setSvgContent(svgs.join('\n'))
+      setSvgContent(result.svg)
       setRendering(false)
-    }).catch(e => {
+    } catch (e: any) {
       if (key !== renderKeyRef.current) return
-      console.error('verovio render error:', e)
+      console.error('native render error:', e)
       setScoreError(`Render error: ${e?.message ?? e}`)
       setRendering(false)
-    })
+    }
 
     return () => { renderKeyRef.current++ }
   }, [])
@@ -384,8 +293,9 @@ export function ScoreView() {
     return doRender(xmlString)
   }, [xmlString, doRender])
 
-  // Build element map after SVG is in DOM.
+  // Build element map + identity ID maps after SVG is in DOM.
   // requestAnimationFrame ensures layout has run so getBoundingClientRect() is valid.
+  // Native renderer: g.note id IS the noteMapId — no positional matching needed.
   useEffect(() => {
     if (!svgContent || !scoreRef.current) return
     const container = scoreRef.current.querySelector('.vrv-svg')
@@ -394,25 +304,30 @@ export function ScoreView() {
     requestAnimationFrame(() => {
       const eMap = buildElementMap(container)
       setElementMap(eMap)
-      let localToVrv = new Map<string, string>()
-      if (noteMap) {
-        const maps = buildVrvNoteIdMap(container, noteMap)
-        localToVrv = maps.toVrv
-        fromVrvRef.current = maps.fromVrv
-        setToVrv(localToVrv)
-      }
+
+      // Identity maps: noteMapId IS the SVG element id in native renderer
+      const toVrvMap = new Map<string, string>()
+      const fromVrvMap = new Map<string, string>()
+      container.querySelectorAll('g.note[id]').forEach(el => {
+        const id = el.id
+        if (!id) return
+        toVrvMap.set(id, id)
+        fromVrvMap.set(id, id)
+        // Stamp data-notemap-id for keyboard navigation (useKeyboard.ts)
+        ;(el as SVGGElement).dataset.notemapId = id
+      })
+      setToVrv(toVrvMap)
+      fromVrvRef.current = fromVrvMap
+
       // Read fresh state directly — avoids stale-closure issue when SVG re-renders
-      // (React StrictMode / re-renders can replace the SVG after the rAF was scheduled)
       const freshAnnotations = useAnnotationStore.getState().annotations
       const freshVisible = useLayerStore.getState().visible
       if (freshVisible.noteColor) {
         const freshNoteColors = getEffectiveNoteColors(useLayerStore.getState().legendColors)
-        applyNoteColors(container, freshAnnotations, localToVrv, freshNoteColors)
+        applyNoteColors(container, freshAnnotations, toVrvMap, freshNoteColors)
       }
       applySvgColors(container, freshAnnotations, freshVisible)
     })
-  // noteMap in deps: if noteMap arrives after svgContent (async session restore),
-  // this effect re-fires and builds the ID maps correctly.
   }, [svgContent, noteMap]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reapply note colors + svg element colors when layer/annotations change
@@ -570,8 +485,8 @@ export function ScoreView() {
   const handleScoreClick = useCallback((e: React.MouseEvent) => {
     if (didDragRef.current) return
 
-    // Harmony/chord symbol click (exact — runs before proximity colorable check)
-    const harmEl = (e.target as Element).closest?.('g.harm') as SVGGElement | null
+    // Harmony/chord symbol click (native renderer: <text class="harmony">)
+    const harmEl = (e.target as Element).closest?.('text.harmony') as SVGTextElement | null
     if (harmEl && !e.shiftKey) {
       const allMeasures = Array.from(document.querySelectorAll('g.measure'))
       const measureEl = harmEl.closest('g.measure') as Element | null

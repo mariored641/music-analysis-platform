@@ -348,6 +348,25 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 - **FormalStrip** — needs measure-range annotations to render
 - **Mobile/touch** — not started
 
+## Native Renderer — מצב נוכחי
+
+תוכנית מלאה: `NATIVE_RENDERER_PLAN.md` | אלגוריתמים: `RENDERER_ALGORITHMS.md`
+
+| שלב | תוכן | סטטוס |
+|-----|------|--------|
+| 0 | מחקר webmscore/MuseScore → RENDERER_ALGORITHMS.md | ✅ הושלם |
+| 1 | Data model → `src/renderer/types.ts` | ✅ הושלם |
+| 2 | MusicXML parser מורחב → `xmlExtractor.ts` + `extractorTypes.ts` | ✅ הושלם |
+| 3 | Horizontal layout + דף בדיקה `/renderer-test` | ✅ הושלם — **Checkpoint A** |
+| 4 | Vertical layout + stems + beams + accidentals | ✅ הושלם — `verticalLayout.ts` |
+| 5 | SVG renderer (Unicode glyphs) | ✅ נבנה — Checkpoint B **לא אושר** — 8 בעיות ויזואליות |
+| 5.5 | Bugfix Pass — pixel comparison vs webmscore | 🔄 בעבודה — 0/15 pass, ~99.2–99.8% match. references רוגנרו עם print-object="no". ר' TESTS.md |
+| 6 | אינטגרציה ב-MAP, הסרת Verovio | ⬜ **Checkpoint C** |
+| 7 | Classical full support (SATB, tuplets, voltas) | ⬜ |
+| 8 | Bravura glyphs | ⬜ |
+
+**checkpoints:** A = layout מספרי, B = ויזואלי (השוואה), C = MAP מלא עם renderer חדש
+
 ---
 
 ## Dev workflow

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MAP Renderer — Visual Test Report</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0f1a; color: #e2e8f0; font-family: system-ui, sans-serif; font-size: 13px; }
+  .header { padding: 20px 24px; border-bottom: 1px solid #1e293b; background: #0d1117; }
+  .header h1 { font-size: 18px; font-weight: 700; color: #f1f5f9; margin-bottom: 8px; }
+  .header .meta { color: #64748b; font-size: 12px; }
+  .summary { display: flex; gap: 20px; padding: 14px 24px; border-bottom: 1px solid #1e293b; background: #111; }
+  .stat { text-align: center; }
+  .stat .val { font-size: 22px; font-weight: 700; }
+  .stat .lbl { font-size: 10px; color: #64748b; margin-top: 2px; }
+  .pass-val { color: #86efac; }
+  .fail-val { color: #fca5a5; }
+  .new-val  { color: #93c5fd; }
+  .miss-val { color: #78716c; }
+  .filters { display: flex; gap: 8px; padding: 12px 24px; border-bottom: 1px solid #1e293b; }
+  .filter-btn { padding: 4px 12px; border-radius: 12px; background: #1e293b; border: 1px solid #334155;
+                color: #64748b; cursor: pointer; font-size: 11px; }
+  .filter-btn.active { background: #4f46e5; border-color: #6366f1; color: #fff; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; padding: 8px 16px; background: #111; color: #475569; font-size: 11px;
+       text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #1e293b; }
+  td { vertical-align: top; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>MAP Renderer — Visual Test Report</h1>
+  <div class="meta">Generated: 31.3.2026, 15:33:56 &nbsp;·&nbsp; 15 test cases</div>
+</div>
+
+<div class="summary">
+  <div class="stat"><div class="val pass-val">0</div><div class="lbl">PASS</div></div>
+  <div class="stat"><div class="val fail-val">15</div><div class="lbl">FAIL</div></div>
+  <div class="stat"><div class="val new-val">0</div><div class="lbl">NEW</div></div>
+  <div class="stat"><div class="val miss-val">0</div><div class="lbl">MISSING</div></div>
+</div>
+
+<div class="filters">
+  <button class="filter-btn active" onclick="filter('all')">All (15)</button>
+  <button class="filter-btn" onclick="filter('fail')">❌ Fail (15)</button>
+  <button class="filter-btn" onclick="filter('pass')">✅ Pass (0)</button>
+  <button class="filter-btn" onclick="filter('new')">🆕 New (0)</button>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Test</th>
+      <th>Reference</th>
+      <th>Current</th>
+      <th>Diff</th>
+    </tr>
+  </thead>
+  <tbody id="tbody">
+
+  <tr style="background:#1a0a0a;border-bottom:1px solid #222">
+    <td style="padding:12px 16px;vertical-align:top;min-width:180px">
+      <div style="font-weight:700;font-size:13px;color:#e2e8f0;margin-bottom:6px">01-noteheads</div>
+      <div style="color:#64748b;font-size:11px;margin-bottom:8px">01 — Noteheads</div>
+      <span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;background:#7f1d1d;color:#fca5a5">❌ FAIL</span>
+      <div style="margin-top:8px;font-size:12px;color:#fca5a5;font-weight:600">98.6%</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">169,794 px differ</div>
+    </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Reference</div>
+    <img src="reference/01-noteheads.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Current</div>
+    <img src="current/01-noteheads.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Diff (red = changed)</div>
+    <img src="diff/01-noteheads.diff.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+  </tr>
+
+  <tr style="background:#1a0a0a;border-bottom:1px solid #222">
+    <td style="padding:12px 16px;vertical-align:top;min-width:180px">
+      <div style="font-weight:700;font-size:13px;color:#e2e8f0;margin-bottom:6px">02-accidentals</div>
+      <div style="color:#64748b;font-size:11px;margin-bottom:8px">02 — Accidentals</div>
+      <span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;background:#7f1d1d;color:#fca5a5">❌ FAIL</span>
+      <div style="margin-top:8px;font-size:12px;color:#fca5a5;font-weight:600">99.2%</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">98,972 px differ</div>
+    </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Reference</div>
+    <img src="reference/02-accidentals.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Current</div>
+    <img src="current/02-accidentals.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Diff (red = changed)</div>
+    <img src="diff/02-accidentals.diff.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+  </tr>
+
+  <tr style="background:#1a0a0a;border-bottom:1px solid #222">
+    <td style="padding:12px 16px;vertical-align:top;min-width:180px">
+      <div style="font-weight:700;font-size:13px;color:#e2e8f0;margin-bottom:6px">03-rests</div>
+      <div style="color:#64748b;font-size:11px;margin-bottom:8px">03 — Rests</div>
+      <span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;background:#7f1d1d;color:#fca5a5">❌ FAIL</span>
+      <div style="margin-top:8px;font-size:12px;color:#fca5a5;font-weight:600">99.2%</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">99,942 px differ</div>
+    </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Reference</div>
+    <img src="reference/03-rests.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Current</div>
+    <img src="current/03-rests.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Diff (red = changed)</div>
+    <img src="diff/03-rests.diff.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+  </tr>
+
+  <tr style="background:#1a0a0a;border-bottom:1px solid #222">
+    <td style="padding:12px 16px;vertical-align:top;min-width:180px">
+      <div style="font-weight:700;font-size:13px;color:#e2e8f0;margin-bottom:6px">04-beams</div>
+      <div style="color:#64748b;font-size:11px;margin-bottom:8px">04 — Beams</div>
+      <span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;background:#7f1d1d;color:#fca5a5">❌ FAIL</span>
+      <div style="margin-top:8px;font-size:12px;color:#fca5a5;font-weight:600">98.4%</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">199,451 px differ</div>
+    </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Reference</div>
+    <img src="reference/04-beams.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Current</div>
+    <img src="current/04-beams.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Diff (red = changed)</div>
+    <img src="diff/04-beams.diff.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+  </tr>
+
+  <tr style="background:#1a0a0a;border-bottom:1px solid #222">
+    <td style="padding:12px 16px;vertical-align:top;min-width:180px">
+      <div style="font-weight:700;font-size:13px;color:#e2e8f0;margin-bottom:6px">05-stems</div>
+      <div style="color:#64748b;font-size:11px;margin-bottom:8px">05 — Stems</div>
+      <span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;background:#7f1d1d;color:#fca5a5">❌ FAIL</span>
+      <div style="margin-top:8px;font-size:12px;color:#fca5a5;font-weight:600">99.4%</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">80,665 px differ</div>
+    </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Reference</div>
+    <img src="reference/05-stems.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Current</div>
+    <img src="current/05-stems.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Diff (red = changed)</div>
+    <img src="diff/05-stems.diff.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+  </tr>
+
+  <tr style="background:#1a0a0a;border-bottom:1px solid #222">
+    <td style="padding:12px 16px;vertical-align:top;min-width:180px">
+      <div style="font-weight:700;font-size:13px;color:#e2e8f0;margin-bottom:6px">06-key-signatures</div>
+      <div style="color:#64748b;font-size:11px;margin-bottom:8px">06 — Key Signatures</div>
+      <span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;background:#7f1d1d;color:#fca5a5">❌ FAIL</span>
+      <div style="margin-top:8px;font-size:12px;color:#fca5a5;font-weight:600">98.9%</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">138,482 px differ</div>
+    </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Reference</div>
+    <img src="reference/06-key-signatures.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Current</div>
+    <img src="current/06-key-signatures.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Diff (red = changed)</div>
+    <img src="diff/06-key-signatures.diff.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+  </tr>
+
+  <tr style="background:#1a0a0a;border-bottom:1px solid #222">
+    <td style="padding:12px 16px;vertical-align:top;min-width:180px">
+      <div style="font-weight:700;font-size:13px;color:#e2e8f0;margin-bottom:6px">07-time-signatures</div>
+      <div style="color:#64748b;font-size:11px;margin-bottom:8px">07 — Time Signatures</div>
+      <span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;background:#7f1d1d;color:#fca5a5">❌ FAIL</span>
+      <div style="margin-top:8px;font-size:12px;color:#fca5a5;font-weight:600">99.1%</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">110,889 px differ</div>
+    </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Reference</div>
+    <img src="reference/07-time-signatures.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Current</div>
+    <img src="current/07-time-signatures.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Diff (red = changed)</div>
+    <img src="diff/07-time-signatures.diff.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+  </tr>
+
+  <tr style="background:#1a0a0a;border-bottom:1px solid #222">
+    <td style="padding:12px 16px;vertical-align:top;min-width:180px">
+      <div style="font-weight:700;font-size:13px;color:#e2e8f0;margin-bottom:6px">08-ledger-lines</div>
+      <div style="color:#64748b;font-size:11px;margin-bottom:8px">08 — Ledger Lines</div>
+      <span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;background:#7f1d1d;color:#fca5a5">❌ FAIL</span>
+      <div style="margin-top:8px;font-size:12px;color:#fca5a5;font-weight:600">99.2%</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">95,079 px differ</div>
+    </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Reference</div>
+    <img src="reference/08-ledger-lines.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Current</div>
+    <img src="current/08-ledger-lines.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Diff (red = changed)</div>
+    <img src="diff/08-ledger-lines.diff.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+  </tr>
+
+  <tr style="background:#1a0a0a;border-bottom:1px solid #222">
+    <td style="padding:12px 16px;vertical-align:top;min-width:180px">
+      <div style="font-weight:700;font-size:13px;color:#e2e8f0;margin-bottom:6px">09-tuplets</div>
+      <div style="color:#64748b;font-size:11px;margin-bottom:8px">09 — Tuplets</div>
+      <span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;background:#7f1d1d;color:#fca5a5">❌ FAIL</span>
+      <div style="margin-top:8px;font-size:12px;color:#fca5a5;font-weight:600">99.2%</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">102,872 px differ</div>
+    </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Reference</div>
+    <img src="reference/09-tuplets.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Current</div>
+    <img src="current/09-tuplets.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Diff (red = changed)</div>
+    <img src="diff/09-tuplets.diff.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+  </tr>
+
+  <tr style="background:#1a0a0a;border-bottom:1px solid #222">
+    <td style="padding:12px 16px;vertical-align:top;min-width:180px">
+      <div style="font-weight:700;font-size:13px;color:#e2e8f0;margin-bottom:6px">10-ties</div>
+      <div style="color:#64748b;font-size:11px;margin-bottom:8px">10 — Ties</div>
+      <span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;background:#7f1d1d;color:#fca5a5">❌ FAIL</span>
+      <div style="margin-top:8px;font-size:12px;color:#fca5a5;font-weight:600">99.4%</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">80,442 px differ</div>
+    </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Reference</div>
+    <img src="reference/10-ties.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Current</div>
+    <img src="current/10-ties.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Diff (red = changed)</div>
+    <img src="diff/10-ties.diff.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+  </tr>
+
+  <tr style="background:#1a0a0a;border-bottom:1px solid #222">
+    <td style="padding:12px 16px;vertical-align:top;min-width:180px">
+      <div style="font-weight:700;font-size:13px;color:#e2e8f0;margin-bottom:6px">11-chord-symbols</div>
+      <div style="color:#64748b;font-size:11px;margin-bottom:8px">11 — Chord Symbols</div>
+      <span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;background:#7f1d1d;color:#fca5a5">❌ FAIL</span>
+      <div style="margin-top:8px;font-size:12px;color:#fca5a5;font-weight:600">99.3%</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">93,272 px differ</div>
+    </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Reference</div>
+    <img src="reference/11-chord-symbols.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Current</div>
+    <img src="current/11-chord-symbols.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Diff (red = changed)</div>
+    <img src="diff/11-chord-symbols.diff.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+  </tr>
+
+  <tr style="background:#1a0a0a;border-bottom:1px solid #222">
+    <td style="padding:12px 16px;vertical-align:top;min-width:180px">
+      <div style="font-weight:700;font-size:13px;color:#e2e8f0;margin-bottom:6px">12-barlines</div>
+      <div style="color:#64748b;font-size:11px;margin-bottom:8px">12 — Barlines</div>
+      <span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;background:#7f1d1d;color:#fca5a5">❌ FAIL</span>
+      <div style="margin-top:8px;font-size:12px;color:#fca5a5;font-weight:600">99.4%</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">73,789 px differ</div>
+    </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Reference</div>
+    <img src="reference/12-barlines.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Current</div>
+    <img src="current/12-barlines.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Diff (red = changed)</div>
+    <img src="diff/12-barlines.diff.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+  </tr>
+
+  <tr style="background:#1a0a0a;border-bottom:1px solid #222">
+    <td style="padding:12px 16px;vertical-align:top;min-width:180px">
+      <div style="font-weight:700;font-size:13px;color:#e2e8f0;margin-bottom:6px">13-dots</div>
+      <div style="color:#64748b;font-size:11px;margin-bottom:8px">13 — Dotted Notes</div>
+      <span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;background:#7f1d1d;color:#fca5a5">❌ FAIL</span>
+      <div style="margin-top:8px;font-size:12px;color:#fca5a5;font-weight:600">99.2%</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">101,774 px differ</div>
+    </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Reference</div>
+    <img src="reference/13-dots.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Current</div>
+    <img src="current/13-dots.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Diff (red = changed)</div>
+    <img src="diff/13-dots.diff.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+  </tr>
+
+  <tr style="background:#1a0a0a;border-bottom:1px solid #222">
+    <td style="padding:12px 16px;vertical-align:top;min-width:180px">
+      <div style="font-weight:700;font-size:13px;color:#e2e8f0;margin-bottom:6px">14-chords</div>
+      <div style="color:#64748b;font-size:11px;margin-bottom:8px">14 — Multi-note Chords</div>
+      <span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;background:#7f1d1d;color:#fca5a5">❌ FAIL</span>
+      <div style="margin-top:8px;font-size:12px;color:#fca5a5;font-weight:600">99.1%</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">106,896 px differ</div>
+    </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Reference</div>
+    <img src="reference/14-chords.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Current</div>
+    <img src="current/14-chords.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Diff (red = changed)</div>
+    <img src="diff/14-chords.diff.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+  </tr>
+
+  <tr style="background:#1a0a0a;border-bottom:1px solid #222">
+    <td style="padding:12px 16px;vertical-align:top;min-width:180px">
+      <div style="font-weight:700;font-size:13px;color:#e2e8f0;margin-bottom:6px">15-mixed</div>
+      <div style="color:#64748b;font-size:11px;margin-bottom:8px">15 — Mixed Jazz Excerpt</div>
+      <span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;background:#7f1d1d;color:#fca5a5">❌ FAIL</span>
+      <div style="margin-top:8px;font-size:12px;color:#fca5a5;font-weight:600">99.1%</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">118,423 px differ</div>
+    </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Reference</div>
+    <img src="reference/15-mixed.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Current</div>
+    <img src="current/15-mixed.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+    <td style="vertical-align:top;padding:8px">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Diff (red = changed)</div>
+    <img src="diff/15-mixed.diff.png" style="max-width:280px;border:1px solid #333;border-radius:3px;display:block" loading="lazy"/>
+  </td>
+  </tr>
+  </tbody>
+</table>
+
+<script>
+function filter(status) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'))
+  event.target.classList.add('active')
+  document.querySelectorAll('#tbody tr').forEach(row => {
+    const badge = row.querySelector('span')
+    if (!badge) return
+    const rowStatus = badge.textContent.trim().toLowerCase().split(' ').pop()
+    if (status === 'all') { row.classList.remove('hidden'); return }
+    row.classList.toggle('hidden', rowStatus !== status)
+  })
+}
+</script>
+</body>
+</html>
