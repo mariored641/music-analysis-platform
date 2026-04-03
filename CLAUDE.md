@@ -360,7 +360,8 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 | 3 | Horizontal layout + דף בדיקה `/renderer-test` | ✅ הושלם — **Checkpoint A** |
 | 4 | Vertical layout + stems + beams + accidentals | ✅ הושלם — `verticalLayout.ts` |
 | 5 | SVG renderer (Unicode glyphs) | ✅ נבנה — Checkpoint B **לא אושר** — 8 בעיות ויזואליות |
-| 5.5 | Bugfix Pass — pixel comparison vs webmscore | 🔄 בעבודה — 0/15 pass, ~99.1–99.8% match. תוקן: noteX=left-edge, noteheadWidth=1.3sp, stemX=right/left edge. **הגישה הנכונה: קרא C++ → תרגם TS. ר' RENDERER_MAP.md לכלל העבודה המוחלט.** |
+| 5.5 | Bugfix Pass — pixel comparison vs webmscore | 🔄 בעבודה — 0/15 pass, ~99.1–99.8% match. תוקן: noteX=left-edge, noteheadWidth=1.3sp, stemX=right/left edge. **הגישה הנכונה: קרא C++ → תרגם TS. ר' RENDERER_MAP.md לכלל העבודה המוחלט.** WYSIWYG confirmed: L1↔L2 = 100% (0 CSS regressions). כל diff שנותר הוא logic bug בלבד. |
+| 5.6 | Dual-layer testing + WYSIWYG fix | ✅ הושלם — `/app-test` route, `app-integration.spec.ts` (Layer 2), `compare-layers.ts`, font-guard + CSS isolation. 15/15 WYSIWYG match. |
 | 6 | אינטגרציה ב-MAP, הסרת Verovio | ⬜ **Checkpoint C** |
 | 7 | Classical full support (SATB, tuplets, voltas) | ⬜ |
 | 8 | Bravura glyphs | ⬜ |
