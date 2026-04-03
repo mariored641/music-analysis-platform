@@ -167,14 +167,16 @@ function assignBeamGroupIds(notes: ExtractedNote[]): Map<string, string> {
 function computeLedgerLines(
   staffLine: number,
   noteX: number,
-  noteheadRx: number,
+  noteheadWidth: number,
   halfSp: number,
   staffTop: number,
 ): RenderedLedgerLine[] {
   const lines: RenderedLedgerLine[] = []
-  const ledgerPad = 3  // extra width on each side beyond notehead
-  const x1 = noteX - noteheadRx - ledgerPad
-  const x2 = noteX + noteheadRx + ledgerPad
+  const ledgerPad = 0.33 * halfSp * 2  // Sid::ledgerLineLength = 0.33sp (chord.cpp:851)
+  // noteX = left edge; chord.cpp:912: x = note->pos().x() + bboxXShift (≈left edge)
+  // chord.cpp:913: minX = x - extraLen; chord.cpp:923: maxX = x + hw + extraLen
+  const x1 = noteX - ledgerPad
+  const x2 = noteX + noteheadWidth + ledgerPad
 
   if (staffLine < 0) {
     // Above staff: need ledger lines at 0, -2, -4, ... down to nearest even ≤ staffLine
@@ -208,6 +210,7 @@ function buildBeams(
   extNotes: ExtractedNote[],
   beamThickness: number,
   beamGap: number,
+  sp: number,
 ): RenderedBeam[] {
   // Index rendered notes by noteId
   const rNoteMap = new Map<string, RenderedNote>()
@@ -281,7 +284,7 @@ function buildBeams(
     for (let level = 2; level <= maxLevels; level++) {
       const levelOffset = (level - 1) * (beamThickness + beamGap)
       const dir = stemUp ? 1 : -1  // inward toward noteheads
-      const segs = buildSubBeams(gNotes, eNoteMap, level, beamY, levelOffset * dir)
+      const segs = buildSubBeams(gNotes, eNoteMap, level, beamY, levelOffset * dir, sp)
       if (segs.length) allSegments.push(segs)
     }
 
@@ -328,6 +331,7 @@ function buildSubBeams(
   level: number,
   beamY: (x: number) => number,
   extraOffset: number,  // positive = downward for stemUp
+  sp: number,
 ): BeamSegment[] {
   const segs: BeamSegment[] = []
   let subStart: RenderedNote | null = null
@@ -351,12 +355,12 @@ function buildSubBeams(
     }
 
     if (bs.value === 'forward hook') {
-      const hookW = 8
+      const hookW = sp * 1.1  // Sid::beamMinLen = 1.1sp (beam.cpp:949, styledef.cpp:211)
       segs.push({ x1: rn.stemX, y1: beamYLevel(rn.stemX), x2: rn.stemX + hookW, y2: beamYLevel(rn.stemX + hookW) })
       continue
     }
     if (bs.value === 'backward hook') {
-      const hookW = 8
+      const hookW = sp * 1.1  // Sid::beamMinLen = 1.1sp (beam.cpp:949, styledef.cpp:211)
       segs.push({ x1: rn.stemX - hookW, y1: beamYLevel(rn.stemX - hookW), x2: rn.stemX, y2: beamYLevel(rn.stemX) })
       continue
     }
@@ -377,10 +381,40 @@ function buildSubBeams(
   return segs
 }
 
-// ─── Ties (simple in-measure bezier arcs) ────────────────────────────────────
+// ─── Tie arc helper ──────────────────────────────────────────────────────────
 
-function buildTies(renderedNotes: RenderedNote[], noteheadRy: number, sp: number): RenderedTie[] {
-  // Find consecutive tie-start → tie-end pairs within the same measure
+function makeTieArc(
+  ax: number, ay: number,
+  bx: number, by: number,
+  above: boolean,
+  noteheadWidth: number,
+  noteheadRy: number,
+  sp: number,
+): import('./types').BezierArc {
+  const tieGap = sp * 0.1                        // gap from notehead edge to arc endpoint
+  // noteX = left edge; tie starts from right edge of note A, ends at left edge of note B
+  const x1 = ax + noteheadWidth + tieGap
+  const x2 = bx - tieGap
+  // y: start/end at the notehead edge in the tie direction
+  const yOff = above ? -noteheadRy * 0.5 : noteheadRy * 0.5
+  const y1 = ay + yOff
+  const y2 = by + yOff
+  // arc height: scales with span, capped at 0.8 sp, min 0.3 sp
+  const span   = Math.max(x2 - x1, sp)
+  const h      = Math.min(sp * 0.8, Math.max(sp * 0.3, span * 0.12))
+  const arcH   = above ? -h : h
+  const spread = (x2 - x1) * 0.35
+  return { x1, y1, cx1: x1 + spread, cy1: y1 + arcH, cx2: x2 - spread, cy2: y2 + arcH, x2, y2 }
+}
+
+// ─── Ties (in-measure bezier arcs) ───────────────────────────────────────────
+
+function buildTies(
+  renderedNotes: RenderedNote[],
+  noteheadWidth: number,
+  noteheadRy: number,
+  sp: number,
+): RenderedTie[] {
   const ties: RenderedTie[] = []
 
   for (let i = 0; i < renderedNotes.length; i++) {
@@ -391,24 +425,13 @@ function buildTies(renderedNotes: RenderedNote[], noteheadRy: number, sp: number
     for (let j = i + 1; j < renderedNotes.length; j++) {
       const b = renderedNotes[j]
       if (b.tieEnd && b.staffLine === a.staffLine) {
-        // Arc above if stem down, below if stem up
-        const above      = !a.stemUp
-        const arcHeight  = above ? -sp * 1.5 : sp * 1.5
-        const arcY       = a.y + arcHeight
-        const x1         = a.x + 6
-        const x2         = b.x - 6
-        const spread     = (x2 - x1) * 0.35
+        const above = !a.stemUp
         ties.push({
-          fromNoteId: a.noteId,
-          toNoteId:   b.noteId,
+          fromNoteId:  a.noteId,
+          toNoteId:    b.noteId,
           above,
           crossSystem: false,
-          path: {
-            x1, y1: a.y,
-            cx1: x1 + spread, cy1: arcY,
-            cx2: x2 - spread, cy2: arcY,
-            x2, y2: b.y,
-          },
+          path: makeTieArc(a.x, a.y, b.x, b.y, above, noteheadWidth, noteheadRy, sp),
         })
         break
       }
@@ -416,6 +439,39 @@ function buildTies(renderedNotes: RenderedNote[], noteheadRy: number, sp: number
   }
 
   return ties
+}
+
+// ─── Cross-barline ties ───────────────────────────────────────────────────────
+
+function buildCrossBarlineTies(
+  curr: RenderedMeasure,
+  next: RenderedMeasure,
+  noteheadWidth: number,
+  noteheadRy: number,
+  sp: number,
+): RenderedTie[] {
+  const result: RenderedTie[] = []
+  // IDs already resolved in-measure
+  const alreadyTied = new Set(curr.ties.map(t => t.fromNoteId))
+
+  for (const a of curr.notes) {
+    if (!a.tieStart || alreadyTied.has(a.noteId)) continue
+    // Match: first note in next measure with tieEnd at same staffLine
+    const b = next.notes.find(n => n.tieEnd && n.staffLine === a.staffLine)
+    if (!b) continue
+
+    const above = !a.stemUp
+    const crossSystem = curr.systemIndex !== next.systemIndex
+    result.push({
+      fromNoteId:  a.noteId,
+      toNoteId:    b.noteId,
+      above,
+      crossSystem,
+      path: makeTieArc(a.x, a.y, b.x, b.y, above, noteheadWidth, noteheadRy, sp),
+    })
+  }
+
+  return result
 }
 
 // ─── Barlines ─────────────────────────────────────────────────────────────────
@@ -509,13 +565,16 @@ export function computeVerticalLayout(
   const halfSp      = lineSpacing / 2   // 5 px — one diatonic step
 
   const staffHeight   = 4 * lineSpacing   // 40 px
-  const noteheadRx    = sp * 0.55         // ellipse semi-axis x
+  // Leland noteheadBlack: stemUpSE.x=1.3sp (right edge), stemDownNW.x=0 (left edge)
+  // chord.cpp:stemPosX: up=noteHeadWidth(), down=0.0 → note.pos().x() = LEFT edge
+  const noteheadWidth = sp * 1.3          // Leland noteheadBlack full width (chord.cpp:484–496)
+  const noteheadRx    = noteheadWidth / 2 // half-width (0.65sp) for tie geometry
   const noteheadRy    = sp * 0.42         // ellipse semi-axis y
   const stemLength    = sp * 3.5          // standard un-beamed stem
   const beamThickness = sp * 0.5          // beam rectangle height
   const beamGap       = sp * 0.25         // gap between beam levels
-  const dotRadius     = sp * 0.12
-  const dotOffsetX    = sp * 0.8
+  const dotOffsetX    = sp * 0.35   // gap from notehead right edge to dot glyph left (webmscore: dotNoteDistance=0.35sp)
+  const dotGlyphW     = sp * 0.24   // approximate Leland augmentation dot glyph width
   const accidentalW   = sp * 0.8          // approximate glyph width for spacing
   const accidentalGap = sp * 0.3
 
@@ -649,7 +708,8 @@ export function computeVerticalLayout(
         const hasStem = nhType !== 'whole'
 
         // ── Stem positions ─────────────────────────────────────────
-        const stemX      = stemUp ? noteX + noteheadRx : noteX - noteheadRx
+        // chord.cpp:stemPosX(): up = noteHeadWidth() (right edge), down = 0.0 (left edge)
+        const stemX      = stemUp ? noteX + noteheadWidth : noteX
         const stemYTop   = stemUp ? noteY - stemLength : noteY
         const stemYBot   = stemUp ? noteY              : noteY + stemLength
 
@@ -660,7 +720,8 @@ export function computeVerticalLayout(
           accidental  = accidentalTypeFrom(en.accidentalToShow)
           const accW  = (ACCIDENTAL_WIDTH_SP[accidental] ?? 1.0) * sp
           const accGap = sp * 0.2
-          accidentalX = noteX - noteheadRx - accGap - accW
+          // noteX = left edge; accidental goes to the left of it (chord.cpp note pos = left edge)
+          accidentalX = noteX - accGap - accW
           // Clamp: never left of measure start
           accidentalX = Math.max(hMeasure.x + 2, accidentalX)
         }
@@ -670,19 +731,22 @@ export function computeVerticalLayout(
         const doubleDotted = en.dotCount >= 2
         // If note is on a line, shift dot up to adjacent space
         const dotY  = staffLine % 2 === 0 ? noteY - halfSp : noteY
-        const dotX  = dotted       ? noteX + noteheadRx + dotOffsetX          : undefined
-        const dot2X = doubleDotted ? noteX + noteheadRx + dotOffsetX + sp * 0.5 : undefined
+        // chord.cpp:2414: setDotPosX(headWidth) → dot starts at RIGHT edge + dotNoteDistance
+        const dotX  = dotted       ? noteX + noteheadWidth + dotOffsetX                        : undefined
+        const dot2X = doubleDotted ? noteX + noteheadWidth + dotOffsetX + dotGlyphW + sp * 0.25 : undefined
 
         // ── Ledger lines ───────────────────────────────────────────
         const ledgerLines = computeLedgerLines(
-          staffLine, noteX, noteheadRx, halfSp, primaryStaffTop,
+          staffLine, noteX, noteheadWidth, halfSp, primaryStaffTop,
         )
 
         // ── Bounding box ───────────────────────────────────────────
-        const bboxLeft   = (accidentalX ?? noteX) - noteheadRx - 2
+        const bboxLeft   = (accidentalX ?? noteX) - 2
         const bboxTop    = hasStem ? (stemUp ? stemYTop   : noteY - noteheadRy) : noteY - noteheadRy
         const bboxBottom = hasStem ? (stemUp ? noteY + noteheadRy : stemYBot)   : noteY + noteheadRy
-        const bboxRight  = noteX + noteheadRx + (dotted ? dotOffsetX + dotRadius + 4 : 2)
+        const bboxRight  = noteX + noteheadWidth + (dotted
+          ? dotOffsetX + dotGlyphW + (doubleDotted ? sp * 0.25 + dotGlyphW : 0) + 4
+          : 2)
 
         noteList.push({
           noteId:      en.id,
@@ -720,7 +784,7 @@ export function computeVerticalLayout(
       allRenderedNotes.push(...noteList)
 
       // ── Beams ───────────────────────────────────────────────────
-      const beams = buildBeams(noteList, extMeasure.notes, beamThickness, beamGap)
+      const beams = buildBeams(noteList, extMeasure.notes, beamThickness, beamGap, sp)
 
       // ── Chord symbols ──────────────────────────────────────────
       const chordY   = primaryStaffTop - sp * 2.2  // above top staff line
@@ -751,7 +815,7 @@ export function computeVerticalLayout(
       )
 
       // ── Ties ───────────────────────────────────────────────────
-      const ties = buildTies(noteList, noteheadRy, sp)
+      const ties = buildTies(noteList, noteheadWidth, noteheadRy, sp)
 
       // ── Tuplets ─────────────────────────────────────────────────
       const extNoteMap = new Map(extMeasure.notes.map(n => [n.id, n]))
@@ -868,6 +932,19 @@ export function computeVerticalLayout(
       headerWidth: hSys.headerWidth,
     } as RenderedSystem
   })
+
+  // ── Cross-barline ties ──────────────────────────────────────────────────
+  {
+    const allMeasures = renderedSystems
+      .flatMap(sys => sys.measures)
+      .sort((a, b) => a.measureNum - b.measureNum)
+    for (let i = 0; i < allMeasures.length - 1; i++) {
+      const crossTies = buildCrossBarlineTies(
+        allMeasures[i], allMeasures[i + 1], noteheadWidth, noteheadRy, sp,
+      )
+      allMeasures[i].ties.push(...crossTies)
+    }
+  }
 
   // ── Group systems into pages ─────────────────────────────────────────────
   const renderedPages: RenderedPage[] = hPages.map(hp => ({

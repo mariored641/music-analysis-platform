@@ -67,9 +67,26 @@ export const LELAND_TIME_SIG: Record<number, string> = {
 export const LELAND_TIME_SIG_COMMON     = '\uE08A'
 export const LELAND_TIME_SIG_CUT_COMMON = '\uE08B'
 
+// ─── Dynamics (LelandText) ────────────────────────────────────────────────────
+/** p — piano */
+export const LELAND_DYNAMIC_P   = '\uE520'
+/** f — forte */
+export const LELAND_DYNAMIC_F   = '\uE522'
+/** m — mezzo */
+export const LELAND_DYNAMIC_M   = '\uE521'
+/** r — rinforzando */
+export const LELAND_DYNAMIC_R   = '\uE523'
+/** s — sforzando */
+export const LELAND_DYNAMIC_S   = '\uE524'
+/** z — sforzato */
+export const LELAND_DYNAMIC_Z   = '\uE525'
+/** n — niente */
+export const LELAND_DYNAMIC_N   = '\uE526'
+
 // ─── Font family string ───────────────────────────────────────────────────────
-export const LELAND_FONT    = 'Leland, Bravura, serif'
-export const EDWIN_FONT     = '"Edwin", "Edwin-Roman", Georgia, "Times New Roman", serif'
+export const LELAND_FONT      = 'Leland, Bravura, serif'
+export const LELAND_TEXT_FONT = 'LelandText, Leland, serif'
+export const EDWIN_FONT       = '"Edwin", "Edwin-Roman", Georgia, "Times New Roman", serif'
 
 // ─── Font size formula ────────────────────────────────────────────────────────
 /**

@@ -42,6 +42,7 @@ import {
   LELAND_FLAT,
   LELAND_NATURAL,
   LELAND_TIME_SIG,
+  LELAND_AUGMENTATION_DOT,
   ENGRAVING,
   smuflFontSize,
   lelandAccidentalGlyph,
@@ -88,6 +89,12 @@ function renderFontDefs(): string {
   src: url('/fonts/Edwin-Italic.woff2') format('woff2');
   font-weight: normal;
   font-style: italic;
+}
+@font-face {
+  font-family: 'LelandText';
+  src: url('/fonts/LelandText.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
 }
 </style>
 </defs>`
@@ -266,9 +273,9 @@ function renderNote(rn: RenderedNote, sp: number): string {
   else if (rn.noteheadType === 'half')   noteheadGlyph = LELAND_NOTEHEAD_HALF
   else                                   noteheadGlyph = LELAND_NOTEHEAD_BLACK
 
-  // x: notehead left edge (SMuFL glyphs start at left, use text-anchor="start")
-  // center correction: notehead is ~1.3sp wide, so left edge = center - 0.65sp
-  const nhLeft = rn.x - sp * 0.65
+  // x: notehead left edge — rn.x IS the left edge (chord.cpp: note->pos().x() = left edge)
+  // Leland noteheadBlack: stemDownNW.x=0 (origin=left), stemUpSE.x=1.3sp (right edge)
+  const nhLeft = rn.x
   parts.push(
     `<g class="notehead">` +
     `<text x="${n(nhLeft)}" y="${n(rn.y)}" font-family="${LELAND_FONT}" font-size="${n(fs)}" fill="${INK}">${noteheadGlyph}</text>` +
@@ -301,15 +308,15 @@ function renderNote(rn: RenderedNote, sp: number): string {
     }
   }
 
-  // Augmentation dot
+  // Augmentation dot — Leland SMuFL glyph (baseline = dot center, same as noteheads)
   if (rn.dotted && rn.dotX !== undefined) {
     const halfSp = sp / 2
-    // If note is on a line (even staffLine), move dot to space above
+    // If note is on a staff line (even staffLine), shift dot up to the space above
     const dotY = rn.staffLine % 2 === 0 ? rn.y - halfSp : rn.y
-    const dotR = ENGRAVING.legerLineThickness * sp * 1.2  // small filled circle
-    parts.push(`<circle class="dots" cx="${n(rn.dotX)}" cy="${n(dotY)}" r="${n(dotR * 2.5)}" fill="${INK}"/>`)
+    const fs = smuflFontSize(sp)
+    parts.push(`<text class="dots" x="${n(rn.dotX)}" y="${n(dotY)}" font-family="${LELAND_FONT}" font-size="${n(fs)}" fill="${INK}">${LELAND_AUGMENTATION_DOT}</text>`)
     if (rn.doubleDotted && rn.dot2X !== undefined) {
-      parts.push(`<circle class="dots" cx="${n(rn.dot2X)}" cy="${n(dotY)}" r="${n(dotR * 2.5)}" fill="${INK}"/>`)
+      parts.push(`<text class="dots" x="${n(rn.dot2X)}" y="${n(dotY)}" font-family="${LELAND_FONT}" font-size="${n(fs)}" fill="${INK}">${LELAND_AUGMENTATION_DOT}</text>`)
     }
   }
 
@@ -370,11 +377,34 @@ function renderTuplet(t: RenderedTuplet, sp: number): string {
 }
 
 // ─── Tie / Slur ───────────────────────────────────────────────────────────────
+/**
+ * Renders a tie as a filled lune (two bezier arcs forming a closed sickle shape).
+ * Outer arc: the visible arc curving away from the note.
+ * Inner arc: same control x-positions, slightly less curvature — creates
+ * the tapered endpoints and thicker midpoint characteristic of engraved ties.
+ */
 function renderTie(tie: RenderedTie, sp: number): string {
-  const { path } = tie
-  const sw = ENGRAVING.tieEndpointThickness * sp + ENGRAVING.tieMidpointThickness * sp  // avg ~0.14sp
-  const d  = `M ${n(path.x1)},${n(path.y1)} C ${n(path.cx1)},${n(path.cy1)} ${n(path.cx2)},${n(path.cy2)} ${n(path.x2)},${n(path.y2)}`
-  return `<path class="tie" d="${d}" fill="none" stroke="${INK}" stroke-width="${n(Math.max(1, sw), 2)}"/>`
+  const { path, above } = tie
+  const { x1, y1, cx1, cy1, cx2, cy2, x2, y2 } = path
+
+  // Midpoint thickness: 0.21sp (ENGRAVING.tieMidpointThickness)
+  const midT = ENGRAVING.tieMidpointThickness * sp
+
+  // Inner arc is shifted toward the note by midT, making it less extreme
+  // "toward the note" means +y if above (arc goes upward, so inner is lower)
+  const signInward = above ? 1 : -1
+  const cy1i = cy1 + signInward * midT
+  const cy2i = cy2 + signInward * midT
+
+  // Closed lune: outer arc forward, inner arc backward (reversed control points)
+  const d = [
+    `M ${n(x1)},${n(y1)}`,
+    `C ${n(cx1)},${n(cy1)} ${n(cx2)},${n(cy2)} ${n(x2)},${n(y2)}`,
+    `C ${n(cx2)},${n(cy2i)} ${n(cx1)},${n(cy1i)} ${n(x1)},${n(y1)}`,
+    'Z',
+  ].join(' ')
+
+  return `<path class="tie" d="${d}" fill="${INK}" stroke="none"/>`
 }
 
 // ─── Measure ──────────────────────────────────────────────────────────────────
