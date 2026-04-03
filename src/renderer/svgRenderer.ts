@@ -274,7 +274,7 @@ function renderNote(rn: RenderedNote, sp: number): string {
   else                                   noteheadGlyph = LELAND_NOTEHEAD_BLACK
 
   // x: notehead left edge — rn.x IS the left edge (chord.cpp: note->pos().x() = left edge)
-  // Leland noteheadBlack: stemDownNW.x=0 (origin=left), stemUpSE.x=1.3sp (right edge)
+  // Bravura: stemDownNW.x=0 (left edge), stemUpSE.x=1.18sp (visual right edge)
   const nhLeft = rn.x
   parts.push(
     `<g class="notehead">` +
@@ -470,7 +470,7 @@ export function renderToSVG(
   const title       = renderedScore.metadata.title
 
   const parts: string[] = [
-    `<svg xmlns="http://www.w3.org/2000/svg" class="map-score" width="${width}" height="${totalHeight}" viewBox="0 0 ${width} ${totalHeight}" style="background:white;">`,
+    `<svg xmlns="http://www.w3.org/2000/svg" class="map-score" width="${width}" height="${totalHeight}" viewBox="0 0 ${width} ${totalHeight}" direction="ltr" style="background:white;">`,
     renderFontDefs(),
     `<!-- MAP Native Renderer — ${esc(title)} -->`,
     `<g class="score-content">`,
