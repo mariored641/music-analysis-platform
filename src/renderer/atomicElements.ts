@@ -54,23 +54,40 @@ export const NOTEHEAD_RX_SP = 0.59   // ~1.18sp total width / 2
 /** Notehead half-height in staff-spaces */
 export const NOTEHEAD_RY_SP = 0.36
 
-/** Distance from note center to first dot */
-export const DOT_NOTE_GAP_SP = 0.35   // Sid::dotNoteDistance
+/**
+ * Distance from notehead right edge to first augmentation dot.
+ * C++: note.cpp layout2() → d = score()->point(score()->styleS(Sid::dotNoteDistance))
+ * styledef.cpp:216 → Spatium(0.5)
+ */
+export const DOT_NOTE_GAP_SP = 0.5    // Sid::dotNoteDistance
 
-/** Dot glyph advance width */
-export const DOT_WIDTH_SP = 0.24
+/**
+ * Center-to-center distance between consecutive augmentation dots.
+ * C++: note.cpp layout2() → dd = score()->point(score()->styleS(Sid::dotDotDistance))
+ * styledef.cpp:218 → Spatium(0.65)
+ */
+export const DOT_DOT_DIST_SP = 0.65  // Sid::dotDotDistance (replaces DOT_WIDTH_SP + DOT_DOT_GAP_SP)
 
-/** Gap between two augmentation dots */
-export const DOT_DOT_GAP_SP = 0.25
+/**
+ * Ledger line extension past notehead edge on each side.
+ * C++: styledef.cpp:198 → ledgerLineLength = Spatium(0.33)
+ * Comment: "notehead width + this value"
+ */
+export const LEDGER_OVERRUN_SP = 0.33   // Sid::ledgerLineLength
 
-/** Ledger line extension past notehead edge */
-export const LEDGER_OVERRUN_SP = 0.35   // ENGRAVING.legerLineExtension
+/**
+ * Distance from notehead left edge to accidental right edge.
+ * C++: layoutchords.cpp:1033 → Sid::accidentalNoteDistance
+ * styledef.cpp:203 → Spatium(0.25)
+ */
+export const ACC_NOTE_GAP_SP = 0.25    // Sid::accidentalNoteDistance
 
-/** Distance from notehead left edge to accidental right edge */
-export const ACC_NOTE_GAP_SP = 0.22    // Sid::accidentalNoteDistance
-
-/** Gap between two accidentals in the same chord */
-export const ACC_ACC_GAP_SP = 0.17     // Sid::accidentalDistance
+/**
+ * Gap between two accidentals in the same chord column.
+ * C++: layoutchords.cpp:1032 → Sid::accidentalDistance
+ * styledef.cpp:202 → Spatium(0.22)
+ */
+export const ACC_ACC_GAP_SP = 0.22     // Sid::accidentalDistance
 
 // ---------------------------------------------------------------------------
 // Pitch → Staff Line
@@ -517,12 +534,15 @@ export function layoutDots(
   const dotY = noteY + dotYAdjust
 
   const fontSize = smuflFontSize(spatiumPx)
+  // C++: note.cpp layout2() — xx = dotPosX + d; each subsequent dot += dd
+  // dotPosX ≈ noteX + noteheadRx; d = dotNoteDistance; dd = dotDotDistance
   const dot1X = noteX + NOTEHEAD_RX_SP * spatiumPx + DOT_NOTE_GAP_SP * spatiumPx
 
   const result: DotLayout[] = [{ x: dot1X, y: dotY, fontSize }]
 
   if (count >= 2) {
-    const dot2X = dot1X + DOT_WIDTH_SP * spatiumPx + DOT_DOT_GAP_SP * spatiumPx
+    // C++: xx += dd where dd = styleMM(Sid::dotDotDistance) = 0.65sp
+    const dot2X = dot1X + DOT_DOT_DIST_SP * spatiumPx
     result.push({ x: dot2X, y: dotY, fontSize })
   }
 

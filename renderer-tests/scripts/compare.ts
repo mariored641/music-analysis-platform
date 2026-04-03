@@ -35,15 +35,21 @@ const DIFF_DIR = path.join(ROOT, 'diff')
 fs.mkdirSync(DIFF_DIR, { recursive: true })
 
 export interface CompareResult {
-  id:          string
-  title:       string
-  status:      'pass' | 'fail' | 'new' | 'missing'
-  diffPixels:  number | null
-  totalPixels: number | null
-  matchPct:    number | null   // 0–100, null if no comparison possible
-  refPath:     string | null
-  curPath:     string | null
-  diffPath:    string | null
+  id:           string
+  title:        string
+  status:       'pass' | 'fail' | 'new' | 'missing'
+  diffPixels:   number | null
+  totalPixels:  number | null
+  matchPct:     number | null   // 0–100, null if no comparison possible
+  refPath:      string | null
+  curPath:      string | null
+  diffPath:     string | null
+  // Dimension info — null when image not available
+  refWidth:     number | null
+  refHeight:    number | null
+  curWidth:     number | null
+  curHeight:    number | null
+  sizeMismatch: boolean        // true when ref and cur dimensions differ
 }
 
 function readPng(filePath: string): InstanceType<typeof PNG> | null {
@@ -102,7 +108,8 @@ const results: CompareResult[] = []
 let passCount = 0
 let failCount = 0
 let newCount  = 0
-let missingCount = 0
+let missingCount    = 0
+let sizeMismatchCount = 0
 
 console.log('\n🔍 MAP Renderer — PNG Comparison\n')
 console.log(`  Reference dir : ${REF_DIR}`)
@@ -123,22 +130,33 @@ for (const tc of TEST_CASES) {
   if (!curPng) {
     result = { id: tc.id, title: tc.title, status: 'missing',
       diffPixels: null, totalPixels: null, matchPct: null,
-      refPath: refPng ? refPath : null, curPath: null, diffPath: null }
+      refPath: refPng ? refPath : null, curPath: null, diffPath: null,
+      refWidth: refPng?.width ?? null, refHeight: refPng?.height ?? null,
+      curWidth: null, curHeight: null, sizeMismatch: false }
     missingCount++
     console.log(`  ⬜ MISSING  ${tc.id}`)
   } else if (!refPng) {
     result = { id: tc.id, title: tc.title, status: 'new',
       diffPixels: null, totalPixels: null, matchPct: null,
-      refPath: null, curPath, diffPath: null }
+      refPath: null, curPath, diffPath: null,
+      refWidth: null, refHeight: null,
+      curWidth: curPng.width, curHeight: curPng.height, sizeMismatch: false }
     newCount++
     console.log(`  🆕 NEW      ${tc.id}  (run update-refs to approve)`)
   } else {
+    const sizeMismatch = refPng.width !== curPng.width || refPng.height !== curPng.height
     const { diffPixels, totalPixels } = comparePngs(refPng, curPng, diffPath)
     const matchPct = Math.round((1 - diffPixels / totalPixels) * 1000) / 10
     const status   = diffPixels === 0 ? 'pass' : 'fail'
     result = { id: tc.id, title: tc.title, status,
       diffPixels, totalPixels, matchPct,
-      refPath, curPath, diffPath: diffPixels > 0 ? diffPath : null }
+      refPath, curPath, diffPath: diffPixels > 0 ? diffPath : null,
+      refWidth: refPng.width, refHeight: refPng.height,
+      curWidth: curPng.width, curHeight: curPng.height, sizeMismatch }
+    if (sizeMismatch) {
+      sizeMismatchCount++
+      console.log(`  ⚠  SIZE     ${tc.id}  ref=${refPng.width}×${refPng.height}  cur=${curPng.width}×${curPng.height}`)
+    }
     if (status === 'pass') {
       passCount++
       console.log(`  ✅ PASS     ${tc.id}  (100% match)`)
@@ -159,6 +177,9 @@ console.log(`  ✅ Pass    : ${passCount}`)
 console.log(`  ❌ Fail    : ${failCount}`)
 console.log(`  🆕 New     : ${newCount}`)
 console.log(`  ⬜ Missing : ${missingCount}`)
+if (sizeMismatchCount > 0) {
+  console.log(`  ⚠  Size ≠  : ${sizeMismatchCount}  (layout artifact — fix page dimensions)`)
+}
 console.log('─'.repeat(50))
 console.log('')
 
@@ -172,7 +193,7 @@ if (failCount > 0) {
 const jsonPath = path.join(ROOT, 'compare-result.json')
 fs.writeFileSync(jsonPath, JSON.stringify({ results, summary: {
   total: TEST_CASES.length, passCount, failCount, newCount, missingCount,
-  timestamp: new Date().toISOString(),
+  sizeMismatchCount, timestamp: new Date().toISOString(),
 }}, null, 2))
 console.log(`  Results written to: ${jsonPath}`)
 

@@ -864,15 +864,30 @@ export function computeVerticalLayout(
       )
 
       // ── Header elements (first measure of each system) ─────────
-      // All positions use sp-based constants matching webmscore styledef.cpp
+      // Use per-system current key/time (not the initial metadata) for system 2+
       const clefX = hSys.x + CLEF_LEFT_MARGIN_SP * sp
+      const fifths = hSys.currentFifths
       const keySigX = clefX + CLEF_GLYPH_WIDTH_SP * sp + CLEF_KEY_DIST_SP * sp
-      const fifths  = score.metadata.fifths
       const timeSigLeftEdge = fifths !== 0
         ? keySigX + Math.abs(fifths) * KEY_ACC_STRIDE_SP * sp + KEY_TIMESIG_DIST_SP * sp
         : clefX + CLEF_GLYPH_WIDTH_SP * sp + CLEF_TIMESIG_DIST_SP * sp
       // timeSig is rendered with text-anchor="middle", so pass center x
       const timeSigCenterX = timeSigLeftEdge + TIMESIG_GLYPH_WIDTH_SP / 2 * sp
+
+      // Inline time signature change: placed at barline + BAR_NOTE_DIST, center-aligned
+      // (only when not the first measure of a system — system header already shows time sig)
+      let inlineTimeSig: RenderedTimeSignature | undefined
+      if (!isFirstInSys && extMeasure.timeChange) {
+        const inlineTimeSigX = hMeasure.x + BAR_NOTE_DIST_SP * sp + TIMESIG_GLYPH_WIDTH_SP / 2 * sp
+        inlineTimeSig = {
+          beats:        extMeasure.timeChange.beats,
+          beatType:     extMeasure.timeChange.beatType,
+          x:            inlineTimeSigX,
+          staffIndex:   0,
+          yNumerator:   primaryStaffTop + lineSpacing,
+          yDenominator: primaryStaffTop + 3 * lineSpacing,
+        }
+      }
 
       return {
         measureNum,
@@ -911,13 +926,13 @@ export function computeVerticalLayout(
               )
             : undefined,
         timeSignatureDisplay: isFirstInSys ? {
-          beats:        score.metadata.beats,
-          beatType:     score.metadata.beatType,
+          beats:        hSys.currentBeats,
+          beatType:     hSys.currentBeatType,
           x:            timeSigCenterX,
           staffIndex:   0,
           yNumerator:   primaryStaffTop + lineSpacing,
           yDenominator: primaryStaffTop + 3 * lineSpacing,
-        } as RenderedTimeSignature : undefined,
+        } as RenderedTimeSignature : inlineTimeSig,
       } as RenderedMeasure
     })
 

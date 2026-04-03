@@ -49,7 +49,8 @@ npx tsx renderer-tests/scripts/update-refs.ts --all
 ## איך ה-compare עובד
 
 - pixelmatch, threshold 0.1, ignoreAA
-- גדלים שונים: מרפד לבן עד מקסימום, אז משווה — **גדלים שונים זה בסדר**
+- גדלים שונים: מרפד לבן עד מקסימום, אז משווה
+- ⚠ SIZE MISMATCH: מזוהה ומדווח כשref≠cur — תמיד צריך להיות 0 אחרי rebuild
 - diffPixels=0 → pass; כל שאר → fail
 
 ---
@@ -80,25 +81,27 @@ webmscore vtest scores: `C:\Users\DELL\Documents\webmscore\vtest\scores\` (357 m
 
 ## מצב נוכחי
 
-**ריצה אחרונה:** 2026-04-01 (סשן 2) | **Pass: 0/15**
+**ריצה אחרונה:** 2026-04-03 (סשן 3 — baseline rebuild + orchestrator) | **Pass: 0/15**
 
-| ID | Match% | px differ | עדיפות | הערות עיקריות |
-|----|--------|-----------|--------|----------------|
-| 01-noteheads | 99.2% | 101,594 | גבוהה | title עדיין שונה (font rendering), notes x-positions, y=1250-1445 band גדול |
-| 02-accidentals | 99.6% | 44,820 | בינונית | |
-| 03-rests | 99.5% | 65,964 | בינונית | |
-| 04-beams | 99.1% | 114,019 | גבוהה | beam geometry |
-| 05-stems | 99.7% | 32,935 | בינונית | |
-| 06-key-signatures | 99.4% | 77,317 | גבוהה | clef + key-sig x-position |
-| 07-time-signatures | 99.4% | 81,436 | גבוהה | time-sig x-position |
-| 08-ledger-lines | 99.6% | 44,344 | נמוכה | |
-| 09-tuplets | 99.6% | 50,607 | נמוכה | |
-| 10-ties | 99.7% | 39,048 | נמוכה | |
-| 11-chord-symbols | 99.7% | 41,631 | בינונית | |
-| 12-barlines | 99.8% | 26,948 | נמוכה | |
-| 13-dots | 99.5% | 57,393 | נמוכה | |
-| 14-chords | 99.6% | 53,038 | נמוכה | |
-| 15-mixed | 99.4% | 71,547 | בינונית | |
+**BASELINE נקי:** ref=cur=2978×4209px, SIZE MISMATCH=0. כל הבדל הוא layout בלבד.
+
+| ID | Match% | px differ | Δ מסשן קודם | עדיפות | הערות עיקריות |
+|----|--------|-----------|------------|--------|----------------|
+| 01-noteheads | 99.3% | 90,355 | −17K ✓ | גבוהה | title font, notes x-positions |
+| 02-accidentals | 99.6% | 47,099 | same | בינונית | |
+| 03-rests | 99.4% | 71,310 | +3K | בינונית | |
+| 04-beams | 99.1% | 113,649 | same | גבוהה | beam geometry |
+| 05-stems | 99.7% | 34,355 | same | בינונית | |
+| 06-key-signatures | 99.3% | 83,356 | same | גבוהה | clef + key-sig x-position |
+| 07-time-signatures | 99.3% | 92,669 | +1K | גבוהה | time-sig x-position |
+| 08-ledger-lines | 99.6% | 45,752 | same | נמוכה | |
+| 09-tuplets | 99.6% | 48,191 | −52K ✓✓ | נמוכה | |
+| 10-ties | 99.7% | 38,890 | −34K ✓✓ | נמוכה | |
+| 11-chord-symbols | 99.6% | 45,170 | same | בינונית | |
+| 12-barlines | 99.8% | 29,458 | same | נמוכה | |
+| 13-dots | 99.5% | 60,298 | same | נמוכה | |
+| 14-chords | 99.5% | 61,015 | −37K ✓✓ | נמוכה | |
+| 15-mixed | 99.1% | 115,293 | −3K ✓ | בינונית | |
 
 ---
 
@@ -140,6 +143,20 @@ Title band עדיין מופיע בdiff (y=214-295, max=142px/row).
 | 6 | titleHeight קטן | 3sp | 10sp | `verticalLayout.ts` | מיקום מערכת 1 נכון |
 | 7 | title font-size | 1.7sp | 2.0sp | `svgRenderer.ts` | |
 | 8 | title y-position | marginTop + 1.2sp | marginTop + 9.0sp | `svgRenderer.ts` | |
+
+### סשן 2026-04-03 (סשן 3 — Baseline Rebuild + LayoutOrchestrator)
+
+| # | בעיה | ערך ישן | ערך חדש | קובץ | השפעה |
+|---|------|---------|---------|------|-------|
+| 12 | pageWidth: A4 metric (2976px) vs webmscore imperial (2978px) | 2976px | 2978px (`ceil(8.27×360)`) | `horizontalLayout.ts` | SIZE MISMATCH 15/15 → 0/15. כל diffs עכשיו layout בלבד |
+| 13 | generate-refs viewport קטן מדי (1000×1400) | 1000×1400 | 2980×4220 | `generate-refs-playwright.ts` | viewport מכיל A4 מלא לפני resize |
+| 14 | compare.ts: גדלים שונים בשקט | padding ללא דיווח | SIZE MISMATCH warning + refW/H/curW/H | `compare.ts` | אבחון מיידי של אי-התאמת גדלים |
+| 15 | LayoutOrchestrator — מחבר engine לpipeline | `computeHorizontalLayout()` בלבד | `orchestrateHorizontalLayout()` ב-engine/ | `index.ts`, `engine/LayoutOrchestrator.ts` | 5 טסטים השתפרו (9→48K, 10→38K, 14→61K) |
+
+**C++ drill — pageWidth:**
+- `mscore/papersize.cpp`: `{ "A4", 8.27, 11.69 }` (inches — rounded imperial)
+- `ceil(8.27 × 360 DPI) = ceil(2977.2) = 2978px` ← **webmscore actual output**
+- שלנו היה: `floor(210/25.4 × 360) = floor(2976.38) = 2976px` ← שגוי
 
 ### סשן 2026-04-01 (סשן 2)
 

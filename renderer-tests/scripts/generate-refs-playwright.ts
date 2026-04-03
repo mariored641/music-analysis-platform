@@ -39,7 +39,10 @@ console.log(`  Cases    : ${cases.length}\n`)
 
 const browser = await chromium.launch({ headless: true })
 const context = await browser.newContext({
-  viewport: { width: 1000, height: 1400 },
+  // Large enough to contain a full A4 page at 360 DPI (≈2977×4209px)
+  // without triggering any responsive reflow before we resize to the SVG bbox.
+  // Must match capture.spec.ts strategy: resize to exact SVG dimensions before screenshot.
+  viewport: { width: 2980, height: 4220 },
   deviceScaleFactor: 1,
 })
 const page    = await context.newPage()

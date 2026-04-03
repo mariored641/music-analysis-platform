@@ -17,14 +17,14 @@
  *   - renderedScore : full structure for advanced consumers
  */
 
-import { extractScore }               from './xmlExtractor'
-import { computeHorizontalLayout }    from './horizontalLayout'
-import { computeVerticalLayout }      from './verticalLayout'
-import { renderToSVG }                from './svgRenderer'
+import { extractScore }                    from './xmlExtractor'
+import { orchestrateHorizontalLayout }    from './engine/LayoutOrchestrator'
+import { computeVerticalLayout }          from './verticalLayout'
+import { renderToSVG }                    from './svgRenderer'
 import type { RenderOptions, RenderResult } from './types'
 
 export { extractScore }
-export { computeHorizontalLayout }
+export { orchestrateHorizontalLayout as computeHorizontalLayout }
 export { computeVerticalLayout }
 export { renderToSVG }
 export type { RenderOptions, RenderResult }
@@ -40,7 +40,7 @@ export function renderScore(
   options?: RenderOptions,
 ): RenderResult {
   const extracted      = extractScore(xmlString)
-  const hLayout        = computeHorizontalLayout(extracted, options)
+  const hLayout        = orchestrateHorizontalLayout(extracted, options)
   const renderedScore  = computeVerticalLayout(extracted, hLayout, options)
   const svg            = renderToSVG(renderedScore, options)
 

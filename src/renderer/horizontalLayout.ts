@@ -23,9 +23,11 @@ import type { RenderOptions } from './types'
 export const DEFAULT_RENDER_OPTIONS: Required<RenderOptions> = {
   // webmscore/MuseScore internal units: DPI=360, SPATIUM20=25.0 (5pt reference)
   // Default staff space = 1.75mm → 1.75 × (360/25.4) = 24.8 units/sp
-  // A4: 210mm × 297mm = 2976 × 4209 at 360dpi
+  // A4: MuseScore defines as 8.27 × 11.69 inches (mscore/papersize.cpp)
+  //   → width  = ceil(8.27  × 360) = ceil(2977.2) = 2978 px
+  //   → height = ceil(11.69 × 360) = ceil(4208.4) = 4209 px
   // Margins: 15mm = 15/25.4 × 360 = 213 units
-  pageWidth:       2976,
+  pageWidth:       2978,
   pageHeight:      4209,
   spatium:         24.8,   // 1 sp = 24.8 px (= 1.75mm at 360dpi) — MuseScore default
   marginTop:        213,   // 15mm at 360dpi
@@ -38,8 +40,14 @@ export const DEFAULT_RENDER_OPTIONS: Required<RenderOptions> = {
 
 // ─── Spacing constants (from RENDERER_ALGORITHMS.md §2.2) ───────────────────
 
-/** Minimum segment width = noteheadWidth (~1.18sp) + minNoteDistance (0.5sp per webmscore styledef) */
-const NOTE_BASE_WIDTH_SP   = 1.68  // sp; matches webmscore: noteheadBlack≈1.18sp + minNoteDistance=0.5sp
+/**
+ * Minimum note space: noteHeadWidth + minNoteDistance (empirically calibrated to webmscore output)
+ * C++ formula (measure.cpp:4174-4175): noteHeadWidth + 1.2 * minNoteDistance = 1.18 + 0.6 = 1.78sp
+ * NOTE: 1.68 was empirically found to match webmscore output better than the theoretical 1.78.
+ * The C++ formula also uses stretchCoeff, usrStretch, and empFactor which counterbalance each other.
+ * Do NOT change without running pixel tests.
+ */
+const NOTE_BASE_WIDTH_SP   = 1.68  // sp — empirically calibrated (DO NOT change without testing)
 
 /** Distance from barline to first note (no accidental) */
 export const BAR_NOTE_DIST_SP     = 1.3
@@ -107,6 +115,11 @@ export interface HLayoutSystem {
   y:            number   // 0; filled by verticalLayout
   width:        number   // usable content width (after margins)
   headerWidth:  number   // clef + key + time + gap
+  /** Key signature (fifths) active at the start of this system */
+  currentFifths:   number
+  /** Time signature active at the start of this system */
+  currentBeats:    number
+  currentBeatType: number
 }
 
 export interface HLayoutMeasure {
@@ -160,26 +173,49 @@ export function computeHorizontalLayout(
   const { measures: extMeasures, metadata } = score
 
   // ── 1. Measure work data ──────────────────────────────────────────────────
-  // Track running key (fifths) to compute cancellation-natural count for key changes
+  // Track running key/time state to compute firstNotePad and system headers
   const workData: MeasureWork[] = []
-  let runningFifths = metadata.fifths
-  for (const m of extMeasures) {
-    const prevFifths = runningFifths
-    if (m.keyChange) runningFifths = m.keyChange.fifths
-    workData.push(buildMeasureWork(m, metadata.beats, sp, prevFifths))
+
+  // Pre-compute cumulative state at the START of each measure (before any change in that measure)
+  // measureStartState[i] = { fifths, beats, beatType } at the start of measure i+1
+  const measureStartState: Array<{ fifths: number; beats: number; beatType: number }> = []
+  {
+    let runFifths   = metadata.fifths
+    let runBeats    = metadata.beats
+    let runBeatType = metadata.beatType
+    for (const m of extMeasures) {
+      measureStartState.push({ fifths: runFifths, beats: runBeats, beatType: runBeatType })
+      if (m.keyChange)  runFifths   = m.keyChange.fifths
+      if (m.timeChange) { runBeats = m.timeChange.beats; runBeatType = m.timeChange.beatType }
+    }
   }
 
-  // ── 2. System header width — based on webmscore segment spacings ─────────
+  {
+    for (let i = 0; i < extMeasures.length; i++) {
+      const m = extMeasures[i]
+      const state = measureStartState[i]
+      // hasTimeChange: true if this measure introduces a new time signature
+      // (i.e., the measure itself has a timeChange attribute AND it's not measure 1)
+      const hasTimeChange = !!m.timeChange && i > 0
+      workData.push(buildMeasureWork(m, state.beats, sp, state.fifths, hasTimeChange))
+    }
+  }
+
+  // ── 2. Per-system header width helper ────────────────────────────────────
   // Layout order: barline | clefLeftMargin | gClef | (clefKeyDist | keySig | keyTimesigDist)
   //                        | clefTimesigDist | timeSig | systemHeaderTimeSigDist | firstNote
-  const hasFifths      = Math.abs(metadata.fifths) > 0
-  const keySigWidthSp  = Math.abs(metadata.fifths) * KEY_ACC_STRIDE_SP
-  const gapAfterClef   = hasFifths
-    ? CLEF_KEY_DIST_SP + keySigWidthSp + KEY_TIMESIG_DIST_SP
-    : CLEF_TIMESIG_DIST_SP
-  const headerWidth    = (CLEF_LEFT_MARGIN_SP + CLEF_GLYPH_WIDTH_SP
-    + gapAfterClef
-    + TIMESIG_GLYPH_WIDTH_SP + SYS_HDR_TIMESIG_SP) * sp
+  function computeHeaderWidth(fifths: number): number {
+    const hasFifths     = Math.abs(fifths) > 0
+    const keySigWidthSp = Math.abs(fifths) * KEY_ACC_STRIDE_SP
+    const gapAfterClef  = hasFifths
+      ? CLEF_KEY_DIST_SP + keySigWidthSp + KEY_TIMESIG_DIST_SP
+      : CLEF_TIMESIG_DIST_SP
+    return (CLEF_LEFT_MARGIN_SP + CLEF_GLYPH_WIDTH_SP + gapAfterClef
+      + TIMESIG_GLYPH_WIDTH_SP + SYS_HDR_TIMESIG_SP) * sp
+  }
+
+  // Use initial key for greedy break estimate (good enough)
+  const headerWidth = computeHeaderWidth(metadata.fifths)
 
   // ── 3. Usable width ───────────────────────────────────────────────────────
   const usableWidth = opts.pageWidth - opts.marginLeft - opts.marginRight
@@ -220,14 +256,22 @@ export function computeHorizontalLayout(
     // Re-apply stretch using only measures in THIS system (true global-per-system)
     applySystemStretch(mNums, workData, sp)
 
+    // Compute the correct per-system headerWidth based on the key active at system start
+    const firstMeasureIdx = mNums[0] - 1
+    const sysState = measureStartState[firstMeasureIdx]
+    const sysHeaderWidth = computeHeaderWidth(sysState.fifths)
+
     const system: HLayoutSystem = {
-      systemIndex: sysIdx,
-      pageIndex:   pageIdx,
-      measureNums: mNums,
-      x:           opts.marginLeft,
-      y:           0,
-      width:       usableWidth,
-      headerWidth,
+      systemIndex:     sysIdx,
+      pageIndex:       pageIdx,
+      measureNums:     mNums,
+      x:               opts.marginLeft,
+      y:               0,
+      width:           usableWidth,
+      headerWidth:     sysHeaderWidth,
+      currentFifths:   sysState.fifths,
+      currentBeats:    sysState.beats,
+      currentBeatType: sysState.beatType,
     }
     systems.push(system)
     pageSysIndices.push(sysIdx)
@@ -235,7 +279,7 @@ export function computeHorizontalLayout(
     // Stretch system → assign final widths + x-positions
     placeSystem(
       system, mNums, workData, extMeasures,
-      usableWidth, headerWidth, opts,
+      usableWidth, sysHeaderWidth, opts,
       measureMap, noteXMap,
     )
   })
@@ -260,6 +304,7 @@ function buildMeasureWork(
   beatsPerMeasure: number,
   sp: number,
   prevFifths: number = 0,
+  hasTimeChange: boolean = false,
 ): MeasureWork {
   const notes = measure.notes
 
@@ -295,9 +340,18 @@ function buildMeasureWork(
   )
 
   // firstNotePad: space from barline to first notehead x
-  // If the measure has an inline key-signature change, budget room for it
+  // Budget room for inline key-signature and/or time-signature changes
   let firstNotePad: number
-  if (measure.keyChange) {
+  if (measure.keyChange && hasTimeChange) {
+    // Both key change and time change — key sig first, then time sig
+    const newFifths  = measure.keyChange.fifths
+    const cancels = prevFifths > 0
+      ? Math.max(0, prevFifths - Math.max(0, newFifths))
+      : Math.max(0, -prevFifths - Math.max(0, -newFifths))
+    const totalAcc   = cancels + Math.abs(newFifths)
+    firstNotePad = (BAR_NOTE_DIST_SP + totalAcc * KEY_ACC_STRIDE_SP + KEY_TIMESIG_DIST_SP
+      + TIMESIG_GLYPH_WIDTH_SP + SYS_HDR_TIMESIG_SP) * sp
+  } else if (measure.keyChange) {
     const newFifths  = measure.keyChange.fifths
     // Cancellation naturals: how many accidentals from the old key need to be shown as naturals
     const cancels = prevFifths > 0
@@ -305,6 +359,9 @@ function buildMeasureWork(
       : Math.max(0, -prevFifths - Math.max(0, -newFifths)) // removing some/all flats
     const totalAcc   = cancels + Math.abs(newFifths)
     firstNotePad = (BAR_NOTE_DIST_SP + totalAcc * KEY_ACC_STRIDE_SP + KEY_TIMESIG_DIST_SP) * sp
+  } else if (hasTimeChange) {
+    // Time signature change — budget for time sig glyph + gap to first note
+    firstNotePad = (BAR_NOTE_DIST_SP + TIMESIG_GLYPH_WIDTH_SP + SYS_HDR_TIMESIG_SP) * sp
   } else {
     firstNotePad = (firstNoteHasAcc ? BAR_ACC_DIST_SP : BAR_NOTE_DIST_SP) * sp
   }
@@ -314,25 +371,27 @@ function buildMeasureWork(
 }
 
 /**
- * Phase 2: apply webmscore stretch formula (pow(1.5, log2(ratio))) globally
- * across all measures in a system, using the system's overall minimum duration.
+ * Phase 2: apply webmscore stretch formula globally across all measures in a system.
+ * Mirrors Segment::computeDurationStretch() + Measure::computeWidth() in C++.
+ *
+ * C++ flow: collectSystem() passes minSysTicks/maxSysTicks to computeWidth(),
+ * which calls computeDurationStretch(prevSeg, minTicks, maxTicks) per segment.
  */
 function applySystemStretch(
   systemMNums: number[],
   workData: MeasureWork[],
   sp: number,
 ): void {
-  // Find minimum duration across ALL segments in this system
+  // Find min duration across ALL segments in this system
+  // C++: system->minSysTicks()
   let globalMinDuration = Infinity
   for (const mNum of systemMNums) {
     for (const seg of workData[mNum - 1].segments) {
       if (seg.duration < globalMinDuration) globalMinDuration = seg.duration
     }
   }
-  if (!isFinite(globalMinDuration) || globalMinDuration <= 0) globalMinDuration = 1
-  // webmscore uses 1/16 note (0.25 beats) as the minimum reference unit for stretch,
-  // regardless of what notes actually appear in the score (e.g. all-quarter scores).
-  // This ensures quarter notes always get stretch ≥ pow(1.5, log2(4)) = 2.25×.
+  if (!isFinite(globalMinDuration) || globalMinDuration <= 0) globalMinDuration = 0.125
+  // Cap at quarter note: prevents over-stretching when minimum is a 32nd/64th note
   globalMinDuration = Math.min(globalMinDuration, 0.25)
 
   for (const mNum of systemMNums) {
@@ -353,9 +412,26 @@ function applySystemStretch(
 
 const MEASURE_SPACING_SLOPE = 1.5  // Sid::measureSpacing default in webmscore
 
+/**
+ * Compute duration stretch factor.
+ * Mirrors Segment::computeDurationStretch() in segment.cpp:2812.
+ *
+ * C++ formula (simplified — empFactor & HACK omitted, makes things worse):
+ *   double slope = score()->styleD(Sid::measureSpacing);  // 1.5
+ *   double ratio = curTicks / minTicks;  (capped at 32)
+ *   str = pow(slope, log2(ratio))
+ *
+ * NOTE: The full C++ implementation includes empFactor and a HACK for
+ * scores with minTicks < 1/16 note. These were tested and made pixel
+ * comparisons worse, likely because our unit system (quarter-note beats)
+ * differs from C++ Ticks and other C++ factors compensate. Keeping simple.
+ *
+ * @param duration      Duration of this segment in quarter-note beats
+ * @param minDuration   Minimum duration in the system (capped at 0.25 quarter-beats)
+ */
 function computeStretch(duration: number, minDuration: number): number {
   if (minDuration <= 0 || duration <= minDuration + 1e-9) return 1.0
-  const ratio = Math.min(duration / minDuration, 32.0)  // cap at 32 like webmscore
+  const ratio = Math.min(duration / minDuration, 32.0)
   return Math.pow(MEASURE_SPACING_SLOPE, Math.log2(ratio))
 }
 
