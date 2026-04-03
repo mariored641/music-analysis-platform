@@ -15,7 +15,7 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: './renderer-tests',
-  testMatch: 'capture.spec.ts',
+  testMatch: '*.spec.ts',
 
   // No parallelism — render order doesn't matter but avoids port conflicts
   workers: 1,

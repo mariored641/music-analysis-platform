@@ -258,11 +258,19 @@ export function ScoreView() {
 
   // Manually update vrv-svg innerHTML only when svgContent changes.
   // This prevents React re-renders from wiping inline styles (note colors).
+  // After injecting, wait for fonts to load and set data-ready for Playwright (Layer 2 tests).
   useEffect(() => {
     if (!vrvDivRef.current) return
     if (svgContent === prevSvgRef.current) return
     prevSvgRef.current = svgContent
-    vrvDivRef.current.innerHTML = svgContent
+    const div = vrvDivRef.current
+    div.removeAttribute('data-ready')
+    div.innerHTML = svgContent
+    // Fonts are declared in App.css with font-display:block — document.fonts.ready
+    // resolves once all registered fonts finish loading.
+    document.fonts.ready.then(() => {
+      if (div.isConnected) div.setAttribute('data-ready', 'true')
+    })
   }, [svgContent])
 
   // Core render function — synchronous native renderer

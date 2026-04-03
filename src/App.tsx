@@ -6,6 +6,7 @@ import { StatusBar } from './components/layout/StatusBar'
 import { ScoreView } from './components/score/ScoreView'
 import { LibraryView } from './views/LibraryView'
 import { RendererTestView } from './views/RendererTestView'
+import { AppTestView } from './views/AppTestView'
 import { useLibraryStore } from './store/libraryStore'
 import { useAutoSave } from './hooks/useAutoSave'
 import { useKeyboard } from './hooks/useKeyboard'
@@ -15,10 +16,10 @@ import i18n from './i18n/index'
 import './App.css'
 
 export function App() {
-  // Dev route: /renderer-test → Checkpoint A test page (no hooks needed)
-  if (window.location.pathname === '/renderer-test') {
-    return <RendererTestView />
-  }
+  // Dev routes (no hooks needed)
+  if (window.location.pathname === '/renderer-test') return <RendererTestView />
+  // Layer 2 test: same fixtures rendered inside app CSS context (.vrv-svg / ScoreView.css)
+  if (window.location.pathname === '/app-test') return <AppTestView />
   return <MainApp />
 }
 

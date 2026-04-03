@@ -25,6 +25,10 @@
 .vrv-svg {
   display: block;
   width: 100%;
+  /* Prevent inherited CSS (font-size, line-height) from adding whitespace
+     around the SVG element or affecting text-baseline calculations */
+  line-height: 0;
+  font-size: 0;
 }
 
 .vrv-svg svg {

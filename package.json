@@ -13,7 +13,9 @@
     "test:r:report": "npx tsx renderer-tests/scripts/compare.ts && npx tsx renderer-tests/scripts/report.ts",
     "test:r:update": "npx tsx renderer-tests/scripts/update-refs.ts",
     "test:r:update:all": "npx tsx renderer-tests/scripts/update-refs.ts --all",
-    "test:r:refs": "npx tsx renderer-tests/scripts/generate-refs-playwright.ts"
+    "test:r:refs": "npx tsx renderer-tests/scripts/generate-refs-playwright.ts",
+    "test:r:layer2": "npx playwright test renderer-tests/app-integration.spec.ts",
+    "test:r:compare-layers": "npx tsx renderer-tests/scripts/compare-layers.ts"
   },
   "dependencies": {
     "i18next": "^25.0.0",
