@@ -103,47 +103,86 @@ export function justifySystem(
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
+ * Squeeze tolerance factor.
+ * C++: layoutsystem.cpp:98 — squeezability = 0.3
+ * A system can overflow targetWidth by up to squeezability × squeezableSpace
+ * before a line break is forced.
+ */
+const SQUEEZABILITY = 0.3
+
+/**
+ * Absolute minimum note horizontal distance (no stretch).
+ * C++: measure.cpp:4259 — minHorizontalDistance = noteHeadWidth + minNoteDistance
+ *   = 1.18sp + 0.5sp = 1.68sp
+ * Used to compute per-segment squeezable space = minStretchedWidth - minHorizDist.
+ */
+const MIN_HORIZ_DIST_SP = 1.68
+
+/**
  * Greedy system breaking.
  *
  * C++: layoutsystem.cpp:62–470 — collectSystem()
  * Algorithm: add measures one by one; when adding the next measure would exceed
- * targetWidth, start a new system.
+ * targetWidth + acceptanceRange, start a new system.
  *
  * C++: layoutsystem.cpp:428–431
  *   if last system AND curSysWidth/targetWidth < lastSystemFillLimit → do NOT justify
  *
- * @param measureWidths     Minimum widths of each measure in pixels (1-based index)
- * @param headerWidth       Width of system header (clef + key + time sig) in pixels
- * @param usableWidth       Target system width (page width - margins) in pixels
- * @returns                 Array of measure-number arrays, one per system
+ * C++: layoutsystem.cpp:96–100 — squeeze tolerance
+ *   acceptanceRange = squeezability * system->squeezableSpace()
+ *   doBreak = measures.size() > 1 && (curSysWidth + ww > targetSystemWidth + acceptanceRange)
+ *
+ * @param measureWidths       Minimum widths of each measure in pixels (1-based index)
+ * @param headerWidth         Width of system header (clef + key + time sig) in pixels
+ * @param usableWidth         Target system width (page width - margins) in pixels
+ * @param firstSystemWidth    Optional smaller width for system 0 (first-system indent)
+ * @param measureSqueezable   Optional per-measure squeezable space in pixels (for acceptance range)
+ * @returns                   Array of measure-number arrays, one per system
  */
 export function collectSystems(
-  measureWidths: Map<number, number>,
-  headerWidth: number,
-  usableWidth: number,
+  measureWidths:      Map<number, number>,
+  headerWidth:        number,
+  usableWidth:        number,
+  firstSystemWidth?:  number,
+  measureSqueezable?: Map<number, number>,
 ): number[][] {
   const systems: number[][] = []
   let currentSystem: number[] = []
   let currentWidth = headerWidth
+  let currentSqueezable = 0   // total squeezable px in current system
 
   const mNums = [...measureWidths.keys()].sort((a, b) => a - b)
 
   for (const mNum of mNums) {
-    const mw = measureWidths.get(mNum) ?? 0
+    const mw          = measureWidths.get(mNum) ?? 0
+    const mSqueezable = measureSqueezable?.get(mNum) ?? 0
+    // First system uses firstSystemWidth (if provided); subsequent use usableWidth
+    const maxW = (systems.length === 0 && firstSystemWidth !== undefined)
+      ? firstSystemWidth
+      : usableWidth
 
     if (currentSystem.length === 0) {
       // First measure of system: always include
       currentSystem.push(mNum)
-      currentWidth += mw
-    } else if (currentWidth + mw <= usableWidth) {
-      // Fits: add to current system
-      currentSystem.push(mNum)
-      currentWidth += mw
+      currentWidth      += mw
+      currentSqueezable += mSqueezable
     } else {
-      // Doesn't fit: start new system
-      systems.push(currentSystem)
-      currentSystem = [mNum]
-      currentWidth = headerWidth + mw
+      // C++: acceptanceRange computed including the candidate measure (tentative add)
+      const tentativeSqueezable = currentSqueezable + mSqueezable
+      const acceptanceRange     = SQUEEZABILITY * tentativeSqueezable
+
+      if (currentWidth + mw <= maxW + acceptanceRange) {
+        // Fits (possibly with squeeze): add to current system
+        currentSystem.push(mNum)
+        currentWidth      += mw
+        currentSqueezable += mSqueezable
+      } else {
+        // Doesn't fit even with squeeze: start new system
+        systems.push(currentSystem)
+        currentSystem     = [mNum]
+        currentWidth      = headerWidth + mw
+        currentSqueezable = mSqueezable
+      }
     }
   }
 
@@ -152,6 +191,19 @@ export function collectSystems(
   }
 
   return systems
+}
+
+/**
+ * Compute total squeezable space for a set of segment widths.
+ * C++: measure.cpp — squeezableSpace = minStretchedWidth - minHorizontalDist
+ *
+ * @param segmentWidths  Per-segment widths in pixels (from computeSegmentWidths)
+ * @param sp             Spatium in pixels
+ * @returns              Total squeezable pixels for this measure
+ */
+export function computeMeasureSqueezable(segmentWidths: number[], sp: number): number {
+  const minHorizPx = MIN_HORIZ_DIST_SP * sp
+  return segmentWidths.reduce((sum, w) => sum + Math.max(0, w - minHorizPx), 0)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

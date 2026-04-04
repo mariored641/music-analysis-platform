@@ -29,6 +29,7 @@ import {
   CLEF_LEFT_MARGIN_SP, CLEF_GLYPH_WIDTH_SP, CLEF_KEY_DIST_SP, CLEF_TIMESIG_DIST_SP,
   KEY_ACC_STRIDE_SP, KEY_TIMESIG_DIST_SP, TIMESIG_GLYPH_WIDTH_SP, SYS_HDR_TIMESIG_SP,
   BAR_NOTE_DIST_SP,
+  FIRST_SYSTEM_INDENT_SP,
 } from '../horizontalLayout'
 
 // Engine computation functions
@@ -38,7 +39,7 @@ import {
   type MeasureSegment,
 } from './layout/LayoutMeasure'
 import {
-  collectSystems, justifySystem, shouldJustifyLastSystem,
+  collectSystems, justifySystem, shouldJustifyLastSystem, computeMeasureSqueezable,
   type SystemSpring,
 } from './layout/LayoutSystem'
 
@@ -101,20 +102,29 @@ export function orchestrateHorizontalLayout(
   const globalMinDur = clampMinDur(findGlobalMinDur(allSegments))
 
   // ── 4. Measure widths (global stretch) for greedy system breaking ────────
-  const globalMeasureWidths: Map<number, number> = new Map()
+  const globalMeasureWidths:  Map<number, number> = new Map()
+  const globalMeasureSqueeze: Map<number, number> = new Map()
   for (const [mNum, segs] of allSegments) {
-    const pad    = firstNotePads.get(mNum) ?? 0
-    const segWs  = computeSegmentWidths(segs, globalMinDur, sp)
+    const pad   = firstNotePads.get(mNum) ?? 0
+    const segWs = computeSegmentWidths(segs, globalMinDur, sp)
     globalMeasureWidths.set(mNum, computeMeasureWidth(pad, segWs, sp))
+    globalMeasureSqueeze.set(mNum, computeMeasureSqueezable(segWs, sp))
   }
 
   // ── 5. System header for greedy break ────────────────────────────────────
   const headerWidth = computeHeaderWidth(metadata.fifths, sp)
   const usableWidth = opts.pageWidth - opts.marginLeft - opts.marginRight
 
+  // First-system indent — shifts system 0 right by 5sp, reducing its usable width.
+  // From MuseScore: src/engraving/style/styledef.cpp:449
+  //   Sid::firstSystemIndentationValue = Spatium(5.0)
+  const firstSysIndentPx    = FIRST_SYSTEM_INDENT_SP * sp
+  const firstSysUsableWidth = usableWidth - firstSysIndentPx
+
   // ── 6. Greedy system breaking ─────────────────────────────────────────────
   // C++: LayoutSystem::collectSystem() — layoutsystem.cpp:62
-  const systemGroups = collectSystems(globalMeasureWidths, headerWidth, usableWidth)
+  // Pass firstSysUsableWidth so system 0 gets fewer measures than later systems.
+  const systemGroups = collectSystems(globalMeasureWidths, headerWidth, usableWidth, firstSysUsableWidth, globalMeasureSqueeze)
 
   // ── 7. Page geometry ──────────────────────────────────────────────────────
   const sysH          = (4 + opts.systemSpacingSp) * sp
@@ -163,10 +173,13 @@ export function orchestrateHorizontalLayout(
 
     // ── Spring model justification (C++: layoutsystem.cpp:496) ──────────────
     // Springs: one per measure.  stretch ∝ note content (= noteArea itself).
-    // targetWidth = usableWidth - sysHeaderWidth
-    // curWidth    = sum of all measure widths (incl. pad + trailing)
+    // First system has smaller usable width (due to first-system indent).
+    const isFirstSystem  = sysIdx === 0
+    const sysUsableWidth = isFirstSystem ? firstSysUsableWidth : usableWidth
+    const sysX           = opts.marginLeft + (isFirstSystem ? firstSysIndentPx : 0)
+
     const totalMeasureWidth = mNums.reduce((s, mn) => s + (sysMeasureWidths.get(mn) ?? 0), 0)
-    const targetWidth       = usableWidth - sysHeaderWidth
+    const targetWidth       = sysUsableWidth - sysHeaderWidth
 
     const springs: SystemSpring[] = mNums.map(mNum => {
       const segs   = allSegments.get(mNum) ?? []
@@ -191,13 +204,16 @@ export function orchestrateHorizontalLayout(
     }
 
     // Build HLayoutSystem record
+    // From MuseScore: src/engraving/style/styledef.cpp:449
+    //   Sid::firstSystemIndentationValue = Spatium(5.0)
+    // System 0: x shifted right by 5sp, width reduced by 5sp.
     const system: HLayoutSystem = {
       systemIndex:     sysIdx,
       pageIndex:       pageIdx,
       measureNums:     mNums,
-      x:               opts.marginLeft,
+      x:               sysX,
       y:               0,
-      width:           usableWidth,
+      width:           sysUsableWidth,
       headerWidth:     sysHeaderWidth,
       currentFifths:   sysState.fifths,
       currentBeats:    sysState.beats,
@@ -206,8 +222,8 @@ export function orchestrateHorizontalLayout(
     systems.push(system)
     pageSysIndices.push(sysIdx)
 
-    // Place measures and notes
-    let measureX = opts.marginLeft + sysHeaderWidth
+    // Place measures and notes — start from system.x (accounts for first-system indent)
+    let measureX = sysX + sysHeaderWidth
 
     for (let mi = 0; mi < mNums.length; mi++) {
       const mNum  = mNums[mi]
@@ -376,13 +392,20 @@ function computeFirstNotePad(
  * C++: System::layout() — system.cpp — computes header element positions.
  */
 function computeHeaderWidth(fifths: number, sp: number): number {
+  // C++: System::layout() ends the header at the right edge of the time signature glyph.
+  // The gap from timeSig right to first note = SYS_HDR_TIMESIG_SP (2.0sp) is handled
+  // by firstNotePad of the FIRST measure, NOT added to the header width.
+  // Including SYS_HDR_TIMESIG_SP here would double-count it and push all notes 2sp too far right.
+  // Verified: reference first note at sysX + (6.078sp) + (1.3sp barNoteDistance) ≈ measureX + BAR_NOTE_DIST.
+  // From horizontalLayout.ts — same fix applied there.
   const hasFifths    = Math.abs(fifths) > 0
   const keySigWidthSp = Math.abs(fifths) * KEY_ACC_STRIDE_SP
   const gapAfterClef  = hasFifths
     ? CLEF_KEY_DIST_SP + keySigWidthSp + KEY_TIMESIG_DIST_SP
     : CLEF_TIMESIG_DIST_SP
   return (CLEF_LEFT_MARGIN_SP + CLEF_GLYPH_WIDTH_SP + gapAfterClef
-    + TIMESIG_GLYPH_WIDTH_SP + SYS_HDR_TIMESIG_SP) * sp
+    + TIMESIG_GLYPH_WIDTH_SP) * sp
+  // NOTE: SYS_HDR_TIMESIG_SP is NOT added here. firstNotePad of the first measure provides this gap.
 }
 
 // ─── Helper: min duration ────────────────────────────────────────────────────
