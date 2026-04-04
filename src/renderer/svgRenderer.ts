@@ -171,54 +171,116 @@ function renderTimeSig(ts: RenderedTimeSignature, sp: number): string {
 }
 
 // ─── Barline ──────────────────────────────────────────────────────────────────
+/**
+ * Render a barline element.
+ *
+ * Coordinate convention (matching C++):
+ *   bl.x = LEFT EDGE of the barline element (= element origin in MuseScore local coords).
+ *   All drawing is to the RIGHT of bl.x, using the exact formulas from barline.cpp::draw().
+ *
+ * Style constants (from styledef.cpp lines 131-137 — verbatim):
+ *   Sid::barWidth                    = Spatium(0.18)  → lw  (thin line)
+ *   Sid::endBarWidth                 = Spatium(0.55)  → lw2 (thick line)
+ *   Sid::endBarDistance              = Spatium(0.37)  → eDist
+ *   Sid::doubleBarDistance           = Spatium(0.37)  → dDist
+ *   Sid::repeatBarlineDotSeparation  = Spatium(0.37)  → dotSep
+ */
 function renderBarline(bl: RenderedBarline, sp: number): string {
-  const thin  = Math.max(1, ENGRAVING.thinBarlineThickness  * sp)
-  const thick = ENGRAVING.thickBarlineThickness * sp
-  const dotR  = sp * 0.25
+  // From MuseScore: src/engraving/style/styledef.cpp lines 131-137
+  const lw     = 0.18 * sp   // Sid::barWidth (thin barline pen width)
+  const lw2    = 0.55 * sp   // Sid::endBarWidth (thick barline pen width)
+  const eDist  = 0.37 * sp   // Sid::endBarDistance (inner gap between thin+thick)
+  const dDist  = 0.37 * sp   // Sid::doubleBarDistance (inner gap between double lines)
+  const dotSep = 0.37 * sp   // Sid::repeatBarlineDotSeparation
+  const dotR   = sp * 0.25   // approx. radius of repeatDot glyph (symBbox ≈ 0.5sp wide)
   const parts: string[] = []
-  const { x, yTop, yBottom, type } = bl
+  const { x: ox, yTop, yBottom, type } = bl
+  const mid = (yTop + yBottom) / 2
 
   switch (type) {
-    case 'regular':
-      parts.push(`<line x1="${n(x)}" y1="${n(yTop)}" x2="${n(x)}" y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(thin, 2)}"/>`)
+    case 'regular': {
+      // From MuseScore: src/engraving/libmscore/barline.cpp:587-591 — BarLineType::NORMAL
+      //   lw = styleMM(Sid::barWidth)
+      //   x = lw * .5;  drawLine(x, y1, x, y2)
+      const cx = ox + lw / 2
+      parts.push(`<line x1="${n(cx)}" y1="${n(yTop)}" x2="${n(cx)}" y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(lw, 2)}"/>`)
       break
+    }
 
     case 'double': {
-      const sep = ENGRAVING.barlineSeparation * sp
-      parts.push(`<line x1="${n(x)}"       y1="${n(yTop)}" x2="${n(x)}"       y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(thin, 2)}"/>`)
-      parts.push(`<line x1="${n(x + sep)}" y1="${n(yTop)}" x2="${n(x + sep)}" y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(thin, 2)}"/>`)
+      // From MuseScore: src/engraving/libmscore/barline.cpp:621-628 — BarLineType::DOUBLE
+      //   lw  = styleMM(Sid::doubleBarWidth) = 0.18sp
+      //   x   = lw * .5                                    → first center = 0.09sp
+      //   x  += (lw*.5) + doubleBarDistance + (lw*.5)      → second center += 0.55sp → 0.64sp
+      const cx1 = ox + lw / 2
+      const cx2 = cx1 + lw / 2 + dDist + lw / 2  // = ox + lw + dDist + lw/2
+      parts.push(`<line x1="${n(cx1)}" y1="${n(yTop)}" x2="${n(cx1)}" y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(lw, 2)}"/>`)
+      parts.push(`<line x1="${n(cx2)}" y1="${n(yTop)}" x2="${n(cx2)}" y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(lw, 2)}"/>`)
       break
     }
 
     case 'final': {
-      const gap = ENGRAVING.barlineSeparation * sp
-      parts.push(`<line x1="${n(x - gap - thick / 2)}" y1="${n(yTop)}" x2="${n(x - gap - thick / 2)}" y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(thin, 2)}"/>`)
-      parts.push(`<rect x="${n(x - thick)}" y="${n(yTop)}" width="${n(thick)}" height="${n(yBottom - yTop)}" fill="${INK}"/>`)
+      // From MuseScore: src/engraving/libmscore/barline.cpp:608-618 — BarLineType::END
+      //
+      // C++ draws LEFT-to-RIGHT from element origin (left edge):
+      //   x = lw * .5                                → thin center = 0.09sp from origin
+      //   x += (lw*.5 + endBarDistance + lw2*.5)     → thick center = 0.825sp from origin
+      //   total barline width = lw + eDist + lw2 = 1.10sp
+      //
+      // In our system bl.x = measure right edge ≈ RIGHT EDGE of the barline.
+      // Inverting: origin = bl.x - (lw + eDist + lw2)
+      //   → thin center  = bl.x - (lw + eDist + lw2) + lw/2  = bl.x - lw2 - eDist - lw/2
+      //                   = bl.x - 0.55 - 0.37 - 0.09 = bl.x - 1.01sp
+      //   → thick center = bl.x - (lw + eDist + lw2) + (lw + eDist + lw2/2) = bl.x - lw2/2
+      //                   = bl.x - 0.275sp
+      const cxThin  = ox - lw2 - eDist - lw / 2   // bl.x - 1.01sp
+      const cxThick = ox - lw2 / 2                // bl.x - 0.275sp
+      parts.push(`<line x1="${n(cxThin)}"  y1="${n(yTop)}" x2="${n(cxThin)}"  y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(lw, 2)}"/>`)
+      parts.push(`<line x1="${n(cxThick)}" y1="${n(yTop)}" x2="${n(cxThick)}" y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(lw2, 2)}"/>`)
       break
     }
 
     case 'repeat-start': {
-      const gap = ENGRAVING.repeatBarlineDotSep * sp
-      parts.push(`<rect x="${n(x)}" y="${n(yTop)}" width="${n(thick)}" height="${n(yBottom - yTop)}" fill="${INK}"/>`)
-      parts.push(`<line x1="${n(x + thick + gap)}" y1="${n(yTop)}" x2="${n(x + thick + gap)}" y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(thin, 2)}"/>`)
-      const mid = (yTop + yBottom) / 2
-      parts.push(`<circle cx="${n(x + thick + gap + sp * 0.75)}" cy="${n(mid - sp * 0.5)}" r="${n(dotR)}" fill="${INK}"/>`)
-      parts.push(`<circle cx="${n(x + thick + gap + sp * 0.75)}" cy="${n(mid + sp * 0.5)}" r="${n(dotR)}" fill="${INK}"/>`)
+      // From MuseScore: src/engraving/libmscore/barline.cpp:661-678 — BarLineType::START_REPEAT
+      // bl.x = LEFT EDGE of barline (start of measure) → draw rightward
+      //   lw2 = endBarWidth → thick first: x = lw2*.5 = 0.275sp
+      //   lw  = barWidth    → thin:        x += (lw2*.5 + eDist + lw*.5) = 0.275+0.37+0.09 → total 1.01sp
+      //                      dots left:    x += (lw*.5 + dotSep) = 0.09+0.37 → total 1.47sp
+      const cxThick = ox + lw2 / 2
+      const cxThin  = ox + lw2 + eDist + lw / 2     // = cxThick + lw2/2 + eDist + lw/2
+      const dotLeft = ox + lw2 + eDist + lw + dotSep // left edge of dot glyph (x passed to drawDots)
+      parts.push(`<line x1="${n(cxThick)}" y1="${n(yTop)}" x2="${n(cxThick)}" y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(lw2, 2)}"/>`)
+      parts.push(`<line x1="${n(cxThin)}"  y1="${n(yTop)}" x2="${n(cxThin)}"  y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(lw, 2)}"/>`)
+      parts.push(`<circle cx="${n(dotLeft + dotR)}" cy="${n(mid - sp * 0.5)}" r="${n(dotR)}" fill="${INK}"/>`)
+      parts.push(`<circle cx="${n(dotLeft + dotR)}" cy="${n(mid + sp * 0.5)}" r="${n(dotR)}" fill="${INK}"/>`)
       break
     }
 
     case 'repeat-end': {
-      const gap = ENGRAVING.repeatBarlineDotSep * sp
-      parts.push(`<rect x="${n(x - thick)}" y="${n(yTop)}" width="${n(thick)}" height="${n(yBottom - yTop)}" fill="${INK}"/>`)
-      parts.push(`<line x1="${n(x - thick - gap)}" y1="${n(yTop)}" x2="${n(x - thick - gap)}" y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(thin, 2)}"/>`)
-      const mid = (yTop + yBottom) / 2
-      parts.push(`<circle cx="${n(x - thick - gap - sp * 0.75)}" cy="${n(mid - sp * 0.5)}" r="${n(dotR)}" fill="${INK}"/>`)
-      parts.push(`<circle cx="${n(x - thick - gap - sp * 0.75)}" cy="${n(mid + sp * 0.5)}" r="${n(dotR)}" fill="${INK}"/>`)
+      // From MuseScore: src/engraving/libmscore/barline.cpp:681-700 — BarLineType::END_REPEAT
+      // bl.x = RIGHT EDGE of barline (end of measure) → invert C++ formula (mirror of final)
+      //
+      // C++ from origin (left edge), rightward:
+      //   dots at x=0, thin at dotW + dotSep + lw/2, thick at dotW + dotSep + lw + eDist + lw2/2
+      //   total = dotW + dotSep + lw + eDist + lw2  (≈ 0.5 + 0.37 + 0.18 + 0.37 + 0.55 = 1.97sp)
+      // Inverted (right edge = bl.x):
+      //   thick center = bl.x - lw2/2                          = bl.x - 0.275sp
+      //   thin center  = bl.x - lw2 - eDist - lw/2             = bl.x - 1.01sp
+      //   dot cx       = bl.x - lw2 - eDist - lw - dotSep - dotR = bl.x - 1.845sp
+      const dotW    = dotR * 2                              // symBbox(repeatDot).width() ≈ 0.5sp
+      const cxThick = ox - lw2 / 2
+      const cxThin  = ox - lw2 - eDist - lw / 2
+      const dotCX   = ox - lw2 - eDist - lw - dotSep - dotR  // dot circle center
+      parts.push(`<circle cx="${n(dotCX)}" cy="${n(mid - sp * 0.5)}" r="${n(dotR)}" fill="${INK}"/>`)
+      parts.push(`<circle cx="${n(dotCX)}" cy="${n(mid + sp * 0.5)}" r="${n(dotR)}" fill="${INK}"/>`)
+      parts.push(`<line x1="${n(cxThin)}"  y1="${n(yTop)}" x2="${n(cxThin)}"  y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(lw, 2)}"/>`)
+      parts.push(`<line x1="${n(cxThick)}" y1="${n(yTop)}" x2="${n(cxThick)}" y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(lw2, 2)}"/>`)
+      const _ = dotW  // suppress unused warning
       break
     }
 
     default:
-      parts.push(`<line x1="${n(x)}" y1="${n(yTop)}" x2="${n(x)}" y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(thin, 2)}"/>`)
+      parts.push(`<line x1="${n(ox + lw / 2)}" y1="${n(yTop)}" x2="${n(ox + lw / 2)}" y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(lw, 2)}"/>`)
   }
 
   return parts.join('\n')

@@ -487,10 +487,15 @@ function buildBarlines(
   const yTop    = staffTop
   const yBottom = staffTop + staffHeight
 
-  // Left barline (start of measure)
-  const leftStyle = extMeasure.barlineLeft?.style ?? 'regular'
-  if (leftStyle !== 'none') {
-    barlines.push({ x: hMeasure.x, yTop, yBottom, type: leftStyle as RenderedBarline['type'] })
+  // Left barline (start of measure) — only when explicitly set in MusicXML.
+  // Do NOT draw a default 'regular' left barline: MuseScore draws the opening barline
+  // only for special types (repeat-start, etc.). Normal measure left edges have no barline glyph.
+  // C++: measure.cpp — barlineLeft is only set when <barline location="left"> is present.
+  if (extMeasure.barlineLeft) {
+    const leftStyle = extMeasure.barlineLeft.style
+    if (leftStyle !== 'none') {
+      barlines.push({ x: hMeasure.x, yTop, yBottom, type: leftStyle as RenderedBarline['type'] })
+    }
   }
 
   // Right barline (end of measure)
@@ -565,15 +570,15 @@ export function computeVerticalLayout(
   const halfSp      = lineSpacing / 2   // 5 px — one diatonic step
 
   const staffHeight   = 4 * lineSpacing   // 40 px
-  // Leland noteheadBlack: stemUpSE.x=1.3sp (right edge), stemDownNW.x=0 (left edge)
-  // chord.cpp:stemPosX: up=noteHeadWidth(), down=0.0 → note.pos().x() = LEFT edge
-  const noteheadWidth = sp * 1.3          // Leland noteheadBlack full width (chord.cpp:484–496)
-  const noteheadRx    = noteheadWidth / 2 // half-width (0.65sp) for tie geometry
-  const noteheadRy    = sp * 0.42         // ellipse semi-axis y
+  // Bravura metadata: noteheadBlack.stemUpSE = [1.18, -0.168], stemDownNW = [0, 0.168]
+  // chord.cpp:stemPosX: up=noteHeadWidth()=1.18sp, down=0.0 → note.pos().x() = LEFT edge
+  const noteheadWidth = sp * 1.18         // Bravura stemUpSE.x = 1.18sp (visual notehead width)
+  const noteheadRx    = noteheadWidth / 2 // half-width (0.59sp) for tie geometry
+  const noteheadRy    = sp * 0.168        // Bravura stemUpSE.y offset = 0.168sp
   const stemLength    = sp * 3.5          // standard un-beamed stem
   const beamThickness = sp * 0.5          // beam rectangle height
   const beamGap       = sp * 0.25         // gap between beam levels
-  const dotOffsetX    = sp * 0.35   // gap from notehead right edge to dot glyph left (webmscore: dotNoteDistance=0.35sp)
+  const dotOffsetX    = sp * 0.5    // Sid::dotNoteDistance = 0.5sp (styledef.cpp:216)
   const dotGlyphW     = sp * 0.24   // approximate Leland augmentation dot glyph width
   const accidentalW   = sp * 0.8          // approximate glyph width for spacing
   const accidentalGap = sp * 0.3
@@ -708,10 +713,20 @@ export function computeVerticalLayout(
         const hasStem = nhType !== 'whole'
 
         // ── Stem positions ─────────────────────────────────────────
-        // chord.cpp:stemPosX(): up = noteHeadWidth() (right edge), down = 0.0 (left edge)
-        const stemX      = stemUp ? noteX + noteheadWidth : noteX
-        const stemYTop   = stemUp ? noteY - stemLength : noteY
-        const stemYBot   = stemUp ? noteY              : noteY + stemLength
+        // From MuseScore: src/engraving/libmscore/chord.cpp:496
+        //   stemPosX() = _up ? noteHeadWidth() : 0.0
+        // From MuseScore: src/engraving/libmscore/stem.cpp:120-122
+        //   lineWidthCorrection = lineWidthMag() * 0.5  (= Sid::stemWidth/2 = 0.05sp)
+        //   lineX = _up * lineWidthCorrection            (_up = -1 for up, +1 for down)
+        //   → up:   line center = noteHeadWidth - lineWidthCorr = 1.18 - 0.05 = 1.13sp
+        //   → down: line center = 0 + lineWidthCorr            = 0.05sp
+        // Bravura: stemUpSE=[1.18, -0.168] → attach at bottom-right of notehead (noteY + 0.168sp)
+        //          stemDownNW=[0, 0.168]   → attach at top-left of notehead   (noteY - 0.168sp)
+        const stemLWCorr = (0.10 / 2) * sp   // stem.cpp:120 — Sid::stemWidth=0.10sp, lineWidthMag()*0.5
+        const stemX      = stemUp ? noteX + noteheadWidth - stemLWCorr : noteX + stemLWCorr
+        const stemAttach = noteheadRy   // 0.168sp — distance from notehead center to edge
+        const stemYTop   = stemUp ? noteY + stemAttach - stemLength : noteY - stemAttach
+        const stemYBot   = stemUp ? noteY + stemAttach              : noteY - stemAttach + stemLength
 
         // ── Accidental ─────────────────────────────────────────────
         let accidental: AccidentalType | undefined

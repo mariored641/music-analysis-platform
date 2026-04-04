@@ -51,7 +51,11 @@ export default defineConfig({
   // Output dir for trace/videos (not used normally)
   outputDir: 'renderer-tests/playwright-output',
 
-  // We run the dev server ourselves before calling playwright
-  // (see npm scripts in package.json)
-  webServer: undefined,
+  // Start the Vite dev server automatically, reusing if already running.
+  webServer: {
+    command: 'node node_modules/vite/bin/vite.js --port 3002',
+    port: 3002,
+    reuseExistingServer: true,    // true: use existing or start new
+    timeout: 30_000,
+  },
 })

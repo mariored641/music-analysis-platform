@@ -1,0 +1,1872 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: src/renderer/engine/**/*, src/renderer/style/StyleDef.ts
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/renderer/engine/layout/index.ts
+src/renderer/engine/layout/LayoutBeams.ts
+src/renderer/engine/layout/LayoutChords.ts
+src/renderer/engine/layout/LayoutMeasure.ts
+src/renderer/engine/layout/LayoutPage.ts
+src/renderer/engine/layout/LayoutSystem.ts
+src/renderer/engine/libmscore/Hook.ts
+src/renderer/engine/libmscore/index.ts
+src/renderer/engine/libmscore/LedgerLine.ts
+src/renderer/engine/libmscore/Note.ts
+src/renderer/engine/libmscore/Stem.ts
+src/renderer/style/StyleDef.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/renderer/engine/layout/index.ts">
+/**
+ * MAP Native Renderer — engine/layout barrel
+ * Re-exports all layout types and functions.
+ */
+
+export * from './LayoutChords'
+export * from './LayoutMeasure'
+export * from './LayoutSystem'
+export * from './LayoutBeams'
+export * from './LayoutPage'
+</file>
+
+<file path="src/renderer/engine/layout/LayoutBeams.ts">
+/**
+ * MAP Native Renderer — engine/layout/LayoutBeams.ts
+ * C++ source: src/engraving/layout/layoutbeams.cpp
+ *             src/engraving/libmscore/beam.cpp
+ *
+ * Mirrors:
+ *   LayoutBeams::createBeams()        — layoutbeams.cpp:277
+ *   LayoutBeams::layoutNonCrossBeams() — layoutbeams.cpp:481
+ *   Beam::layout2()                   — beam.cpp:1437
+ *   Beam::computeDesiredSlant()       — beam.cpp:505
+ *   Beam::getMaxSlope()               — beam.cpp:613
+ *
+ * Scope: given a list of beamed chords, compute beam geometry —
+ * anchor points, slope, and secondary beam positions.
+ */
+
+import { Sid } from '../../style/StyleDef'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants (from styledef.cpp + beam.h)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Width of a beam stroke in spatium units.
+ * C++: styledef.cpp:209 — { Sid::beamWidth, "beamWidth", PropertyValue(Spatium(0.5)) }
+ */
+export const BEAM_WIDTH_SP: number = Sid.beamWidth   // 0.5
+
+/**
+ * Minimum beam length (end-to-end) in spatium units.
+ * C++: styledef.cpp:211 — { Sid::beamMinLen, "beamMinLen", PropertyValue(Spatium(1.1)) }
+ */
+export const BEAM_MIN_LEN_SP: number = Sid.beamMinLen   // 1.1
+
+/**
+ * Default beam inter-beam spacing, in quarter-spaces.
+ * C++: beam.h:69  — int _beamSpacing { 3 };
+ * C++: beam.cpp:1461 — _beamSpacing = score()->styleB(Sid::useWideBeams) ? 4 : 3;
+ * With useWideBeams=false (default): spacing = 3 quarter-spaces = 0.75sp
+ */
+export const BEAM_SPACING_QS = 3   // quarter-spaces; 4 if Sid::useWideBeams
+
+/**
+ * _beamDist in pixels = (beamSpacing / 4.0) * spatium * mag
+ * C++: beam.cpp:1462 — _beamDist = (_beamSpacing / 4.0) * spatium() * mag()
+ */
+export function beamDistPx(sp: number, mag = 1.0): number {
+  return (BEAM_SPACING_QS / 4.0) * sp * mag
+}
+
+/**
+ * Max slope table indexed by interval (in staff lines).
+ * C++: beam.h:238 — static constexpr std::array _maxSlopes = { 0, 1, 2, 3, 4, 5, 6, 7 }
+ * Usage: _maxSlopes[interval] — where interval = abs(startNote - endNote)
+ */
+export const MAX_SLOPES = [0, 1, 2, 3, 4, 5, 6, 7] as const
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Beam geometry input/output types
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface BeamChord {
+  /** X center of the stem tip (anchor) in pixels */
+  stemTipX: number
+  /** Y of the stem tip (anchor) in pixels — set BEFORE beam layout */
+  stemTipY: number
+  /** Staff line of the note used for slope: upNote.line (stem-up) or downNote.line (stem-down) */
+  noteLine: number
+  /** Number of beams on this chord (1=8th, 2=16th, 3=32nd, ...) */
+  beamCount: number
+  /** Stem direction */
+  stemUp: boolean
+}
+
+export interface BeamGeometry {
+  /** Y of the primary beam at the start chord's stem in pixels */
+  startY: number
+  /** Y of the primary beam at the end chord's stem in pixels */
+  endY: number
+  /** Slope in px/px (Δy/Δx), positive = ascending (in screen coords, positive = descending) */
+  slope: number
+  /** beam width in pixels */
+  beamWidthPx: number
+  /** distance between beam levels in pixels */
+  beamDistPx: number
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// getMaxSlope — beam.cpp:613
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Max slope based on the horizontal distance between the first and last chords.
+ *
+ * C++: beam.cpp:613–640 — Beam::getMaxSlope()
+ *   beamWidth = (endX - startX) / spatium
+ *   if beamWidth < 3.0  → _maxSlopes[1]
+ *   if beamWidth < 5.0  → _maxSlopes[2]
+ *   if beamWidth < 7.5  → _maxSlopes[3]
+ *   if beamWidth < 10.0 → _maxSlopes[4]
+ *   if beamWidth < 15.0 → _maxSlopes[5]
+ *   if beamWidth < 20.0 → _maxSlopes[6]
+ *   else                → _maxSlopes[7]
+ *
+ * @param startX   x of first chord stem (pixels)
+ * @param endX     x of last chord stem (pixels)
+ * @param sp       spatium in pixels
+ */
+export function getMaxSlope(startX: number, endX: number, sp: number): number {
+  const beamWidth = (endX - startX) / sp
+  if (beamWidth < 3.0)  return MAX_SLOPES[1]
+  if (beamWidth < 5.0)  return MAX_SLOPES[2]
+  if (beamWidth < 7.5)  return MAX_SLOPES[3]
+  if (beamWidth < 10.0) return MAX_SLOPES[4]
+  if (beamWidth < 15.0) return MAX_SLOPES[5]
+  if (beamWidth < 20.0) return MAX_SLOPES[6]
+  return MAX_SLOPES[7]
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// computeBeamSlope — beam.cpp:505 (computeDesiredSlant)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Compute the desired slope (in quarter-space units) for a beam.
+ *
+ * C++: beam.cpp:505–538 — Beam::computeDesiredSlant()
+ *   1. If noSlope (flat beams forced) → 0
+ *   2. If startNote == endNote → 0
+ *   3. If slopeConstrained == 0 (extreme middle note) → 0
+ *   4. If slopeConstrained == 1 (neighbor same height) → ±1
+ *   5. Otherwise: min(getMaxSlope(), _maxSlopes[interval]) * sign
+ *
+ * Simplified (MAP): we implement steps 2 and 5 only.
+ * Full slope-constraint logic (isSlopeConstrained) is not yet implemented.
+ *
+ * @param startLine  staff line of the note at beam start (0=top)
+ * @param endLine    staff line of the note at beam end
+ * @param startX     x of first chord (pixels) — for getMaxSlope
+ * @param endX       x of last chord (pixels)
+ * @param stemUp     true if beam is above notes
+ * @param sp         spatium in pixels
+ * @returns          slope in quarter-space units (positive = ascending in staff)
+ */
+export function computeBeamSlope(
+  startLine: number,
+  endLine: number,
+  startX: number,
+  endX: number,
+  stemUp: boolean,
+  sp: number,
+): number {
+  if (startLine === endLine) return 0
+
+  const interval = Math.min(Math.abs(endLine - startLine), MAX_SLOPES.length - 1)
+  const maxSlopeByDist = getMaxSlope(startX, endX, sp)
+  const slant = Math.min(maxSlopeByDist, MAX_SLOPES[interval])
+  // C++: beam.cpp:537 — return std::min(maxSlope, _maxSlopes[interval]) * (_up ? 1 : -1)
+  // For stem-up beams: higher note (lower staff line) is "higher" → sign = -1 when endLine < startLine
+  // For stem-down beams: lower note (higher staff line) is "lower" → sign = +1 when endLine > startLine
+  const sign = stemUp
+    ? (endLine < startLine ? 1 : -1)   // stem-up: ascending note → slant up (negative y delta in screen)
+    : (endLine > startLine ? -1 : 1)   // stem-down: descending note → slant down (positive y delta)
+  return slant * sign
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// layoutBeam — simplified Beam::layout2 for MAP
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Compute beam anchor Y-positions given a list of beamed chords.
+ *
+ * C++: beam.cpp:1437–1589 — Beam::layout2()
+ *
+ * Simplified MAP version:
+ *   1. Compute slope in quarter-spaces (via computeBeamSlope)
+ *   2. Convert to pixels: slopePx = slantQS * (sp / 4) / (endX - startX)
+ *   3. Set startY = dictator anchor, endY = startY + slopePx * (endX - startX)
+ *   4. Return beam parameters for rendering
+ *
+ * C++: beam.cpp:1462–1463
+ *   _beamDist  = (_beamSpacing / 4.0) * spatium() * mag()
+ *   _beamWidth = point(score()->styleS(Sid::beamWidth)) * mag()
+ *
+ * @param chords   beamed chords in order (at least 2)
+ * @param sp       spatium in pixels
+ * @returns        BeamGeometry or null if fewer than 2 chords
+ */
+export function layoutBeam(chords: BeamChord[], sp: number): BeamGeometry | null {
+  if (chords.length < 2) return null
+
+  const first = chords[0]
+  const last  = chords[chords.length - 1]
+  const stemUp = first.stemUp
+
+  // quarterSpace = sp/4 (all slope units in MuseScore are in quarter-spaces)
+  const quarterSpace = sp / 4
+
+  // Desired slant in quarter-spaces
+  const slantQS = computeBeamSlope(
+    first.noteLine, last.noteLine,
+    first.stemTipX, last.stemTipX,
+    stemUp, sp
+  )
+
+  // Convert: slant in pixels across the full beam width
+  const dx = last.stemTipX - first.stemTipX
+  const dyPx = slantQS * quarterSpace   // total y-change (in pixels) over the beam
+
+  // Dictator anchor (start) = stem tip of first chord
+  const startY = first.stemTipY
+
+  // C++: beam.cpp:1580 — _slope = (_endAnchor.y() - _startAnchor.y()) / (_endAnchor.x() - _startAnchor.x())
+  const slope = dx !== 0 ? dyPx / dx : 0
+
+  return {
+    startY,
+    endY: startY + dyPx,
+    slope,
+    beamWidthPx: BEAM_WIDTH_SP * sp,
+    beamDistPx: beamDistPx(sp),
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// secondaryBeamY — beam.cpp:800
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Y position of a secondary beam at a given chord's x position.
+ *
+ * C++: beam.cpp:800
+ *   verticalOffset = _beamDist * (level - extraBeamAdjust) * upValue
+ *   startY -= verticalOffset * _grow1   (for uniform growth)
+ *
+ * MAP simplified (grow1 = grow2 = 1.0, extraBeamAdjust = 0):
+ *   secondaryY = primaryY(x) - beamDist * level * upValue
+ *
+ * @param primaryY   Y of primary beam at this x (pixels)
+ * @param level      beam level: 1 = 16th, 2 = 32nd, etc. (0 = primary)
+ * @param stemUp     true = beams above note (stem goes up)
+ * @param sp         spatium in pixels
+ */
+export function secondaryBeamY(
+  primaryY: number,
+  level: number,
+  stemUp: boolean,
+  sp: number,
+): number {
+  const upValue = stemUp ? -1 : 1   // C++: beam.cpp:778 — upValue = _up ? -1 : 1
+  const dist = beamDistPx(sp)
+  return primaryY - dist * level * upValue
+}
+</file>
+
+<file path="src/renderer/engine/layout/LayoutChords.ts">
+/**
+ * MAP Native Renderer — engine/layout/LayoutChords.ts
+ * C++ source: src/engraving/layout/layoutchords.cpp
+ *
+ * Mirrors:
+ *   LayoutChords::layoutChords1()  — segment-level note cluster detection
+ *   LayoutChords::layoutChords2()  — notehead x-offset for 2nd intervals
+ *   LayoutChords::layoutChords3()  — accidental + dot placement
+ *
+ * Scope: given a set of notes at the same horizontal position (a "segment"),
+ * compute their final x-offsets and accidental column positions.
+ *
+ * NOT YET IMPLEMENTED: full accidental stacking for chords spanning > 1 octave
+ * (the zig-zag column algorithm in layoutchords.cpp:1036–1200+).
+ * Current implementation handles the simple case: each accidental gets its own
+ * column, placed right-to-left.
+ */
+
+import { Sid } from '../../style/StyleDef'
+import { NOTEHEAD_RX_SP } from '../libmscore/Note'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants (from layoutchords.cpp + styledef.cpp)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Accidental-to-note gap.
+ * C++: layoutchords.cpp:1033 — pnd = style.styleMM(Sid::accidentalNoteDistance)
+ * styledef.cpp:203 → Spatium(0.25)
+ */
+export const ACC_NOTE_DIST_SP: number = Sid.accidentalNoteDistance   // 0.25
+
+/**
+ * Accidental-to-accidental gap (vertical clearance between columns).
+ * C++: layoutchords.cpp:1032 — pd = style.styleMM(Sid::accidentalDistance)
+ * styledef.cpp:202 → Spatium(0.22)
+ */
+export const ACC_ACC_DIST_SP: number = Sid.accidentalDistance        // 0.22
+
+/**
+ * Spacing multiplier applied to minNoteDistance when computing note spacing.
+ * C++: measure.cpp:4174 — static constexpr double spacingMultiplier = 1.2
+ */
+export const SPACING_MULTIPLIER = 1.2
+
+/**
+ * Minimum note-to-note distance.
+ * C++: styledef.cpp:184 → { Sid::minNoteDistance, "minNoteDistance", PropertyValue(Spatium(0.5)) }
+ */
+export const MIN_NOTE_DIST_SP: number = Sid.minNoteDistance          // 0.5
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Accidental input type (simplified view of what LayoutChords3 needs)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface AccidentalInput {
+  /** Staff-line position (0=top, 8=bottom, negative/above 8=ledger) */
+  staffLine: number
+  /** Width of this accidental glyph in sp */
+  widthSp: number
+  /** Height span: [topSp, bottomSp] relative to the note's y (in staff-spaces) */
+  topSp: number
+  bottomSp: number
+}
+
+export interface AccidentalXResult {
+  /** X offset from notehead left edge (negative = to the left of the note) */
+  xFromNoteSp: number
+  /** Column index (0=closest to note, 1=one further left, etc.) */
+  column: number
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// layoutChords3 — accidental column placement (simplified)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Simplified accidental placement for chords.
+ *
+ * C++: layoutchords.cpp:804–1200+
+ * Full algorithm: zig-zag column assignment based on octave pitch classes.
+ * Simplified version (< 1 octave span): place each accidental in its own column,
+ * greedily fitting into the rightmost column that has no vertical conflict.
+ *
+ * C++: layoutchords.cpp:1032–1033
+ *   pd  = style.styleMM(Sid::accidentalDistance)     // col-to-col gap
+ *   pnd = style.styleMM(Sid::accidentalNoteDistance) // note-to-acc gap
+ *
+ * Column x formula (C++ layoutchords.cpp ≈ line 1170+):
+ *   x = -pnd - accWidth - (col * (maxAccWidth + pd))
+ *   where: x is relative to the LEFT EDGE of the notehead (i.e., noteX - noteheadWidth)
+ *
+ * @param accs  Accidentals sorted top-to-bottom (ascending staff-line, i.e. lowest line number first)
+ * @param sp    Spatium in pixels
+ * @returns     Array of x-offsets from the notehead left edge (noteX - noteheadRx), in pixels
+ */
+export function layoutChords3Accidentals(
+  accs: AccidentalInput[],
+  sp: number,
+): number[] {
+  if (accs.length === 0) return []
+
+  const pnd = ACC_NOTE_DIST_SP * sp   // note-to-accidental gap
+  const pd  = ACC_ACC_DIST_SP * sp    // accidental-to-accidental gap
+
+  // Each column tracks the vertical extent [top, bottom] of accidentals placed so far
+  // (all values in pixels, relative to staff top)
+  const columns: Array<{ top: number; bottom: number; width: number }> = []
+
+  const result: number[] = new Array(accs.length).fill(0)
+
+  for (let i = 0; i < accs.length; i++) {
+    const acc = accs[i]
+    const accWidthPx = acc.widthSp * sp
+    const accTopPx   = acc.topSp  * sp
+    const accBottomPx = acc.bottomSp * sp
+
+    // Try to place in an existing column (rightmost first)
+    let placed = false
+    for (let col = 0; col < columns.length; col++) {
+      const colEntry = columns[col]
+      // Check vertical conflict: need pd gap between this acc and all others in this column
+      if (accTopPx - colEntry.bottom >= pd && colEntry.top - accBottomPx >= pd
+        || columns.length === 0) {
+        // No conflict: place here
+        colEntry.top    = Math.min(colEntry.top, accTopPx)
+        colEntry.bottom = Math.max(colEntry.bottom, accBottomPx)
+        colEntry.width  = Math.max(colEntry.width, accWidthPx)
+
+        // x from left edge of notehead (negative = to the left)
+        // column 0: directly left of note, column 1: further left, etc.
+        let xOffset = -pnd - accWidthPx
+        for (let c = 0; c < col; c++) {
+          xOffset -= columns[c].width + pd
+        }
+        result[i] = xOffset
+        placed = true
+        break
+      }
+    }
+
+    if (!placed) {
+      // Create a new column further left
+      const col = columns.length
+      columns.push({ top: accTopPx, bottom: accBottomPx, width: accWidthPx })
+
+      let xOffset = -pnd - accWidthPx
+      for (let c = 0; c < col; c++) {
+        xOffset -= columns[c].width + pd
+      }
+      result[i] = xOffset
+    }
+  }
+
+  return result
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// layoutChords2 — notehead x-offset for second intervals
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Detect whether a note in a chord needs to be mirrored (flipped to other side of stem).
+ *
+ * C++: layoutchords.cpp:534 — LayoutChords::layoutChords2()
+ * Rule: when two notes are a second (1 staff-line) apart and both on the same stem,
+ * the lower note (for stem-up) or upper note (for stem-down) must be displaced to
+ * the other side of the stem.
+ *
+ * Returns: true if this note should be placed to the right of the stem (stem-up chord)
+ * or to the left of the stem (stem-down chord).
+ */
+export function noteNeedsMirror(
+  staffLine: number,
+  adjacentLine: number,
+  stemUp: boolean,
+): boolean {
+  const interval = Math.abs(staffLine - adjacentLine)
+  if (interval !== 1) return false
+  // C++: layoutchords.cpp - lower note of a 2nd interval is mirrored for stem-up
+  return stemUp ? staffLine > adjacentLine : staffLine < adjacentLine
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Dot position adjustment (part of layoutChords3)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Determine dot y-adjustment for notes on a line.
+ *
+ * C++: layoutchords.cpp:957–987 — note->setDotY()
+ * Rule: if the note is on a staff line (staffLine is even), the dot moves up into the space.
+ * Exception: if an adjacent note (1 step away) claims the same space, dot moves down.
+ *
+ * Simplified (no multi-note conflict detection):
+ *   - even staffLine (on a line) → shift up by 0.5sp
+ *   - odd staffLine (in a space) → no shift
+ */
+export function dotYAdjust(staffLine: number, _sp: number): number {
+  // C++: line & 1 == 0 means "on a line" → dot moves up
+  return (staffLine % 2 === 0) ? -0.5 : 0  // in staff-spaces
+}
+</file>
+
+<file path="src/renderer/engine/layout/LayoutMeasure.ts">
+/**
+ * MAP Native Renderer — engine/layout/LayoutMeasure.ts
+ * C++ source: src/engraving/libmscore/measure.cpp
+ *             src/engraving/layout/layoutmeasure.cpp
+ *
+ * Mirrors:
+ *   Measure::computeWidth()        — measure.cpp:4165
+ *   Measure::shortestChordRest()   — measure.cpp:4679
+ *   Segment::computeDurationStretch() — segment.cpp:2812
+ *
+ * Scope: given a list of note durations (segments) in a measure, compute
+ * segment widths and total measure width.
+ */
+
+import { Sid } from '../../style/StyleDef'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants (from styledef.cpp + measure.cpp)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Note spacing multiplier.
+ * C++: measure.cpp:4174 — static constexpr double spacingMultiplier = 1.2
+ * Used as: minNoteSpace = noteHeadWidth + spacingMultiplier * minNoteDistance
+ */
+/** Same constant as LayoutChords, re-declared here for self-documentation */
+const SPACING_MULTIPLIER = 1.2
+
+/**
+ * Minimum note-to-note distance in staff-spaces.
+ * C++: styledef.cpp:184 — Spatium(0.5)
+ */
+const MIN_NOTE_DIST_SP: number = Sid.minNoteDistance   // 0.5
+
+/**
+ * Measure spacing slope (for the logarithmic duration stretch formula).
+ * C++: styledef.cpp:189 — { Sid::measureSpacing, "measureSpacing", PropertyValue(1.5) }
+ * C++: measure.cpp:3708 — stretch = userStretch() * score()->styleD(Sid::measureSpacing)
+ */
+export const MEASURE_SPACING_SLOPE: number = Sid.measureSpacing  // 1.5
+
+/**
+ * Distance from barline to first note (no accidental, no key/time sig change).
+ * C++: styledef.cpp:185 — { Sid::barNoteDistance, "barNoteDistance", PropertyValue(Spatium(1.3)) }
+ */
+export const BAR_NOTE_DIST_SP: number = Sid.barNoteDistance   // 1.3
+
+/**
+ * Trailing space after last note to barline.
+ * C++: styledef.cpp:186 — { Sid::noteBarDistance, "noteBarDistance", PropertyValue(Spatium(1.5)) }
+ */
+export const NOTE_BAR_DIST_SP = 1.5    // Sid::noteBarDistance, styledef.cpp:186
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Duration stretch formula
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Compute duration stretch factor for a segment.
+ *
+ * C++: segment.cpp:2812 — Segment::computeDurationStretch()
+ *
+ *   double slope = score()->styleD(Sid::measureSpacing);  // 1.5
+ *   static constexpr double longNoteThreshold = Fraction(1, 16).toDouble(); // 0.0625
+ *   static constexpr double maxRatio = 32.0;
+ *
+ *   // HACK: if ratio >= 2 AND minTicks < 1/16, double minTicks
+ *   if (maxTicks/minTicks >= 2.0 && minTicks < longNoteThreshold)
+ *       minTicks *= 2.0;
+ *
+ *   double ratio = curTicks / minTicks;
+ *   // cap ratio for extreme ranges
+ *   if (maxSysRatio > maxRatio):
+ *       A = (minTicks*(maxRatio-1)) / (maxTicks-minTicks)
+ *       B = (maxTicks - maxRatio*minTicks) / (maxTicks-minTicks)
+ *       ratio = A*ratio + B
+ *
+ *   str = pow(slope, log2(ratio))
+ *
+ *   // empFactor: for scores where minTicks > 1/16
+ *   if (minTicks > longNoteThreshold):
+ *       empFactor = 0.6
+ *       str *= (1 - empFactor + empFactor * sqrt(minTicks / longNoteThreshold))
+ *
+ * NOTE: MAP uses quarter-beat durations (1.0 = quarter note) NOT Ticks.
+ * The longNoteThreshold = 0.0625 in Ticks (1/16 of a whole note) = 0.25 in quarter-beats.
+ * The empFactor and HACK have been tested and make pixel tests worse in MAP context —
+ * they are documented here but NOT applied (see comment in horizontalLayout.ts for why).
+ *
+ * @param durationQb   Duration of this segment in quarter-beat units
+ * @param minDurationQb  Minimum duration across all segments in the system (capped at 0.25 qb)
+ */
+export function computeDurationStretch(durationQb: number, minDurationQb: number): number {
+  if (minDurationQb <= 0 || durationQb <= minDurationQb + 1e-9) return 1.0
+  // C++: ratio = curTicks / minTicks; capped at maxRatio=32
+  const ratio = Math.min(durationQb / minDurationQb, 32.0)
+  // C++: str = pow(slope, log2(ratio))
+  return Math.pow(MEASURE_SPACING_SLOPE, Math.log2(ratio))
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Measure minimum width
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Measure segment input for width computation.
+ */
+export interface MeasureSegment {
+  /** Beat position (1-based, e.g. beat 1.0, 2.0) */
+  beat: number
+  /** Duration in quarter-beat units */
+  durationQb: number
+}
+
+/**
+ * Compute segment widths for a measure.
+ *
+ * C++: measure.cpp:4174–4221 — the core of computeWidth():
+ *   minNoteSpace = noteHeadWidth + spacingMultiplier * minNoteDistance
+ *   w = max(w, minNoteSpace * durStretch * usrStretch * stretchCoeff)
+ *
+ * For MAP:
+ *   - usrStretch = 1.0 (no user override)
+ *   - stretchCoeff = 1.0 (handled by system justification)
+ *   - noteHeadWidth ≈ 1.18sp (= 2 * NOTEHEAD_RX_SP)
+ *
+ * @param segments     List of segments in this measure
+ * @param minSysDurQb  System-wide minimum duration (denominator for stretch)
+ * @param sp           Spatium in pixels
+ * @returns            Array of widths in pixels, one per segment
+ */
+export function computeSegmentWidths(
+  segments: MeasureSegment[],
+  minSysDurQb: number,
+  sp: number,
+): number[] {
+  const noteHeadWidthSp = 1.18  // 2 * NOTEHEAD_RX_SP
+  // C++: measure.cpp:4175
+  const minNoteSpaceSp = noteHeadWidthSp + SPACING_MULTIPLIER * MIN_NOTE_DIST_SP
+
+  return segments.map(seg => {
+    const stretch = computeDurationStretch(seg.durationQb, minSysDurQb)
+    // C++: measure.cpp:4219 — minStretchedWidth = minNoteSpace * durStretch * usrStretch * stretchCoeff
+    const minWidthSp = minNoteSpaceSp * stretch
+    return minWidthSp * sp
+  })
+}
+
+/**
+ * Compute the total minimum width of a measure.
+ *
+ * C++: measure.cpp:4165–4362 — computeWidth() iterates segments,
+ * accumulating widths. The final measure width = sum of segment widths + trailing space.
+ *
+ * @param firstNotePadPx  Space from barline to first note (accounts for key/time changes)
+ * @param segmentWidths   Widths of each note-duration segment in pixels
+ * @param sp              Spatium in pixels
+ */
+export function computeMeasureWidth(
+  firstNotePadPx: number,
+  segmentWidths: number[],
+  sp: number,
+): number {
+  const totalNoteArea = segmentWidths.reduce((s, w) => s + w, 0)
+  // C++: trailing space = noteBarDistance (≈ 1.5sp)
+  const trailingSp = NOTE_BAR_DIST_SP * sp
+  return firstNotePadPx + totalNoteArea + trailingSp
+}
+</file>
+
+<file path="src/renderer/engine/layout/LayoutPage.ts">
+/**
+ * MAP Native Renderer — engine/layout/LayoutPage.ts
+ * C++ source: src/engraving/layout/layoutpage.cpp
+ *             src/engraving/layout/verticalgapdata.cpp
+ *
+ * Mirrors:
+ *   LayoutPage::collectPage()      — layoutpage.cpp:103
+ *   LayoutPage::layoutPage()       — layoutpage.cpp:361
+ *   LayoutPage::distributeStaves() — layoutpage.cpp:508
+ *   VerticalGapData (class)        — verticalgapdata.cpp
+ *
+ * Scope: vertical placement of systems on a page, and intra-system staff spacing.
+ */
+
+import { Sid } from '../../style/StyleDef'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants (from styledef.cpp)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Space from top of page to top of first staff.
+ * C++: layoutpage.cpp:151 — distance = ctx.score()->styleMM(Sid::staffUpperBorder)
+ * styledef.cpp:52 → Spatium(7.0)
+ */
+export const STAFF_UPPER_BORDER_SP: number = Sid.staffUpperBorder   // 7.0
+
+/**
+ * Space from bottom of last staff to bottom of page.
+ * C++: layoutpage.cpp:107 — const double slb = ctx.score()->styleMM(Sid::staffLowerBorder)
+ * styledef.cpp:53 → Spatium(7.0)
+ */
+export const STAFF_LOWER_BORDER_SP: number = Sid.staffLowerBorder   // 7.0
+
+/**
+ * Maximum allowed inter-system distance (bottom-of-system to top-of-next).
+ * C++: layoutpage.cpp:419 — double maxDist = score->maxSystemDistance()
+ * styledef.cpp:59 → Spatium(15.0)
+ */
+export const MAX_SYSTEM_DISTANCE_SP: number = Sid.maxSystemDistance   // 15.0
+
+/**
+ * Maximum spread for staves within a system during vertical justification.
+ * C++: verticalgapdata.cpp:42 — _maxActualSpacing = style->styleMM(Sid::maxStaffSpread)
+ * styledef.cpp:69 → Spatium(20.0)
+ */
+export const MAX_STAFF_SPREAD_SP: number = Sid.maxStaffSpread   // 20.0
+
+/**
+ * Maximum spread between systems during vertical justification.
+ * C++: verticalgapdata.cpp:78 — _maxActualSpacing = style->styleMM(Sid::maxSystemSpread) / _factor
+ * styledef.cpp:67 → Spatium(32.0)
+ */
+export const MAX_SYSTEM_SPREAD_SP: number = Sid.maxSystemSpread   // 32.0
+
+/**
+ * Distance growth factor between different bracket sections.
+ * C++: verticalgapdata.cpp:76 — updateFactor(style->styleD(Sid::spreadSystem))
+ * styledef.cpp:63 → 2.5
+ */
+export const SPREAD_SYSTEM: number = Sid.spreadSystem   // 2.5
+
+/**
+ * Minimum system distance (from bottom of one to top of next).
+ * C++: layoutsystem.cpp — minDistance() computed per-system pair
+ * styledef.cpp:58 → Spatium(8.5)
+ */
+export const MIN_SYSTEM_DISTANCE_SP: number = Sid.minSystemDistance   // 8.5
+
+// ─────────────────────────────────────────────────────────────────────────────
+// System placement types
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface SystemLayout {
+  /** System index (0-based) */
+  index: number
+  /** Minimum height of this system in pixels (staff lines + stems + staves) */
+  minHeightPx: number
+  /** Minimum distance from this system's bottom to the next system's top (in pixels) */
+  minDistanceToNextPx: number
+}
+
+export interface SystemPlacement {
+  /** System index (matching input) */
+  index: number
+  /** Y position of this system's top in pixels */
+  yPx: number
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// collectSystems — collect systems onto pages
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Greedily collect systems onto pages.
+ *
+ * C++: layoutpage.cpp:103–249 — LayoutPage::collectPage()
+ *   - First system starts at y = page.tm() + staffUpperBorder
+ *   - Each subsequent system placed at: prevY + prevHeight + minDistance
+ *   - When adding next system would exceed pageHeight - staffLowerBorder: start new page
+ *
+ * @param systems      Systems in order with height and min-distance data
+ * @param pageHeightPx Total page height in pixels
+ * @param topMarginPx  Page top margin in pixels
+ * @param sp           Spatium in pixels
+ * @returns            Array of pages, each containing system indices
+ */
+export function collectPages(
+  systems: SystemLayout[],
+  pageHeightPx: number,
+  topMarginPx: number,
+  sp: number,
+): number[][] {
+  const pages: number[][] = []
+  let currentPage: number[] = []
+  const upperBorder = STAFF_UPPER_BORDER_SP * sp
+  const lowerBorder = STAFF_LOWER_BORDER_SP * sp
+  const usableHeight = pageHeightPx - topMarginPx - lowerBorder
+
+  // Current y position within page (relative to top margin)
+  let y = upperBorder
+
+  for (const sys of systems) {
+    if (currentPage.length === 0) {
+      // First system on page: always place it
+      currentPage.push(sys.index)
+      y += sys.minHeightPx
+    } else {
+      const nextY = y + sys.minDistanceToNextPx + sys.minHeightPx
+      if (nextY <= usableHeight) {
+        // Fits on current page
+        currentPage.push(sys.index)
+        y += sys.minDistanceToNextPx + sys.minHeightPx
+      } else {
+        // Start a new page
+        pages.push(currentPage)
+        currentPage = [sys.index]
+        y = upperBorder + sys.minHeightPx
+      }
+    }
+  }
+
+  if (currentPage.length > 0) {
+    pages.push(currentPage)
+  }
+
+  return pages
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// layoutPage — vertical justification of systems
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Distribute systems vertically on a page using the spring model.
+ *
+ * C++: layoutpage.cpp:361–476 — LayoutPage::layoutPage()
+ *
+ * Algorithm (simplified from C++):
+ *   1. Compute restHeight = pageUsableHeight - totalSystemContent
+ *   2. Sort system gaps by current distance (shortest first)
+ *   3. Normalize gaps upward (fill to max allowed per maxSystemDistance)
+ *   4. Distribute remaining rest equally, capped by maxSystemDistance
+ *   5. Set final y positions
+ *
+ * C++: layoutpage.cpp:419 — double maxDist = score->maxSystemDistance()
+ * C++: layoutpage.cpp:422 — sort by (distance - height), shortest first
+ * C++: layoutpage.cpp:425–459 — normalize then distribute fill
+ *
+ * @param systems          Systems on this page (in order)
+ * @param pageUsableHeight Page height minus margins (in pixels)
+ * @param topMarginPx      Page top margin in pixels
+ * @param sp               Spatium in pixels
+ * @returns                Y positions for each system (pixels from page top + margin)
+ */
+export function layoutPageSystems(
+  systems: SystemLayout[],
+  pageUsableHeight: number,
+  topMarginPx: number,
+  sp: number,
+): SystemPlacement[] {
+  if (systems.length === 0) return []
+
+  const upperBorder = STAFF_UPPER_BORDER_SP * sp
+  const lowerBorder = STAFF_LOWER_BORDER_SP * sp
+  const maxDist = MAX_SYSTEM_DISTANCE_SP * sp
+
+  // Compute initial positions (packed)
+  const placements: SystemPlacement[] = []
+  let y = upperBorder
+  for (const sys of systems) {
+    placements.push({ index: sys.index, yPx: y })
+    y += sys.minHeightPx
+    if (placements.length < systems.length) {
+      y += systems[placements.length].minDistanceToNextPx
+    }
+  }
+
+  // Total height used by content
+  const totalContent = y
+  const restHeight = pageUsableHeight - lowerBorder - totalContent
+
+  if (restHeight <= 0 || systems.length <= 1) {
+    return placements
+  }
+
+  // Number of inter-system gaps
+  const gaps = systems.length - 1
+
+  // C++: layoutpage.cpp:375–388 — build list of systems (excluding last that are not vbox)
+  // MAP: treat all systems the same (no vbox support yet)
+  // Current gap distances (measured from bottom of sys[i] to top of sys[i+1])
+  const gapDists: number[] = []
+  for (let i = 0; i < gaps; i++) {
+    gapDists.push(systems[i].minDistanceToNextPx)
+  }
+
+  // C++: layoutpage.cpp:422 — sort by distance (shortest first) for normalization
+  const sortedIdx = gapDists
+    .map((d, i) => ({ i, d }))
+    .sort((a, b) => a.d - b.d)
+
+  let remaining = restHeight
+  const adjustments = new Array<number>(gaps).fill(0)
+
+  // C++: layoutpage.cpp:424–449 — normalize upward pass
+  for (let k = 1; k < sortedIdx.length; k++) {
+    const curr = sortedIdx[k]
+    const prev = sortedIdx[k - 1]
+    const fill = curr.d - prev.d   // gap between this and previous shortest
+    if (fill > 0) {
+      const totalFill = fill * k   // fill all shorter gaps to match
+      if (totalFill > remaining) {
+        const partialFill = remaining / k
+        for (let j = 0; j < k; j++) {
+          adjustments[sortedIdx[j].i] += partialFill
+        }
+        remaining = 0
+        break
+      }
+      for (let j = 0; j < k; j++) {
+        adjustments[sortedIdx[j].i] += fill
+      }
+      remaining -= totalFill
+    }
+  }
+
+  // C++: layoutpage.cpp:451–459 — distribute remaining rest equally
+  if (remaining > 0) {
+    const equalShare = remaining / gaps
+    for (let i = 0; i < gaps; i++) {
+      const cur = gapDists[i] + adjustments[i]
+      const maxAdd = maxDist - cur
+      adjustments[i] += Math.min(equalShare, Math.max(0, maxAdd))
+    }
+  }
+
+  // Apply adjustments to y positions
+  let offset = 0
+  for (let i = 0; i < systems.length; i++) {
+    placements[i] = { index: systems[i].index, yPx: upperBorder + offset }
+    if (i < gaps) {
+      offset += systems[i].minHeightPx + gapDists[i] + adjustments[i]
+    }
+  }
+
+  return placements
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Staff spacing within a system
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Compute Y positions of staves within a system.
+ *
+ * C++: libmscore/system.cpp — System::layout2()
+ * Staff spacing: staffDistance (different parts) or akkoladeDistance (same part).
+ *
+ * C++: styledef.cpp:55 — staffDistance = Spatium(6.5)
+ * C++: styledef.cpp:57 — akkoladeDistance = Spatium(6.5)
+ *
+ * For MAP (single-part scores, no brackets):
+ *   All staves use staffDistance.
+ *
+ * @param staffCount    Number of staves
+ * @param staffHeightPx Height of a single staff (4 lines × lineSpacing) in pixels
+ * @param sp            Spatium in pixels
+ * @returns             Array of Y positions for each staff (from system top, in pixels)
+ */
+export function layoutStaves(
+  staffCount: number,
+  staffHeightPx: number,
+  sp: number,
+): number[] {
+  // C++: styledef.cpp:55 — staffDistance = Spatium(6.5) = distance between bottom of staff N and top of staff N+1
+  const staffDistPx = Sid.staffDistance * sp
+  const positions: number[] = []
+  let y = 0
+  for (let i = 0; i < staffCount; i++) {
+    positions.push(y)
+    y += staffHeightPx + staffDistPx
+  }
+  return positions
+}
+
+/**
+ * Total height of a system with N staves.
+ * = (staffCount - 1) * (staffHeight + staffDistance) + staffHeight
+ *
+ * @param staffCount    Number of staves
+ * @param staffHeightPx Single staff height in pixels
+ * @param sp            Spatium in pixels
+ */
+export function systemHeight(
+  staffCount: number,
+  staffHeightPx: number,
+  sp: number,
+): number {
+  if (staffCount <= 0) return 0
+  const staffDistPx = Sid.staffDistance * sp
+  return staffCount * staffHeightPx + (staffCount - 1) * staffDistPx
+}
+</file>
+
+<file path="src/renderer/engine/layout/LayoutSystem.ts">
+/**
+ * MAP Native Renderer — engine/layout/LayoutSystem.ts
+ * C++ source: src/engraving/layout/layoutsystem.cpp
+ *             src/engraving/libmscore/system.cpp
+ *
+ * Mirrors:
+ *   LayoutSystem::collectSystem()   — layoutsystem.cpp:62
+ *   LayoutSystem::justifySystem()   — layoutsystem.cpp:496
+ *
+ * Scope: greedy measure collection into systems, and spring-model justification.
+ */
+
+import { Sid } from '../../style/StyleDef'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants (from styledef.cpp)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Minimum fill ratio for the last system.
+ * C++: layoutsystem.cpp:430
+ *   if ((curSysWidth / targetSystemWidth) < score->styleD(Sid::lastSystemFillLimit))
+ *     → skip justification
+ * styledef.cpp:228 → 0.3 (do not stretch if system is < 30% full)
+ */
+export const LAST_SYSTEM_FILL_LIMIT: number = Sid.lastSystemFillLimit   // 0.3
+
+/**
+ * Printable page width (used as target system width).
+ * C++: layoutsystem.cpp:90
+ *   double targetSystemWidth = score->styleD(Sid::pagePrintableWidth) * DPI;
+ * styledef.cpp:43 → 180.0mm
+ */
+export const PAGE_PRINTABLE_WIDTH_MM: number = Sid.pagePrintableWidthMm  // 180.0
+
+// ─────────────────────────────────────────────────────────────────────────────
+// System spring model (justifySystem)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Spring model segment input.
+ * C++: layoutsystem.cpp:507–519 — Spring struct
+ */
+export interface SystemSpring {
+  /** Stretch factor of this segment (from computeDurationStretch) */
+  stretch: number
+  /** Current width of this segment in pixels */
+  currentWidth: number
+}
+
+/**
+ * Distribute slack space across segments using the spring model.
+ *
+ * C++: layoutsystem.cpp:496–531 — justifySystem()
+ *
+ *   rest = targetWidth - curWidth
+ *   for each chord-rest segment:
+ *     springConst = 1 / stretch
+ *     preTension  = width * springConst
+ *   → distribute rest proportionally to (1 / springConst) = stretch
+ *     (segments with higher stretch get more extra space)
+ *
+ * C++: Segment::stretchSegmentsToWidth(springs, rest)
+ *   → each segment's new width = currentWidth + rest * (stretch / totalStretch)
+ *
+ * MAP note: this is the slack distribution from horizontalLayout.ts placeSystem().
+ * The formula used in placeSystem is:
+ *   extra = slack * (md.totalBaseNoteWidth / totalNoteContent)
+ * which is equivalent to distributing proportionally to "note content" (stretch × count).
+ *
+ * @param springs     Segments to stretch
+ * @param targetWidth Total target width of the system (usable width minus header)
+ * @param curWidth    Current total width of all measure content
+ * @returns           New widths for each spring segment
+ */
+export function justifySystem(
+  springs: SystemSpring[],
+  targetWidth: number,
+  curWidth: number,
+): number[] {
+  const rest = targetWidth - curWidth
+  if (rest <= 0 || springs.length === 0) {
+    return springs.map(s => s.currentWidth)
+  }
+
+  // C++: springConst = 1 / stretch; preTension = width * springConst
+  // Distribution: each segment gets rest * (stretch / totalStretch)
+  // Equivalent to distributing proportionally to stretch.
+  const totalStretch = springs.reduce((s, sp) => s + sp.stretch, 0)
+  if (totalStretch <= 0) {
+    const even = rest / springs.length
+    return springs.map(s => s.currentWidth + even)
+  }
+
+  return springs.map(sp => {
+    const extra = rest * (sp.stretch / totalStretch)
+    return sp.currentWidth + extra
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// System collection (greedy algorithm)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Greedy system breaking.
+ *
+ * C++: layoutsystem.cpp:62–470 — collectSystem()
+ * Algorithm: add measures one by one; when adding the next measure would exceed
+ * targetWidth, start a new system.
+ *
+ * C++: layoutsystem.cpp:428–431
+ *   if last system AND curSysWidth/targetWidth < lastSystemFillLimit → do NOT justify
+ *
+ * @param measureWidths     Minimum widths of each measure in pixels (1-based index)
+ * @param headerWidth       Width of system header (clef + key + time sig) in pixels
+ * @param usableWidth       Target system width (page width - margins) in pixels
+ * @returns                 Array of measure-number arrays, one per system
+ */
+export function collectSystems(
+  measureWidths: Map<number, number>,
+  headerWidth: number,
+  usableWidth: number,
+): number[][] {
+  const systems: number[][] = []
+  let currentSystem: number[] = []
+  let currentWidth = headerWidth
+
+  const mNums = [...measureWidths.keys()].sort((a, b) => a - b)
+
+  for (const mNum of mNums) {
+    const mw = measureWidths.get(mNum) ?? 0
+
+    if (currentSystem.length === 0) {
+      // First measure of system: always include
+      currentSystem.push(mNum)
+      currentWidth += mw
+    } else if (currentWidth + mw <= usableWidth) {
+      // Fits: add to current system
+      currentSystem.push(mNum)
+      currentWidth += mw
+    } else {
+      // Doesn't fit: start new system
+      systems.push(currentSystem)
+      currentSystem = [mNum]
+      currentWidth = headerWidth + mw
+    }
+  }
+
+  if (currentSystem.length > 0) {
+    systems.push(currentSystem)
+  }
+
+  return systems
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Last system fill check
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Whether the last system should be justified (stretched to full width).
+ *
+ * C++: layoutsystem.cpp:428–431:
+ *   if (!(isLastSystem && score->styleB(Sid::lastSystemFillLimit)
+ *         && curSysWidth / targetSystemWidth < score->styleD(Sid::lastSystemFillLimit)))
+ *     justifySystem(...)
+ *
+ * @param curWidth    Current content width of the last system
+ * @param targetWidth Full usable system width
+ */
+export function shouldJustifyLastSystem(curWidth: number, targetWidth: number): boolean {
+  if (targetWidth <= 0) return false
+  return (curWidth / targetWidth) >= LAST_SYSTEM_FILL_LIMIT
+}
+</file>
+
+<file path="src/renderer/engine/libmscore/Hook.ts">
+/**
+ * MAP Native Renderer — engine/libmscore/Hook.ts
+ * C++ source: src/engraving/libmscore/hook.cpp
+ *
+ * Mirrors Hook::setHookType() and Hook::symIdForHookIndex().
+ * Maps hook index → SMuFL glyph name for Leland font.
+ */
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hook index → SMuFL glyph
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Hook index convention (C++ hook.cpp:44–48):
+ *   positive = stem up: 1=8th, 2=16th, 3=32nd, 4=64th, ...
+ *   negative = stem down: -1=8th, -2=16th, -3=32nd, -4=64th, ...
+ *   0 = no hook
+ *
+ * C++ hook.cpp:73 — Hook::symIdForHookIndex(int index, bool straight)
+ */
+export type HookIndex = -8 | -7 | -6 | -5 | -4 | -3 | -2 | -1 | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
+
+/**
+ * SMuFL glyph names for flags (using Leland curved flags, not straight).
+ * C++: hook.cpp:75–117 — symIdForHookIndex() with straight=false
+ */
+const HOOK_GLYPH: Partial<Record<HookIndex, string>> = {
+  // stem-up flags (positive index)
+  1: '\u{E240}',   // flag8thUp       — U+E240
+  2: '\u{E242}',   // flag16thUp      — U+E242
+  3: '\u{E244}',   // flag32ndUp      — U+E244
+  4: '\u{E246}',   // flag64thUp      — U+E246
+  5: '\u{E248}',   // flag128thUp     — U+E248
+
+  // stem-down flags (negative index)
+  [-1]: '\u{E241}',  // flag8thDown     — U+E241
+  [-2]: '\u{E243}',  // flag16thDown    — U+E243
+  [-3]: '\u{E245}',  // flag32ndDown    — U+E245
+  [-4]: '\u{E247}',  // flag64thDown    — U+E247
+  [-5]: '\u{E249}',  // flag128thDown   — U+E249
+}
+
+/** Returns the flag glyph for a given hook index, or null if index=0 */
+export function hookGlyph(index: HookIndex): string | null {
+  return HOOK_GLYPH[index] ?? null
+}
+
+/**
+ * Convert duration type + stem direction to hook index.
+ * C++: Chord::hookIndex() — beams() for beam count, negative when stem down.
+ */
+export function durationToHookIndex(type: string, stemUp: boolean): HookIndex {
+  const baseIndex: Partial<Record<string, number>> = {
+    'eighth': 1,
+    '16th':   2,
+    '32nd':   3,
+    '64th':   4,
+    '128th':  5,
+  }
+  const base = baseIndex[type] ?? 0
+  if (base === 0) return 0
+  return (stemUp ? base : -base) as HookIndex
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hook layout
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface HookLayout {
+  x: number
+  y: number
+  glyph: string
+  fontSize: number
+}
+
+/**
+ * Compute flag/hook layout given stem tip position.
+ *
+ * C++: stem.cpp:144–148 — Stem::flagPosition() = pos() + PointF(bbox.left(), ±length())
+ * C++: hook.cpp:68–71   — Hook::smuflAnchor() = symSmuflAnchor(_sym, stemUpNW / stemDownSW)
+ *
+ * In Leland, the flag glyph is placed at the stem tip (x = stemTipX, y = stem tip y).
+ * The SMuFL anchor of the flag aligns with the top of the stem.
+ */
+export function layoutHook(
+  stemX: number,
+  stemTipY: number,
+  hookIndex: HookIndex,
+  fontSize: number,
+): HookLayout | null {
+  const glyph = hookGlyph(hookIndex)
+  if (!glyph) return null
+  return {
+    x: stemX,
+    y: stemTipY,
+    glyph,
+    fontSize,
+  }
+}
+</file>
+
+<file path="src/renderer/engine/libmscore/index.ts">
+/**
+ * MAP Native Renderer — engine/libmscore barrel
+ * Re-exports all libmscore layout types and functions.
+ */
+
+export * from './Note'
+export * from './Stem'
+export * from './Hook'
+export * from './LedgerLine'
+</file>
+
+<file path="src/renderer/engine/libmscore/LedgerLine.ts">
+/**
+ * MAP Native Renderer — engine/libmscore/LedgerLine.ts
+ * C++ source: src/engraving/libmscore/ledgerline.cpp
+ *             src/engraving/libmscore/chord.cpp (addLedgerLines)
+ *
+ * Mirrors LedgerLine::layout() and Chord::addLedgerLines().
+ */
+
+import type { Px } from '../../spatium'
+import { lineToY } from '../../spatium'
+import { Sid } from '../../style/StyleDef'
+import { NOTEHEAD_RX_SP } from './Note'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Extra length of ledger line on each side of the notehead.
+ * C++: chord.cpp:851 — double extraLen = score()->styleMM(Sid::ledgerLineLength) * mag
+ * styledef.cpp:198 → Spatium(0.33) [read as mm but treated as sp in the formula context]
+ *
+ * NOTE: In MuseScore, ledgerLineLength is stored as Spatium(0.33) but accessed via styleMM().
+ * styleMM() multiplies the Spatium value by spatium(). So extraLen = 0.33 * spatium.
+ * This is the OVERHANG on each side — total ledger line width = noteheadWidth + 2 * extraLen.
+ */
+export const LEDGER_OVERRUN_SP: number = Sid.ledgerLineLength   // 0.33
+
+/**
+ * Ledger line thickness.
+ * C++: ledgerline.cpp:82 — setLineWidth(score()->styleMM(Sid::ledgerLineWidth) * chord()->mag())
+ * styledef.cpp:200 → Spatium(0.16)
+ */
+export const LEDGER_LINE_WIDTH_SP = 0.16   // Sid::ledgerLineWidth, styledef.cpp:200
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Ledger line layout
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface LedgerLineLayout {
+  x1: Px
+  x2: Px
+  y: Px
+  staffLine: number
+}
+
+/**
+ * Compute ledger line positions for a note outside the staff.
+ *
+ * C++: chord.cpp:845–968 — Chord::addLedgerLines()
+ *   lineBelow = (st->lines(tick) - 1) * 2  [= 8 for 5-line staff]
+ *   needsLedger: downLine + stepOffset > lineBelow+1  OR  upLine + stepOffset < -1
+ *   extraLen = styleMM(Sid::ledgerLineLength) * mag  [overhang each side]
+ *   hw = note->headWidth()  [= 2 * NOTEHEAD_RX_SP * sp]
+ *   x1 = noteX - hw/2 - extraLen
+ *   x2 = x1 + hw + 2 * extraLen  [= noteX - hw/2 - extraLen + hw + 2*extraLen = noteX + hw/2 + extraLen]
+ *
+ * Ledger lines are drawn at even staff-line numbers only (l = l & ~1 rounds down to even).
+ *
+ * @param noteX      Center x of notehead
+ * @param staffLine  Staff line of the note (0=top line, 8=bottom line)
+ * @param staffTopPx Y of top staff line
+ * @param sp         Spatium in pixels
+ */
+export function layoutLedgerLines(
+  noteX: Px,
+  staffLine: number,
+  staffTopPx: Px,
+  sp: Px,
+): LedgerLineLayout[] {
+  // C++: chord.cpp:896 — hw = std::max(hw, note->headWidth())
+  //      ledger extends from (noteX - hw/2 - extraLen) to (noteX + hw/2 + extraLen)
+  const halfW = (NOTEHEAD_RX_SP + LEDGER_OVERRUN_SP) * sp
+  const x1 = noteX - halfW
+  const x2 = noteX + halfW
+
+  const lines: LedgerLineLayout[] = []
+
+  if (staffLine < 0) {
+    // Above staff: even lines from -2 down to staffLine (rounded to even)
+    // C++: chord.cpp:887–889 — if (l < 0) l = (l + 1) & ~1
+    const lowestLedger = (staffLine + 1) & ~1  // round toward 0
+    for (let sl = -2; sl >= lowestLedger; sl -= 2) {
+      lines.push({ x1, x2, y: lineToY(sl, staffTopPx, sp), staffLine: sl })
+    }
+  } else if (staffLine > 8) {
+    // Below staff: even lines from 10 up to staffLine (rounded to even)
+    // C++: chord.cpp:890–891 — if (l >= 0) l = l & ~1
+    const highestLedger = staffLine & ~1  // round toward 0
+    for (let sl = 10; sl <= highestLedger; sl += 2) {
+      lines.push({ x1, x2, y: lineToY(sl, staffTopPx, sp), staffLine: sl })
+    }
+  }
+
+  return lines
+}
+</file>
+
+<file path="src/renderer/engine/libmscore/Note.ts">
+/**
+ * MAP Native Renderer — engine/libmscore/Note.ts
+ * C++ source: src/engraving/libmscore/note.cpp
+ *
+ * Mirrors Note::layout() and note position utilities.
+ * All formulas extracted verbatim from the C++ source with file:line references.
+ *
+ * Scope: pitch → staff-line, staff-line → y, notehead geometry.
+ * NOT included: tablature, drumset, cross-staff, custom noteheads.
+ */
+
+import type { Px } from '../../spatium'
+import { lineToY } from '../../spatium'
+import { Sid } from '../../style/StyleDef'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants (from note.cpp + styledef.cpp)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Notehead half-width in staff-spaces.
+ * C++: note.cpp:1088 — return symWidth(noteHead())
+ * Leland noteheadBlack advance width ≈ 1.18sp → half = 0.59sp
+ */
+export const NOTEHEAD_RX_SP = 0.59
+
+/**
+ * Notehead half-height in staff-spaces.
+ * C++: note.cpp:1138 — return symHeight(noteHead())
+ * Leland noteheadBlack height ≈ 0.72sp → half = 0.36sp
+ */
+export const NOTEHEAD_RY_SP = 0.36
+
+/**
+ * Distance from notehead right edge to first augmentation dot.
+ * C++: note.cpp:2343 — d = score()->point(score()->styleS(Sid::dotNoteDistance))
+ * styledef.cpp:216 → Spatium(0.5)
+ */
+export const DOT_NOTE_DIST_SP: number = Sid.dotNoteDistance   // 0.5
+
+/**
+ * Center-to-center distance between consecutive augmentation dots.
+ * C++: note.cpp:2344 — dd = score()->point(score()->styleS(Sid::dotDotDistance))
+ * styledef.cpp:218 → Spatium(0.65)
+ */
+export const DOT_DOT_DIST_SP: number = Sid.dotDotDistance     // 0.65
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pitch → Staff Line
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Note::line() — staff-line position of a note.
+ * C++: note.cpp stores _line; set by Score::updateNotes() via Pitch::line().
+ *
+ * Staff-line convention (same as MuseScore):
+ *   0 = top staff line  (line 1)
+ *   2 = second line     (line 2)
+ *   4 = middle line     (line 3) = MIDDLE_LINE
+ *   6 = fourth line     (line 4)
+ *   8 = bottom line     (line 5)
+ *   Negative = above staff (ledger lines)
+ *   > 8     = below staff (ledger lines)
+ *   Odd     = space between two lines
+ *
+ * C++ formula (Pitch::line for treble clef):
+ *   line = 38 - (diatonicStep + octave * 7)
+ *   where diatonic: C=0,D=1,E=2,F=3,G=4,A=5,B=6
+ */
+const CLEF_OFFSET: Record<string, number> = {
+  treble:     38,   // G4 on line 2 → C4 at line 10 (below staff)
+  bass:       26,   // F3 on line 6 → C4 at line -2 (above staff)
+  alto:       32,   // C4 at line 4 (middle)
+  tenor:      30,   // C4 at line 6
+  percussion: 38,
+}
+
+const STEP_TO_DIATONIC: Record<string, number> = {
+  C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6,
+}
+
+export function pitchToStaffLine(step: string, octave: number, clef: string): number {
+  const diatonic = STEP_TO_DIATONIC[step] ?? 0
+  const offset = CLEF_OFFSET[clef] ?? CLEF_OFFSET.treble
+  return offset - (diatonic + octave * 7)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Staff-line → Y (pixels)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Note y-position from staff line.
+ * C++: note.cpp pos().ry() stored after Score::updateNotes():
+ *   y = line * spatium() * 0.5
+ * (MuseScore uses half-spaces: line 0 → top, line 2 → second line, etc.)
+ *
+ * @param staffLine  Staff line (0=top, 2=2nd, 4=mid, 6=4th, 8=bottom)
+ * @param staffTopPx Y of the top staff line in pixels
+ * @param sp         Spatium in pixels
+ */
+export function noteY(staffLine: number, staffTopPx: Px, sp: Px): Px {
+  // C++: y = line * spatium() * 0.5
+  // lineToY implements exactly this: staffTopPx + staffLine * sp * 0.5
+  return lineToY(staffLine, staffTopPx, sp)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Stem direction
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Default stem direction for a note on standard 5-line staff.
+ * C++: chord.cpp:988–1114 — complex rules for voices, beams, custom override.
+ *
+ * Simplified rules for MAP (single-voice or two-voice):
+ * 1. voice === 2 → always down
+ * 2. voice === 1 in multi-voice → always up
+ * 3. Otherwise → stem up if note is on or below the middle line (staffLine >= 4)
+ *
+ * C++: chord.cpp:1088 — _up = isTrackEven (voice 1 = even track → up for single voice)
+ */
+export function stemUp(staffLine: number, voice: number, isMultiVoice: boolean): boolean {
+  if (voice === 2) return false
+  if (voice === 1 && isMultiVoice) return true
+  return staffLine >= 4  // on or below middle line → stem up
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Notehead type
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type NoteheadType = 'whole' | 'half' | 'quarter' | 'eighth' | '16th' | '32nd' | '64th'
+  | 'double-whole' | 'x' | 'diamond' | 'slash'
+
+/** Whether a notehead type has a stem (C++: chord.cpp — whole/double-whole have no stem) */
+export function hasStem(type: NoteheadType): boolean {
+  return type !== 'whole' && type !== 'double-whole'
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Notehead layout
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface NoteLayout {
+  /** X = left edge of notehead bounding box (noteX - NOTEHEAD_RX_SP * sp) */
+  x: Px
+  /** Y = staff-line y (= center of notehead) */
+  y: Px
+  staffLine: number
+  stemUp: boolean
+  hasStem: boolean
+}
+
+/**
+ * Compute note layout (position only — no glyph/paint here).
+ * C++: Note::layout() sets bbox from symBbox(noteHead()).
+ *
+ * @param noteX     Center x of the note (from HorizontalLayout.noteX)
+ * @param step      Pitch step 'C'–'B'
+ * @param octave    Octave number
+ * @param clef      Clef type string
+ * @param staffTopPx Y of top staff line
+ * @param sp        Spatium in pixels
+ * @param voice     Voice number (1–4)
+ * @param isMultiVoice Whether this staff has multiple voices active
+ * @param nhType    Notehead type
+ */
+export function layoutNote(
+  noteX: Px,
+  step: string,
+  octave: number,
+  clef: string,
+  staffTopPx: Px,
+  sp: Px,
+  voice: number,
+  isMultiVoice: boolean,
+  nhType: NoteheadType,
+): NoteLayout {
+  const line = pitchToStaffLine(step, octave, clef)
+  const y    = noteY(line, staffTopPx, sp)
+  const up   = stemUp(line, voice, isMultiVoice)
+  const x    = noteX - NOTEHEAD_RX_SP * sp
+
+  return { x, y, staffLine: line, stemUp: up, hasStem: hasStem(nhType) }
+}
+</file>
+
+<file path="src/renderer/engine/libmscore/Stem.ts">
+/**
+ * MAP Native Renderer — engine/libmscore/Stem.ts
+ * C++ source: src/engraving/libmscore/stem.cpp
+ *             src/engraving/libmscore/chord.cpp (calcDefaultStemLength)
+ *
+ * Mirrors Stem::layout() and Chord::calcDefaultStemLength().
+ */
+
+import type { Px } from '../../spatium'
+import { Sid } from '../../style/StyleDef'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants (from styledef.cpp)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Default stem length in staff-spaces.
+ * C++: styledef.cpp:177 — { Sid::stemLength, "stemLength", PropertyValue(3.5) }
+ * C++: chord.cpp:1627 — defaultStemLength = score()->styleD(Sid::stemLength) * 4  (quarter-spaces)
+ */
+export const STEM_LENGTH_SP: number = Sid.stemLength           // 3.5
+
+/**
+ * Stem width (line thickness).
+ * C++: styledef.cpp:175 — { Sid::stemWidth, "stemWidth", PropertyValue(0.10) }
+ */
+export const STEM_WIDTH_SP: number = Sid.stemWidth             // 0.10
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Stem layout
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface StemLayout {
+  /** X-center of the stem line */
+  x: Px
+  /** Y of the tip (farthest from the notehead) */
+  yTip: Px
+  /** Y of the base (at the notehead attach point) */
+  yBase: Px
+}
+
+/**
+ * Compute stem geometry for a chord.
+ *
+ * Simplified from Chord::calcDefaultStemLength() + Stem::layout():
+ *
+ * C++ chord.cpp:1627 — defaultStemLength = styleD(Sid::stemLength) * 4  [quarter-spaces]
+ * C++ chord.cpp:1692 — finalStemLength = (chordHeight/4.0*spatium) + (stemLength/4.0*spatium)
+ * C++ stem.cpp:74    — y2 = _up * (m_baseLength + m_userLength)  [relative to attach point]
+ *
+ * For MAP (single-note chord, no beam), chordHeight = 0, relativeMag = 1.0:
+ *   finalStemLength = stemLength / 4.0 * spatium = 3.5 * spatium
+ *
+ * Extra length when flag present:
+ * C++: chord.cpp:1487 — stemLengthBeamAddition() handles beam offsets.
+ * Flags add ~0.5sp empirically (flag anchor y ≈ 0.5sp beyond stem tip).
+ *
+ * @param noteX      Center x of notehead
+ * @param noteY      Center y of notehead (= yBase of stem attachment)
+ * @param stemUp     True if stem points upward
+ * @param sp         Spatium in pixels
+ * @param hasFlag    Whether this note has a flag (no beam)
+ * @param attachDx   X offset from note center to stem edge (from Bravura anchor)
+ * @param attachDy   Y offset from note center to stem base (from Bravura anchor)
+ */
+export function layoutStem(
+  noteX: Px,
+  noteY: Px,
+  stemUp: boolean,
+  sp: Px,
+  hasFlag: boolean,
+  attachDx: number,
+  attachDy: number,
+): StemLayout {
+  // C++: stem.cpp:108 — setPosY(note->ypos())
+  //      stem.cpp:103–106 — y1 = note->stemUpSE().y() OR note->stemDownNW().y()
+  const stemX = noteX + attachDx
+  const yBase = noteY + attachDy
+
+  // C++: chord.cpp:1627 — defaultStemLength = styleD(Sid::stemLength) * 4 quarter-spaces
+  //      chord.cpp:1692 — finalStemLength = stemLength/4.0 * spatium (for single note, no chord spread)
+  const baseLengthPx = STEM_LENGTH_SP * sp
+
+  // Flags add a small extra: stem.cpp:112 — y2 += chord()->hook()->smuflAnchor().y()
+  const extraPx = hasFlag ? 0.5 * sp : 0
+
+  const totalLength = baseLengthPx + extraPx
+
+  const yTip = stemUp
+    ? yBase - totalLength   // up: tip is above base
+    : yBase + totalLength   // down: tip is below base
+
+  return { x: stemX, yTip, yBase }
+}
+</file>
+
+<file path="src/renderer/style/StyleDef.ts">
+/**
+ * StyleDef.ts — MuseScore Style Constants (Sid) with default values
+ *
+ * Source: src/engraving/style/styledef.cpp (WebMScore C++)
+ * Units note:
+ *   - Spatium(x) values are in staff-spaces (sp). Multiply by spatiumPx for pixels.
+ *   - Page dimension values stored as inches (mm / INCH where INCH = 25.4).
+ *   - DPI = 72 * 5 = 360 (MuseScore internal dots-per-inch)
+ *   - Default spatium = 24.8 printer dots = 24.8 / (360/25.4) ≈ 1.75mm
+ *
+ * Workflow rule: Every constant here was read verbatim from styledef.cpp.
+ * DO NOT change values without first verifying in the C++ source.
+ */
+
+// ─────────────────────────────────────────────
+// MuseScore internal DPI constants
+// (mscore.h: DPI = 72.0 * DPI_F where DPI_F = 5)
+// ─────────────────────────────────────────────
+const MUSESCORE_DPI = 360.0      // 72 * 5
+const INCH_MM = 25.4             // 1 inch = 25.4 mm
+const DPMM = MUSESCORE_DPI / INCH_MM  // dots per mm ≈ 14.173
+
+/**
+ * Convert a MuseScore internal page dimension (stored as mm/INCH = inches)
+ * back to millimetres.
+ */
+export function sidInchToMm(inchValue: number): number {
+  return inchValue * INCH_MM
+}
+
+/**
+ * Convert a MuseScore internal page dimension to spatium units.
+ * @param inchValue  raw value from styledef.cpp (e.g. 180.0/25.4 = 7.087)
+ * @param spatiumPx  pixels per spatium for this rendering
+ * @param screenDpi  screen DPI (default 96 for browser)
+ */
+export function sidInchToSp(inchValue: number, spatiumPx: number, screenDpi = 96): number {
+  const px = inchValue * MUSESCORE_DPI  // printer px
+  const screenPx = px * (screenDpi / MUSESCORE_DPI)
+  return screenPx / spatiumPx
+}
+
+// ─────────────────────────────────────────────
+// Sid — Style ID constants with default values (in spatium units unless noted)
+//
+// Source: styledef.cpp lines 40–650
+// Convention: all Sp values are staff-spaces.
+// ─────────────────────────────────────────────
+
+export const Sid = {
+
+  // ── Page geometry (stored as inches in C++: mm / 25.4) ──────────────────
+  // pageWidth:               210.0 / INCH  (A4 = 8.268 inches)
+  // pageHeight:              297.0 / INCH  (A4 = 11.693 inches)
+  // pageEvenLeftMargin:      15.0 / INCH
+  // pageOddLeftMargin:       15.0 / INCH
+  // pageEvenTopMargin:       15.0 / INCH   (all margins = 15mm)
+  // pageEvenBottomMargin:    15.0 / INCH
+  // pageOddTopMargin:        15.0 / INCH
+  // pageOddBottomMargin:     15.0 / INCH
+
+  /** Printable width in mm (A4 minus 15mm margins each side = 180mm) */
+  pagePrintableWidthMm: 180.0,        // styledef.cpp:43 — 180.0 / INCH → inches → ×25.4 = 180mm
+
+  // ── Staff / System vertical spacing (Sp) ────────────────────────────────
+  staffUpperBorder:       7.0,        // styledef.cpp:52  Spatium(7.0)
+  staffLowerBorder:       7.0,        // styledef.cpp:53  Spatium(7.0)
+  staffDistance:          6.5,        // styledef.cpp:55  Spatium(6.5) — between staves of different parts
+  akkoladeDistance:       6.5,        // styledef.cpp:57  Spatium(6.5) — between staves of same part
+  maxAkkoladeDistance:    6.5,        // styledef.cpp:70  Spatium(6.5) — max stretch inside curly bracket
+  staffHeaderFooterPadding: 1.0,      // styledef.cpp:54  Spatium(1.0)
+  minSystemDistance:      8.5,        // styledef.cpp:58  Spatium(8.5)
+  maxSystemDistance:      15.0,       // styledef.cpp:59  Spatium(15.0)
+  minVerticalDistance:    0.5,        // styledef.cpp:622 Spatium(0.5)
+  maxSystemSpread:        32.0,       // styledef.cpp:67  Spatium(32.0)
+  maxStaffSpread:         20.0,       // styledef.cpp:69  Spatium(20.0)
+  spreadSystem:           2.5,        // styledef.cpp:63  raw factor — space growth factor between sections
+  spreadSquareBracket:    1.2,        // styledef.cpp:64  raw factor — space factor for square bracket group
+  spreadCurlyBracket:     1.1,        // styledef.cpp:65  raw factor — space factor for curly bracket group
+
+  // ── Spatium (the base unit) ──────────────────────────────────────────────
+  /** Default spatium in MuseScore printer pixels (360 DPI). 1sp = 24.8 / 360 inches ≈ 1.75mm */
+  spatiumDefault:         24.8,       // styledef.cpp:624  raw printer dots (360 DPI)
+
+  // ── System layout ────────────────────────────────────────────────────────
+  lastSystemFillLimit:    0.3,        // styledef.cpp:228  ratio — don't justify last system if < 30% full
+  instrumentNameOffset:   1.0,        // styledef.cpp:56   Spatium(1.0)
+  enableIndentationOnFirstSystem: true, // styledef.cpp:447
+  firstSystemIndentationValue: 5.0,  // styledef.cpp:449  Spatium(5.0)
+  systemFrameDistance:    7.0,        // styledef.cpp:128  Spatium(7.0)
+  frameSystemDistance:    7.0,        // styledef.cpp:129  Spatium(7.0)
+
+  // ── Barlines ─────────────────────────────────────────────────────────────
+  barWidth:               0.18,       // styledef.cpp:131  Spatium(0.18)
+  repeatBarlineDotSeparation: 0.37,   // styledef.cpp:137  Spatium(0.37)
+
+  // ── Staff lines ──────────────────────────────────────────────────────────
+  staffLineWidth:         0.11,       // styledef.cpp:196  Spatium(0.11)
+  ledgerLineWidth:        0.16,       // styledef.cpp:197  Spatium(0.16)  comment: was 0.1875
+  /** ledgerLineLength = notehead width + this value (overhang on each side) */
+  ledgerLineLength:       0.33,       // styledef.cpp:198  Spatium(0.33)
+
+  // ── Note / Stem ──────────────────────────────────────────────────────────
+  stemWidth:              0.10,       // styledef.cpp:175  Spatium(0.10)
+  /** Default stem length in sp (used by Stem::layout()) */
+  stemLength:             3.5,        // styledef.cpp:177  PropertyValue(3.5) — for quarter and shorter
+  stemLengthSmall:        2.25,       // styledef.cpp:178  PropertyValue(2.25) — for grace notes
+
+  // ── Note spacing ─────────────────────────────────────────────────────────
+  minNoteDistance:        0.5,        // styledef.cpp:184  Spatium(0.5) — minimum between noteheads
+  barNoteDistance:        1.3,        // styledef.cpp:185  Spatium(1.3) — barline to first note (was 1.2)
+  noteBarDistance:        1.5,        // styledef.cpp:188  Spatium(1.5) — last note to barline
+  measureSpacing:         1.5,        // styledef.cpp:189  raw multiplier (not Sp) — logarithmic stretch factor
+
+  // ── Dots ─────────────────────────────────────────────────────────────────
+  dotNoteDistance:        0.5,        // styledef.cpp:216  Spatium(0.5) — note to augmentation dot
+  dotDotDistance:         0.65,       // styledef.cpp:218  Spatium(0.65) — dot to dot (double-dotted)
+  dotMag:                 1.0,        // styledef.cpp:215  PropertyValue(1.0) — dot size multiplier
+
+  // ── Accidentals ──────────────────────────────────────────────────────────
+  accidentalDistance:     0.22,       // styledef.cpp:202  Spatium(0.22) — accidental to accidental
+  accidentalNoteDistance: 0.25,       // styledef.cpp:203  Spatium(0.25) — accidental to notehead
+
+  // ── Beams ─────────────────────────────────────────────────────────────────
+  beamWidth:              0.5,        // styledef.cpp:209  Spatium(0.5)  (comment: was 0.48)
+  beamMinLen:             1.1,        // styledef.cpp:211  Spatium(1.1)  — minimum beam length
+  beamNoSlope:            false,      // styledef.cpp:212  — force flat beams
+  useWideBeams:           false,      // styledef.cpp:210  — use 4-quarter-space beam spacing instead of 3
+
+  // ── Grace / Small notes ──────────────────────────────────────────────────
+  smallNoteMag:           0.7,        // styledef.cpp:399  PropertyValue(0.7) — cue/small note magnification
+  graceNoteMag:           0.7,        // styledef.cpp:400  PropertyValue(0.7) — grace note magnification
+
+  // ── Clef / Key / Time signature spacing ──────────────────────────────────
+  clefBarlineDistance:    0.5,        // styledef.cpp:172  Spatium(0.5)
+  timesigBarlineDistance: 0.5,        // styledef.cpp:173  Spatium(0.5)
+  keysigAccidentalDistance: 0.3,      // styledef.cpp:206  Spatium(0.3)
+
+} as const
+
+export type SidKey = keyof typeof Sid
+
+/**
+ * Returns the printable width in spatium units for a given spatiumPx.
+ * This is the C++ `targetSystemWidth = score()->styleD(Sid::pagePrintableWidth) * DPI`
+ * translated to our unit system.
+ *
+ * @param spatiumPx  pixels per spatium for this rendering
+ * @param screenDpi  screen DPI (default 96)
+ */
+export function getPagePrintableWidthSp(spatiumPx: number, screenDpi = 96): number {
+  // pagePrintableWidthMm = 180mm
+  // → printer px = 180 * (360/25.4) ≈ 2551.2
+  // → screen px  = printerPx * (screenDpi / 360)
+  // → sp         = screenPx / spatiumPx
+  const printerPx = Sid.pagePrintableWidthMm * DPMM
+  const screenPx = printerPx * (screenDpi / MUSESCORE_DPI)
+  return screenPx / spatiumPx
+}
+</file>
+
+</files>

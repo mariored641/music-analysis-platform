@@ -33,19 +33,27 @@ export interface GlyphAnchor {
  * Anchor data for noteheads.
  * Values from Bravura 1.392 metadata (bravura_metadata.json § glyphsWithAnchors).
  *
- * In SMuFL: y positive = up. We negate in layout code.
+ * Bravura anchor names: stemUpSE = bottom-right (x=right edge), stemDownNW = top-left (x=0).
+ * We map them into our stemUpNW/stemDownSW slots:
+ *   stemUpNW.x   = stemUpSE.x   (= right edge of notehead, e.g. 1.18sp)
+ *   stemUpNW.y   = stemUpSE.y   (= y below center in SMuFL, e.g. -0.168)
+ *   stemDownSW.x = stemDownNW.x (= left edge = 0)
+ *   stemDownSW.y = stemDownNW.y (= y above center in SMuFL, e.g. 0.168)
+ * Screen-coord y: negate SMuFL y → noteY + (-y_smufl)*sp
  */
 export const NOTEHEAD_ANCHORS: Readonly<Record<string, GlyphAnchor>> = {
   // Standard filled notehead (quarter, eighth, ...)
+  // Bravura: stemUpSE=[1.18, -0.168], stemDownNW=[0, 0.168]
   noteheadBlack: {
-    stemUpNW:   [-0.168,  0.168],   // upper-left of stem
-    stemDownSW: [-0.168, -0.168],   // lower-left of stem
+    stemUpNW:   [1.18, -0.168],   // x=right edge; y in screen = noteY + 0.168sp (below center)
+    stemDownSW: [0.0,   0.168],   // x=left edge;  y in screen = noteY - 0.168sp (above center)
   },
 
   // Open notehead (half note)
+  // Bravura: stemUpSE=[1.18, -0.14], stemDownNW=[0, 0.14]
   noteheadHalf: {
-    stemUpNW:   [-0.168,  0.14],
-    stemDownSW: [-0.168, -0.14],
+    stemUpNW:   [1.18, -0.14],
+    stemDownSW: [0.0,   0.14],
   },
 
   // Whole note (no stem, but anchor used for chord-spacing reference)
@@ -146,33 +154,35 @@ export function anchorToPx(
 }
 
 /**
- * Compute the stem attachment X pixel offset from notehead center.
- * For stem-up:   stemX = noteX + stemUpNW[0] * spatiumPx
- * For stem-down: stemX = noteX + stemDownSW[0] * spatiumPx
+ * Compute the stem attachment X pixel offset from the notehead LEFT EDGE (noteX).
+ * Returns pixel delta to add to noteX.
  *
- * Standard value: −0.168sp → left side of notehead (MuseScore default)
+ * Bravura:
+ *   up-stem:   stemUpNW.x = 1.18sp → noteX + 1.18*sp (right edge of notehead)
+ *   down-stem: stemDownSW.x = 0.0  → noteX + 0.0     (left edge of notehead)
  */
 export function stemAttachX(glyphName: string, stemUp: boolean, spatiumPx: number): number {
   const anchor = getNoteheadAnchor(glyphName)
-  const [dx] = stemUp
-    ? anchorToPx(anchor.stemUpNW ?? [-0.168, 0.168], spatiumPx)
-    : anchorToPx(anchor.stemDownSW ?? [-0.168, -0.168], spatiumPx)
-  // In Bravura, stem is on the LEFT side of the notehead for both up and down
-  // stemUpNW x = -0.168sp → noteX - 0.168sp*spatiumPx → left edge
-  return dx
+  const x = stemUp
+    ? (anchor.stemUpNW   ?? [1.18, -0.168])[0]
+    : (anchor.stemDownSW ?? [0.0,   0.168])[0]
+  return x * spatiumPx
 }
 
 /**
- * Compute the stem attachment Y pixel offset from notehead center.
- * SMuFL y is inverted (y-up → y-down in screen coords).
+ * Compute the stem attachment Y pixel offset from the notehead CENTER (noteY).
+ * Returns pixel delta (positive = downward in screen coords).
  *
- * For stem-up:   stemStartY = noteY + stemUpNW.dy   (dy is negative → moves up)
- * For stem-down: stemStartY = noteY + stemDownSW.dy (dy is positive → moves down)
+ * Bravura:
+ *   up-stem:   stemUpNW.y = -0.168 (SMuFL y-up) → screen: +0.168sp (below center)
+ *   down-stem: stemDownSW.y = 0.168 (SMuFL y-up) → screen: -0.168sp (above center)
+ *
+ * anchorToPx negates y to convert SMuFL y-up → screen y-down.
  */
 export function stemAttachY(glyphName: string, stemUp: boolean, spatiumPx: number): number {
   const anchor = getNoteheadAnchor(glyphName)
   const [, dy] = stemUp
-    ? anchorToPx(anchor.stemUpNW ?? [-0.168, 0.168], spatiumPx)
-    : anchorToPx(anchor.stemDownSW ?? [-0.168, -0.168], spatiumPx)
+    ? anchorToPx(anchor.stemUpNW   ?? [1.18, -0.168], spatiumPx)
+    : anchorToPx(anchor.stemDownSW ?? [0.0,   0.168], spatiumPx)
   return dy
 }

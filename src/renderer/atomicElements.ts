@@ -252,11 +252,13 @@ export function layoutStem(
 ): StemLayout {
   const glyphName = noteheadType === 'half' ? 'noteheadHalf' : 'noteheadBlack'
 
-  // Attachment point on notehead (from Bravura anchor metadata)
+  // stemAttachX returns offset from LEFT EDGE of notehead.
+  // In atomicElements, noteX is the CENTER → convert to left edge first.
+  const noteLeftEdge = noteX - NOTEHEAD_RX_SP * spatiumPx
   const attachDx = stemAttachX(glyphName, stemUp, spatiumPx)
   const attachDy = stemAttachY(glyphName, stemUp, spatiumPx)
 
-  const stemX = noteX + attachDx
+  const stemX = noteLeftEdge + attachDx
 
   // Stem length
   const extraSp = hasFlag ? STEM_FLAG_EXTRA_SP : 0

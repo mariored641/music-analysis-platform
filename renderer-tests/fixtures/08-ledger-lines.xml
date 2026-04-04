@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 4.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">
+<score-partwise version="4.0">
+  <work><work-title>Test 08: Ledger Lines</work-title></work>
+  <part-list><score-part id="P1"><part-name print-object="no">Piano</part-name></score-part></part-list>
+  <part id="P1">
+    <!-- Measure 1: high notes above staff (1, 2, 3 ledger lines above) -->
+    <measure number="1">
+      <attributes>
+        <divisions>4</divisions>
+        <key><fifths>0</fifths><mode>major</mode></key>
+        <time><beats>4</beats><beat-type>4</beat-type></time>
+        <clef><sign>G</sign><line>2</line></clef>
+      </attributes>
+      <!-- C6 = 1 ledger line above, E6 = 2 above, G6 = 3 above -->
+      <note><pitch><step>C</step><octave>6</octave></pitch><duration>4</duration><type>quarter</type></note>
+      <note><pitch><step>D</step><octave>6</octave></pitch><duration>4</duration><type>quarter</type></note>
+      <note><pitch><step>E</step><octave>6</octave></pitch><duration>4</duration><type>quarter</type></note>
+      <note><pitch><step>G</step><octave>6</octave></pitch><duration>4</duration><type>quarter</type></note>
+    </measure>
+    <!-- Measure 2: low notes below staff (1, 2, 3 ledger lines below) -->
+    <measure number="2">
+      <!-- B3 = 1 below, G3 = 2 below, E3 = 3 below, C3 = 3 below -->
+      <note><pitch><step>B</step><octave>3</octave></pitch><duration>4</duration><type>quarter</type></note>
+      <note><pitch><step>G</step><octave>3</octave></pitch><duration>4</duration><type>quarter</type></note>
+      <note><pitch><step>E</step><octave>3</octave></pitch><duration>4</duration><type>quarter</type></note>
+      <note><pitch><step>C</step><octave>3</octave></pitch><duration>4</duration><type>quarter</type></note>
+    </measure>
+    <!-- Measure 3: middle C on ledger line -->
+    <measure number="3">
+      <note><pitch><step>C</step><octave>4</octave></pitch><duration>4</duration><type>quarter</type></note>
+      <note><pitch><step>D</step><octave>4</octave></pitch><duration>4</duration><type>quarter</type></note>
+      <note><pitch><step>E</step><octave>4</octave></pitch><duration>4</duration><type>quarter</type></note>
+      <note><pitch><step>C</step><octave>4</octave></pitch><duration>4</duration><type>quarter</type></note>
+    </measure>
+    <!-- Measure 4: extreme range (to test multiple ledger lines) -->
+    <measure number="4">
+      <note><pitch><step>A</step><octave>6</octave></pitch><duration>4</duration><type>quarter</type></note>
+      <note><pitch><step>C</step><octave>4</octave></pitch><duration>4</duration><type>quarter</type></note>
+      <note><pitch><step>A</step><octave>6</octave></pitch><duration>4</duration><type>quarter</type></note>
+      <note><pitch><step>C</step><octave>3</octave></pitch><duration>4</duration><type>quarter</type></note>
+    </measure>
+    <measure number="5">
+      <barline location="right"><bar-style>light-heavy</bar-style></barline>
+    </measure>
+  </part>
+</score-partwise>

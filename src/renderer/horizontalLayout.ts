@@ -26,14 +26,17 @@ export const DEFAULT_RENDER_OPTIONS: Required<RenderOptions> = {
   // A4: MuseScore defines as 8.27 × 11.69 inches (mscore/papersize.cpp)
   //   → width  = ceil(8.27  × 360) = ceil(2977.2) = 2978 px
   //   → height = ceil(11.69 × 360) = ceil(4208.4) = 4209 px
-  // Margins: 15mm = 15/25.4 × 360 = 213 units
+  // Margins: 15mm = 15/25.4 × 360 = 212.598... units
+  // From MuseScore: src/engraving/libmscore/page.cpp:585-586
+  //   double Page::tm() const { return style(Sid::pageOddTopMargin) * DPI; }
+  //   = (15.0 / 25.4) * 360 = 212.5984...
   pageWidth:       2978,
   pageHeight:      4209,
   spatium:         24.8,   // 1 sp = 24.8 px (= 1.75mm at 360dpi) — MuseScore default
-  marginTop:        213,   // 15mm at 360dpi
-  marginBottom:     213,
-  marginLeft:       213,
-  marginRight:      213,
+  marginTop:      212.6,   // From page.cpp: (15.0/25.4)*360 = 212.598 (not rounded 213)
+  marginBottom:   212.6,
+  marginLeft:     212.6,
+  marginRight:    212.6,
   staffSpacingSp:   6.0,   // between staves in a grand staff
   systemSpacingSp:  9.5,   // empirically matches webmscore output (minSystemDistance=8.5 + page stretch ≈ +1sp)
 }
@@ -66,8 +69,12 @@ const MIN_MEASURE_WIDTH_SP = 2.0
 /** Padding from opening barline to clef left edge (Sid::clefLeftMargin = 0.75sp) */
 export const CLEF_LEFT_MARGIN_SP    = 0.75
 
-/** G-clef glyph right edge in staff-spaces (symBbox(gClef).right ≈ 1.028sp in Bravura/Leland) */
-export const CLEF_GLYPH_WIDTH_SP    = 1.0
+/** G-clef glyph right edge in staff-spaces.
+ * From Leland.otf (fonttools BoundsPen): gClef xMax = 2.560sp
+ * C++: clef.cpp:217 → RectF r(symBbox(symId)); right() = glyph bbox right.
+ * Our renderer (and webmscore reference) uses Leland → use Leland gClef.xMax.
+ */
+export const CLEF_GLYPH_WIDTH_SP    = 2.560
 
 /** Gap from clef right edge to key-sig start (Sid::clefKeyDistance = 1.0sp) */
 export const CLEF_KEY_DIST_SP       = 1.0
@@ -75,17 +82,33 @@ export const CLEF_KEY_DIST_SP       = 1.0
 /** Gap from clef right edge to time-sig left edge when no key sig (Sid::clefTimesigDistance = 1.0sp) */
 export const CLEF_TIMESIG_DIST_SP   = 1.0
 
-/** Per-accidental stride in key signature (symWidth + Sid::keysigAccidentalDistance ≈ 0.56+0.3=0.86 sharp / 0.64+0.3=0.94 flat; avg 0.9sp) */
-export const KEY_ACC_STRIDE_SP      = 0.9
+/** Per-accidental stride in key signature.
+ * From Leland.otf (fonttools): accidentalFlat.xMax = 0.812sp, accidentalSharp.xMax = 0.976sp.
+ * Flat stride ≈ flat.xMax (no inter-accidental gap, consistent with Bravura where 0.904→0.9sp).
+ * Using 0.812sp (flat) as the universal stride — sharps are slightly wider but keys are rarer.
+ * TODO: differentiate flat vs sharp stride for exact keysig width.
+ */
+export const KEY_ACC_STRIDE_SP      = 0.812
 
 /** Gap from key-sig right edge to time-sig left edge (Sid::keyTimesigDistance = 1.0sp) */
 export const KEY_TIMESIG_DIST_SP    = 1.0
 
-/** Time-signature digit glyph width in staff-spaces (SMuFL timeSig4 bbox width ≈ 1.18sp) */
-export const TIMESIG_GLYPH_WIDTH_SP = 1.18
+/** Time-signature digit glyph width in staff-spaces.
+ * From Leland.otf (fonttools BoundsPen): timeSig4 xMax = 1.768sp
+ * Used for header width calculation (no SYS_HDR_TIMESIG added) and time sig center in SVG.
+ */
+export const TIMESIG_GLYPH_WIDTH_SP = 1.768
 
 /** Minimum gap from time-sig right edge to first note (Sid::systemHeaderTimeSigDistance = 2.0sp) */
 export const SYS_HDR_TIMESIG_SP     = 2.0
+
+/**
+ * First-system indent in staff-spaces.
+ * From MuseScore: src/engraving/style/styledef.cpp:449
+ *   Sid::firstSystemIndentationValue = Spatium(5.0)
+ * Applied to sysIdx === 0 only. Shifts system x right by 5sp, reducing usable width.
+ */
+export const FIRST_SYSTEM_INDENT_SP = 5.0
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public output types
@@ -205,13 +228,20 @@ export function computeHorizontalLayout(
   // Layout order: barline | clefLeftMargin | gClef | (clefKeyDist | keySig | keyTimesigDist)
   //                        | clefTimesigDist | timeSig | systemHeaderTimeSigDist | firstNote
   function computeHeaderWidth(fifths: number): number {
+    // C++: measure.cpp — system header width = clef + key + timeSig extents only.
+    // The gap from timeSig right to the first note is handled by firstNotePad
+    // (BAR_NOTE_DIST_SP), NOT by SYS_HDR_TIMESIG_SP here. Including both would
+    // double-count and push notes ~2sp too far right.
+    // Verified empirically: reference first note at 7.42sp from system start =
+    //   (0.75 + 2.560 + 1.0 + 1.768) + 1.3 = 7.378sp ≈ 7.42sp ✓
     const hasFifths     = Math.abs(fifths) > 0
     const keySigWidthSp = Math.abs(fifths) * KEY_ACC_STRIDE_SP
     const gapAfterClef  = hasFifths
       ? CLEF_KEY_DIST_SP + keySigWidthSp + KEY_TIMESIG_DIST_SP
       : CLEF_TIMESIG_DIST_SP
     return (CLEF_LEFT_MARGIN_SP + CLEF_GLYPH_WIDTH_SP + gapAfterClef
-      + TIMESIG_GLYPH_WIDTH_SP + SYS_HDR_TIMESIG_SP) * sp
+      + TIMESIG_GLYPH_WIDTH_SP) * sp
+    // Note: SYS_HDR_TIMESIG_SP is NOT added here — firstNotePad provides that gap.
   }
 
   // Use initial key for greedy break estimate (good enough)
@@ -219,6 +249,12 @@ export function computeHorizontalLayout(
 
   // ── 3. Usable width ───────────────────────────────────────────────────────
   const usableWidth = opts.pageWidth - opts.marginLeft - opts.marginRight
+
+  // First-system indent reduces available width for system 0 only.
+  // From MuseScore: src/engraving/style/styledef.cpp:449
+  //   Sid::firstSystemIndentationValue = Spatium(5.0)
+  const firstSystemIndentPx  = FIRST_SYSTEM_INDENT_SP * sp
+  const firstSystemUsableWidth = usableWidth - firstSystemIndentPx
 
   // ── 4. Initial stretch estimate using GLOBAL min duration (matches webmscore
   //    behaviour: all measures stretched as if they're in the same system with
@@ -228,7 +264,7 @@ export function computeHorizontalLayout(
   applySystemStretch(allMeasureNums, workData, sp)
 
   // ── 5. Greedy system breaking ─────────────────────────────────────────────
-  const systemGroups = greedyBreak(workData, usableWidth, headerWidth)
+  const systemGroups = greedyBreak(workData, usableWidth, headerWidth, firstSystemUsableWidth)
 
   // ── 5. Rough page height estimate (for page breaking) ─────────────────────
   //  single-staff system: staffHeight (4 sp) + systemSpacing
@@ -261,13 +297,20 @@ export function computeHorizontalLayout(
     const sysState = measureStartState[firstMeasureIdx]
     const sysHeaderWidth = computeHeaderWidth(sysState.fifths)
 
+    // From MuseScore: src/engraving/style/styledef.cpp:449
+    //   Sid::firstSystemIndentationValue = Spatium(5.0)
+    // System 0 starts further right, and its usable width is smaller.
+    const isFirstSystem  = sysIdx === 0
+    const sysX           = opts.marginLeft + (isFirstSystem ? firstSystemIndentPx : 0)
+    const sysUsableWidth = isFirstSystem ? firstSystemUsableWidth : usableWidth
+
     const system: HLayoutSystem = {
       systemIndex:     sysIdx,
       pageIndex:       pageIdx,
       measureNums:     mNums,
-      x:               opts.marginLeft,
+      x:               sysX,
       y:               0,
-      width:           usableWidth,
+      width:           sysUsableWidth,
       headerWidth:     sysHeaderWidth,
       currentFifths:   sysState.fifths,
       currentBeats:    sysState.beats,
@@ -279,7 +322,7 @@ export function computeHorizontalLayout(
     // Stretch system → assign final widths + x-positions
     placeSystem(
       system, mNums, workData, extMeasures,
-      usableWidth, sysHeaderWidth, opts,
+      sysUsableWidth, sysHeaderWidth, opts,
       measureMap, noteXMap,
     )
   })
@@ -445,9 +488,10 @@ function snapBeat(beat: number): number {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function greedyBreak(
-  workData: MeasureWork[],
-  usableWidth: number,
-  headerWidth: number,
+  workData:           MeasureWork[],
+  usableWidth:        number,
+  headerWidth:        number,
+  firstSystemWidth:   number,   // usableWidth - firstSystemIndent (smaller for system 0)
 ): number[][] {
   const systems: number[][] = []
   let current: number[]    = []
@@ -456,7 +500,9 @@ function greedyBreak(
   for (const md of workData) {
     // Use rawWidth (actual spacing) for line-breaking — minWidth enforced later in placeSystem
     const mw = md.rawWidth
-    if (current.length > 0 && currentWidth + mw > usableWidth) {
+    // First system uses firstSystemWidth; subsequent systems use usableWidth
+    const maxW = systems.length === 0 ? firstSystemWidth : usableWidth
+    if (current.length > 0 && currentWidth + mw > maxW) {
       // Close the current system, start a new one
       systems.push(current)
       current      = [md.num]
@@ -490,20 +536,23 @@ function placeSystem(
 
   // Total minimum note content across this system's measures
   const totalMinWidth      = mNums.reduce((s, n) => s + workData[n - 1].minWidth, 0)
-  const totalNoteContent   = mNums.reduce((s, n) => s + workData[n - 1].totalBaseNoteWidth, 0)
+  // MuseScore spring model: each ChordRest segment has the same preTension (= NOTE_BASE_WIDTH_SP),
+  // so extra space is distributed proportionally to the NUMBER of segments, not their stretched width.
+  // C++ ref: layoutsystem.cpp justifySystem() — springConst=1/stretch, preTension=width/stretch=base
+  const totalSegments      = mNums.reduce((s, n) => s + workData[n - 1].segments.length, 0)
 
   // Slack to distribute (§2.5)
   const slack = usableWidth - headerWidth - totalMinWidth
 
-  let measureX = opts.marginLeft + headerWidth
+  let measureX = system.x + headerWidth
 
   for (const measureNum of mNums) {
     const md  = workData[measureNum - 1]
     const ext = extMeasures[measureNum - 1]
 
-    // Extra width for this measure, proportional to its note content
-    const extra = totalNoteContent > 0
-      ? slack * (md.totalBaseNoteWidth / totalNoteContent)
+    // Extra width for this measure, proportional to its ChordRest segment count (spring model)
+    const extra = totalSegments > 0
+      ? slack * (md.segments.length / totalSegments)
       : slack / mNums.length
 
     // Scale segments proportionally so that their sum fills the extra note area
