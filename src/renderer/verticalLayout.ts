@@ -64,6 +64,8 @@ import type {
   AccidentalType,
   RenderOptions,
 } from './types'
+import { Skyline } from './engine/libmscore/Skyline'
+import { Shape } from './engine/libmscore/Shape'
 
 // ─── Pitch → staff-line constants ────────────────────────────────────────────
 
@@ -1077,14 +1079,44 @@ export function computeVerticalLayout(
       // ── Beams ───────────────────────────────────────────────────
       const beams = buildBeams(noteList, extMeasure.notes, beamThickness, beamGap, sp)
 
-      // ── Chord symbols ──────────────────────────────────────────
-      const chordY   = primaryStaffTop - sp * 2.2  // above top staff line
+      // ── Chord symbols (Skyline-aware placement) ─────────────────
+      // Build skyline of note shapes in this measure for collision detection
+      const measureSkyline = new Skyline()
+      const noteShape = new Shape()
+      for (const rn of noteList) {
+        if (rn.isRest) continue
+        // Add notehead bbox
+        const nhw = noteheadWidth * 0.5
+        const nhh = halfSp
+        noteShape.add({ x: rn.x - nhw, y: rn.y - nhh, width: nhw * 2, height: nhh * 2 })
+        // Add stem extent
+        if (rn.hasStem) {
+          const stemTop = Math.min(rn.stemYTop, rn.stemYBottom)
+          const stemBot = Math.max(rn.stemYTop, rn.stemYBottom)
+          noteShape.add({ x: rn.stemX - 0.5, y: stemTop, width: 1, height: stemBot - stemTop })
+        }
+        // Add accidental
+        if (rn.accidental && rn.accidentalX != null) {
+          const accW = 1.0 * sp
+          const accH = 2.5 * sp
+          noteShape.add({ x: rn.accidentalX, y: rn.y - accH / 2, width: accW, height: accH })
+        }
+      }
+      measureSkyline.addShape(noteShape)
+
+      // Base chord symbol y: above staff, with skyline adjustment if notes extend higher
+      const baseChordY = primaryStaffTop - sp * 2.2
+      // Minimum gap between chord symbol bottom and nearest note
+      const chordGap = sp * 0.8
+      // Chord symbol approximate height
+      const chordHeight = sp * 1.5
+
       const chordSymbols: RenderedChordSymbol[] = extMeasure.harmonies.map(h => ({
         measureNum: h.measureNum,
         beat:       h.beat,
         x:          hLayout.noteX.get(`note-m${h.measureNum}b${Math.round(h.beat * 100)}-stub`)
                     ?? (hMeasure.x + hMeasure.width * ((h.beat - 1) / score.metadata.beats)),
-        y:          chordY,
+        y:          baseChordY,
         text:       h.label,
         svgId:      `chord-m${h.measureNum}b${Math.round(h.beat * 100)}`,
       }))
@@ -1098,6 +1130,27 @@ export function computeVerticalLayout(
         const beatKey = Math.round(cs.beat * 100)
         const x = beatToX.get(beatKey)
         if (x !== undefined) cs.x = x
+      }
+
+      // Skyline collision adjustment: push chord symbols up if they collide with notes
+      for (const cs of chordSymbols) {
+        const csWidth = cs.text.length * sp * 0.6
+        const csShape = new Shape({
+          x: cs.x, y: cs.y - chordHeight, width: csWidth, height: chordHeight,
+        })
+        // Check collision with note skyline
+        const dist = noteShape.minVerticalDistance(csShape)
+        if (dist > -chordGap) {
+          // Collision: push chord symbol up by the overlap amount + gap
+          cs.y -= (dist + chordGap)
+        }
+      }
+
+      // Align chord symbols to consistent row within the system (lowest y wins)
+      // This prevents chord symbols from jumping up/down between measures
+      if (chordSymbols.length > 0) {
+        const systemChordY = Math.min(...chordSymbols.map(cs => cs.y))
+        for (const cs of chordSymbols) cs.y = systemChordY
       }
 
       // ── Barlines ───────────────────────────────────────────────

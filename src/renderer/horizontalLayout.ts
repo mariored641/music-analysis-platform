@@ -236,6 +236,7 @@ interface SegWork {
   duration:  number   // in beats
   stretch:   number   // ≥ 1.0
   baseWidth: number   // px (NOTE_BASE_WIDTH_SP * stretch * sp)
+  hasAccidental: boolean  // whether notes at this beat have accidentals
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -428,7 +429,12 @@ function buildMeasureWork(
   const segs: SegWork[] = sortedBeats.map((beat, i) => {
     const nextBeat = i + 1 < sortedBeats.length ? sortedBeats[i + 1] : measureEndBeat
     const duration = nextBeat - beat
-    return { beat, duration, stretch: 1.0, baseWidth: 0 }
+    // Check if any note at this beat has an accidental
+    const hasAcc = notes.some(
+      n => !n.isGrace && n.duration > 0 && Math.abs(snapBeat(n.beat) - beat) < 0.01
+        && n.showAccidental,
+    )
+    return { beat, duration, stretch: 1.0, baseWidth: 0, hasAccidental: hasAcc }
   })
 
   // Does the first note in this measure carry an accidental?
@@ -495,9 +501,17 @@ function applySystemStretch(
 
   for (const mNum of systemMNums) {
     const md = workData[mNum - 1]
-    for (const seg of md.segments) {
+    for (let si = 0; si < md.segments.length; si++) {
+      const seg = md.segments[si]
       seg.stretch   = computeStretch(seg.duration, globalMinDuration)
       seg.baseWidth = seg.stretch * NOTE_BASE_WIDTH_SP * sp
+      // Add extra width when the NEXT segment has an accidental — the accidental
+      // extends left of the notehead and needs space in the preceding segment.
+      // Accidental width ≈ 1.0sp, gap ≈ 0.25sp, minus what's already in NOTE_BASE_WIDTH_SP.
+      const nextSeg = md.segments[si + 1]
+      if (nextSeg?.hasAccidental) {
+        seg.baseWidth += 0.7 * sp  // extra room for the next note's accidental
+      }
     }
     md.totalBaseNoteWidth = md.segments.reduce((s, seg) => s + seg.baseWidth, 0)
     md.rawWidth = md.firstNotePad + md.totalBaseNoteWidth + TRAILING_SP * sp

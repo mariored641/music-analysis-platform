@@ -1,0 +1,85 @@
+[
+  {
+    "caseId": "DONNALEE",
+    "timestamp": "2026-04-05T07:39:51.320Z",
+    "spatiumPx": 24.8,
+    "totalTests": 12,
+    "passed": 12,
+    "failed": 0,
+    "results": [
+      {
+        "name": "noNoteOverlaps",
+        "passed": true,
+        "violations": [],
+        "summary": "0 collisions"
+      },
+      {
+        "name": "noAccidentalOverlaps",
+        "passed": true,
+        "violations": [],
+        "summary": "0 collisions"
+      },
+      {
+        "name": "noChordSymbolOverlaps",
+        "passed": true,
+        "violations": [],
+        "summary": "0 collisions"
+      },
+      {
+        "name": "noBarlineNoteOverlaps",
+        "passed": true,
+        "violations": [],
+        "summary": "0 issues"
+      },
+      {
+        "name": "minimumNoteSpacing",
+        "passed": true,
+        "violations": [],
+        "summary": "all gaps OK"
+      },
+      {
+        "name": "stemLengthRange",
+        "passed": true,
+        "violations": [],
+        "summary": "all stems OK"
+      },
+      {
+        "name": "beamAngleRange",
+        "passed": true,
+        "violations": [],
+        "summary": "all beams OK"
+      },
+      {
+        "name": "evenSpacingScore",
+        "passed": true,
+        "violations": [],
+        "summary": "spacing even"
+      },
+      {
+        "name": "allNotesHaveHeads",
+        "passed": true,
+        "violations": [],
+        "summary": "all notes have heads"
+      },
+      {
+        "name": "stemsConnectedToNotes",
+        "passed": true,
+        "violations": [],
+        "summary": "all stems connected"
+      },
+      {
+        "name": "beamGroupConsistency",
+        "passed": true,
+        "violations": [],
+        "summary": "all beams consistent"
+      },
+      {
+        "name": "chordSymbolPlacement",
+        "passed": true,
+        "violations": [],
+        "summary": "all chords above staff"
+      }
+    ],
+    "allViolations": []
+  }
+]
