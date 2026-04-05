@@ -144,6 +144,8 @@ export interface RenderedNote {
 
   // ── Visual properties ────────────────────────
   noteheadType: NoteheadType
+  /** Original MusicXML duration type — 'whole'|'half'|'quarter'|'eighth'|'16th'|'32nd'|'64th' */
+  durationType: string
   stemUp: boolean
   hasStem: boolean          // whole notes have no stem
   stemX: number

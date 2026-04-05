@@ -592,36 +592,68 @@ function placeSystem(
 
   // Total minimum note content across this system's measures
   const totalMinWidth      = mNums.reduce((s, n) => s + workData[n - 1].minWidth, 0)
-  // MuseScore spring model: each ChordRest segment has the same preTension (= NOTE_BASE_WIDTH_SP),
-  // so extra space is distributed proportionally to the NUMBER of segments, not their stretched width.
-  // C++ ref: layoutsystem.cpp justifySystem() — springConst=1/stretch, preTension=width/stretch=base
-  const totalSegments      = mNums.reduce((s, n) => s + workData[n - 1].segments.length, 0)
 
   // Slack to distribute (§2.5)
   const slack = usableWidth - headerWidth - totalMinWidth
+
+  // ── C++ spring model (segment.cpp:2785 stretchSegmentsToWidth) ──
+  // Collect all ChordRest segments across the system as springs
+  interface Spring { springConst: number; width: number; preTension: number; mIdx: number; sIdx: number }
+  const springs: Spring[] = []
+  for (const mn of mNums) {
+    const md = workData[mn - 1]
+    for (let si = 0; si < md.segments.length; si++) {
+      const seg = md.segments[si]
+      const springConst = 1 / seg.stretch            // C++: 1 / s.stretch()
+      const width = seg.baseWidth                     // stretchable width
+      const preTension = width * springConst          // C++: width * springConst
+      springs.push({ springConst, width, preTension, mIdx: mn - 1, sIdx: si })
+    }
+  }
+
+  // Progressive spring activation (C++ stretchSegmentsToWidth)
+  // Sort by preTension ascending — stiffer springs activate last
+  const sorted = [...springs].sort((a, b) => a.preTension - b.preTension)
+  let inverseSpringConst = 0
+  let force = 0
+  let accWidth = 0
+  let activatedCount = 0
+  if (slack > 0 && sorted.length > 0) {
+    for (const spring of sorted) {
+      inverseSpringConst += 1 / spring.springConst
+      accWidth += spring.width
+      force = (accWidth + slack) / inverseSpringConst  // C++: width / inverseSpringConst (width accumulates)
+      activatedCount++
+      // Stop early if next spring's preTension exceeds the force
+      const nextIdx = activatedCount
+      if (nextIdx < sorted.length && force < sorted[nextIdx].preTension) break
+    }
+    // Apply new widths: newWidth = force / springConst = force * stretch
+    for (const spring of springs) {
+      if (force > spring.preTension) {
+        spring.width = force / spring.springConst
+      }
+    }
+  }
+
+  // Build a lookup: (mIdx, sIdx) → final spring width
+  const springWidths = new Map<string, number>()
+  for (const s of springs) springWidths.set(`${s.mIdx}:${s.sIdx}`, s.width)
 
   let measureX = system.x + headerWidth
 
   for (const measureNum of mNums) {
     const md  = workData[measureNum - 1]
     const ext = extMeasures[measureNum - 1]
-
-    // Extra width for this measure, proportional to its ChordRest segment count (spring model)
-    const extra = totalSegments > 0
-      ? slack * (md.segments.length / totalSegments)
-      : slack / mNums.length
-
-    // Scale segments proportionally so that their sum fills the extra note area
-    const finalNoteArea = md.totalBaseNoteWidth + extra
-    const noteScale     = md.totalBaseNoteWidth > 0
-      ? finalNoteArea / md.totalBaseNoteWidth
-      : 1
+    const mIdx = measureNum - 1
 
     // Build final segments with page-relative x-coordinates
     const segments: HLayoutSegment[] = []
     let segX = measureX + md.firstNotePad
-    for (const raw of md.segments) {
-      const finalW = raw.baseWidth * noteScale
+    let finalNoteArea = 0
+    for (let si = 0; si < md.segments.length; si++) {
+      const raw = md.segments[si]
+      const finalW = springWidths.get(`${mIdx}:${si}`) ?? raw.baseWidth
       segments.push({
         beat:     raw.beat,
         duration: raw.duration,
@@ -630,6 +662,7 @@ function placeSystem(
         width:    finalW,
       })
       segX += finalW
+      finalNoteArea += finalW
     }
 
     const finalMeasureWidth = md.firstNotePad + finalNoteArea + TRAILING_SP * sp

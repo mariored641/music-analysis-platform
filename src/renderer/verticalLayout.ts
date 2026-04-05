@@ -21,6 +21,12 @@ import type {
   ExtractedMeasure,
   ExtractedNote,
 } from './extractorTypes'
+import {
+  layoutAccidentals,
+  accidentalXForColumn,
+  maxAccWidthSp,
+  type ChordNote,
+} from './chordLayout'
 import type { HorizontalLayout, HLayoutMeasure } from './horizontalLayout'
 import {
   DEFAULT_RENDER_OPTIONS,
@@ -124,6 +130,137 @@ function noteheadFromType(type: string): NoteheadType {
   if (type === 'whole')  return 'whole'
   if (type === 'half')   return 'half'
   return 'quarter'  // covers eighth, 16th, 32nd, 64th
+}
+
+// ─── Chord grouping: fix stem direction & span for multi-note chords ─────────
+// C++ chord.cpp:1119-1136 — computeAutoStemDirection (pair-wise outer→inner)
+
+function computeAutoStemDirection(staffLines: number[]): boolean {
+  // Returns true for stem-up.
+  // staffLines: 0 = top line, 4 = middle, 8 = bottom.
+  // Distance from middle: staffLine - 4 (positive = below = stem up).
+  const distances = staffLines.map(sl => sl - 4) // >0 means below middle
+  // Sort distances by absolute value descending (outermost first)
+  // But C++ uses left/right pointers on sorted-by-pitch array.
+  // Notes are sorted by staffLine ascending (highest pitch first = lowest staffLine).
+  distances.sort((a, b) => a - b) // ascending: most negative (highest) first
+  let left = 0
+  let right = distances.length - 1
+  while (left <= right) {
+    const net = distances[left] + distances[right]
+    if (net === 0) { left++; right--; continue }
+    // net > 0 means lower notes dominate → stem up
+    return net > 0
+  }
+  return true // symmetric → default up
+}
+
+function fixChordGrouping(
+  noteList: RenderedNote[],
+  extNotes: ExtractedNote[],
+  stemLength: number,
+  noteheadRy: number,
+  noteheadWidth: number,
+  sp: number,
+): void {
+  // Group notes by beat+voice (chord members share the same beat)
+  const groups = new Map<string, number[]>() // key → indices in noteList
+  for (let i = 0; i < noteList.length; i++) {
+    const rn = noteList[i]
+    if (rn.isRest) continue
+    const key = `${rn.beat.toFixed(4)}_v${rn.voice}`
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key)!.push(i)
+  }
+
+  for (const indices of groups.values()) {
+    if (indices.length <= 1) continue // single note, no chord grouping needed
+
+    // Determine shared stem direction (C++ computeAutoStemDirection)
+    const staffLines = indices.map(i => noteList[i].staffLine)
+    const stemUp = computeAutoStemDirection(staffLines)
+
+    // Find outermost notes
+    const sortedByLine = [...indices].sort((a, b) => noteList[a].staffLine - noteList[b].staffLine)
+    const topIdx = sortedByLine[0]           // highest pitch (lowest staffLine)
+    const bottomIdx = sortedByLine[sortedByLine.length - 1] // lowest pitch
+
+    const topNote = noteList[topIdx]
+    const bottomNote = noteList[bottomIdx]
+
+    // Stem x position (same for all chord members)
+    const stemLWCorr = (0.10 / 2) * sp
+    const stemX = stemUp
+      ? bottomNote.x + noteheadWidth - stemLWCorr  // up: stem on right of lowest note
+      : topNote.x + stemLWCorr                     // down: stem on left of highest note
+
+    // Stem y span: from the note opposite the stem direction to beyond the other side
+    // C++ chord.cpp: stem starts at the note opposite the stem tip
+    // chordHeight (in quarter-spaces) + default stem length
+    const chordHeightQS = (bottomNote.staffLine - topNote.staffLine) * 2
+    const finalStemLen = (chordHeightQS / 4.0 * sp) + stemLength
+
+    let stemYTop: number, stemYBot: number
+    if (stemUp) {
+      // Stem goes up from bottomNote
+      stemYBot = bottomNote.y + noteheadRy
+      stemYTop = bottomNote.y + noteheadRy - finalStemLen
+    } else {
+      // Stem goes down from topNote
+      stemYTop = topNote.y - noteheadRy
+      stemYBot = topNote.y - noteheadRy + finalStemLen
+    }
+
+    // Apply to all chord members — only ONE renders the shared stem
+    const stemOwnerIdx = stemUp ? bottomIdx : topIdx // stem attaches to opposite-side note
+    for (const idx of indices) {
+      const rn = noteList[idx]
+      rn.stemUp = stemUp
+      rn.stemX = stemX
+      rn.stemYTop = stemYTop
+      rn.stemYBottom = stemYBot
+      // Only one note in the chord renders the stem line
+      if (idx !== stemOwnerIdx) rn.hasStem = false
+    }
+
+    // Handle 2nd intervals (notehead flip) — simplified version
+    // Sort notes by staffLine for cluster detection
+    for (let j = 0; j < sortedByLine.length - 1; j++) {
+      const a = noteList[sortedByLine[j]]
+      const b = noteList[sortedByLine[j + 1]]
+      const interval = b.staffLine - a.staffLine
+      if (interval <= 1) {
+        // Adjacent notes (unison or 2nd) — flip one notehead to the other side of stem
+        if (stemUp) {
+          // Up-stem: flip the HIGHER note (a) to the RIGHT of the stem
+          a.x = a.x + noteheadWidth
+        } else {
+          // Down-stem: flip the LOWER note (b) to the LEFT of the stem
+          b.x = b.x - noteheadWidth
+        }
+      }
+    }
+
+    // Accidental stacking for chord members (layoutChords3)
+    const chordNotes: ChordNote[] = indices.map(i => ({
+      staffLine: noteList[i].staffLine,
+      noteX: noteList[i].x,
+      stemUp: noteList[i].stemUp,
+      accidental: noteList[i].accidental,
+    }))
+    const hasAccidentals = chordNotes.some(cn => !!cn.accidental)
+    if (hasAccidentals) {
+      const slots = layoutAccidentals(chordNotes)
+      if (slots.length > 0) {
+        const accTypes = slots.map(s => s.accType)
+        const maxW = maxAccWidthSp(accTypes)
+        for (const slot of slots) {
+          const rn = noteList[indices[slot.noteIndex]]
+          rn.accidentalX = accidentalXForColumn(rn.x, slot.column, slot.accType, maxW, sp)
+        }
+      }
+    }
+  }
 }
 
 // ─── AccidentalType from AccidentalSign ──────────────────────────────────────
@@ -347,9 +484,45 @@ function buildBeams(
       if (segs.length) allSegments.push(segs)
     }
 
+    // ── Minimum stem length enforcement ──────────────────────────
+    // C++ beam.cpp:1192 — minStemLengths[] = {11,13,15,18,21,24,27,30} in quarter-spaces
+    // Indexed by beam count - 1. Shift entire beam away if any note too close.
+    const MIN_STEM_QS = [11, 13, 15, 18, 21, 24, 27, 30]
+    const minStemPx = (MIN_STEM_QS[Math.min(maxLevels, 8) - 1] ?? 11) * sp / 4
+
+    let beamShift = 0
+    for (const rn of gNotes) {
+      const beamAtNote = beamY(rn.stemX)
+      const noteEdge = stemUp ? (rn.y + (sp * 0.168)) : (rn.y - (sp * 0.168)) // noteheadRy
+      const currentStem = Math.abs(beamAtNote - noteEdge)
+      if (currentStem < minStemPx) {
+        const deficit = minStemPx - currentStem
+        beamShift = Math.max(beamShift, deficit)
+      }
+    }
+
+    if (beamShift > 0) {
+      const dir = stemUp ? -1 : 1 // shift beam away from noteheads
+      y1 += dir * beamShift
+      y2 += dir * beamShift
+    }
+
+    // Recompute beamY after shift
+    const beamYFinal = (x: number) => y1 + (y2 - y1) * (x - first.x) / dx
+
+    // Recompute segments with adjusted beam position
+    allSegments[0] = [
+      { x1: first.stemX, y1: beamYFinal(first.stemX), x2: last.stemX, y2: beamYFinal(last.stemX) },
+    ]
+    for (let level = 2; level <= maxLevels; level++) {
+      const levelOffset = (level - 1) * (beamThickness + beamGap)
+      const dir = stemUp ? 1 : -1
+      allSegments[level - 1] = buildSubBeams(gNotes, eNoteMap, level, beamYFinal, levelOffset * dir, sp)
+    }
+
     // Adjust stem tips for all beamed notes to sit on the primary beam
     for (const rn of gNotes) {
-      const beamMid = beamY(rn.stemX)
+      const beamMid = beamYFinal(rn.stemX)
       if (stemUp) {
         rn.stemYTop = beamMid
       } else {
@@ -454,16 +627,18 @@ function makeTieArc(
   // noteX = left edge; tie starts from right edge of note A, ends at left edge of note B
   const x1 = ax + noteheadWidth + tieGap
   const x2 = bx - tieGap
-  // y: start/end at the notehead edge in the tie direction
-  const yOff = above ? -noteheadRy * 0.5 : noteheadRy * 0.5
+  // C++ tie.cpp:975 — noteHeadOffset = 0.185sp from notehead top/bottom
+  const yOff = above ? -(sp * 0.185) : (sp * 0.185)
   const y1 = ay + yOff
   const y2 = by + yOff
-  // arc height: scales with span, capped at 0.8 sp, min 0.3 sp
-  const span   = Math.max(x2 - x1, sp)
-  const h      = Math.min(sp * 0.8, Math.max(sp * 0.3, span * 0.12))
+  // C++ tie.cpp:299-302 — shoulderH = tieWidthInSp * 0.4 * 0.38, clamped [0.4sp, 1.3sp]
+  const tieWidthInSp = Math.max(x2 - x1, sp) / sp
+  const h      = Math.min(sp * 1.3, Math.max(sp * 0.4, tieWidthInSp * 0.4 * 0.38 * sp))
   const arcH   = above ? -h : h
-  const spread = (x2 - x1) * 0.35
-  return { x1, y1, cx1: x1 + spread, cy1: y1 + arcH, cx2: x2 - spread, cy2: y2 + arcH, x2, y2 }
+  // C++ tie.cpp:306-307 — shoulderW = 0.6 → control points at 20% and 80% of width
+  const w = x2 - x1
+  const cx1off = (w - w * 0.6) * 0.5   // C++: bezier1X = (c - c * shoulderW) * .5
+  return { x1, y1, cx1: x1 + cx1off, cy1: y1 + arcH, cx2: x2 - cx1off, cy2: y2 + arcH, x2, y2 }
 }
 
 // ─── Ties (in-measure bezier arcs) ───────────────────────────────────────────
@@ -521,13 +696,31 @@ function buildCrossBarlineTies(
 
     const above = !a.stemUp
     const crossSystem = curr.systemIndex !== next.systemIndex
-    result.push({
-      fromNoteId:  a.noteId,
-      toNoteId:    b.noteId,
-      above,
-      crossSystem,
-      path: makeTieArc(a.x, a.y, b.x, b.y, above, noteheadWidth, noteheadRy, sp),
-    })
+
+    if (crossSystem) {
+      // Split into two half-arcs: one trailing off the right of system 1,
+      // one starting from the left of system 2.
+      const rightEdge = curr.x + curr.width  // right edge of current measure
+      const leftEdge  = next.x               // left edge of next measure
+      const halfArc1 = makeTieArc(a.x, a.y, rightEdge, a.y, above, noteheadWidth, noteheadRy, sp)
+      const halfArc2 = makeTieArc(leftEdge - noteheadWidth, b.y, b.x, b.y, above, noteheadWidth, noteheadRy, sp)
+      result.push({
+        fromNoteId:  a.noteId,
+        toNoteId:    b.noteId,
+        above,
+        crossSystem,
+        path: halfArc1,  // fallback: first half-arc
+        halfArcs: [halfArc1, halfArc2],
+      })
+    } else {
+      result.push({
+        fromNoteId:  a.noteId,
+        toNoteId:    b.noteId,
+        above,
+        crossSystem,
+        path: makeTieArc(a.x, a.y, b.x, b.y, above, noteheadWidth, noteheadRy, sp),
+      })
+    }
   }
 
   return result
@@ -853,6 +1046,7 @@ export function computeVerticalLayout(
           bbox:        makeDOMRect(bboxLeft, bboxTop, bboxRight - bboxLeft, bboxBottom - bboxTop),
           staffLine,
           noteheadType: nhType,
+          durationType: en.type,
           stemUp,
           hasStem,
           stemX,
@@ -874,6 +1068,9 @@ export function computeVerticalLayout(
           slurEnd:     en.slurStop,
         })
       }
+
+      // ── Chord grouping: fix stem direction & span for multi-note chords ──
+      fixChordGrouping(noteList, extMeasure.notes, stemLength, noteheadRy, noteheadWidth, sp)
 
       allRenderedNotes.push(...noteList)
 
@@ -933,8 +1130,11 @@ export function computeVerticalLayout(
         const last  = tnotes[tnotes.length - 1]
         const en    = extNoteMap.get(first.noteId)
         const num   = en?.tupletActual ?? 3
-        // Bracket above when stems go up (bracket sits above stem tips)
-        const above = first.stemUp
+        // C++ tuplet.cpp:232-249 — weighted voting: auto stems ±1, manual ±1000, bias +1
+        // We only have auto stems here, so this simplifies to majority + tie-break UP
+        let up = 1
+        for (const tn of tnotes) up += tn.stemUp ? 1 : -1
+        const above = up > 0
 
         const bracketY = above
           ? Math.min(...tnotes.map(n => n.stemYTop))    - sp * 1.2

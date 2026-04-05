@@ -314,7 +314,7 @@ function renderRest(rn: RenderedNote, sp: number): string {
     inner = `<text x="${n(rn.x)}" y="${n(staffTop + sp * 2)}" text-anchor="middle" font-family="${LELAND_FONT}" font-size="${n(fs)}" fill="${INK}">${lelandRestGlyph('half')}</text>`
   } else {
     // Quarter and shorter: anchor at center of staff
-    inner = `<text x="${n(rn.x)}" y="${n(staffTop + sp * 2)}" text-anchor="middle" font-family="${LELAND_FONT}" font-size="${n(fs)}" fill="${INK}">${lelandRestGlyph(rn.noteheadType)}</text>`
+    inner = `<text x="${n(rn.x)}" y="${n(staffTop + sp * 2)}" text-anchor="middle" font-family="${LELAND_FONT}" font-size="${n(fs)}" fill="${INK}">${lelandRestGlyph(rn.durationType)}</text>`
   }
 
   return `<g class="rest" id="${esc(rn.noteId)}" data-measure="${rn.measureNum}" data-beat="${rn.beat.toFixed(2)}">\n${inner}\n</g>`
@@ -370,7 +370,7 @@ function renderNote(rn: RenderedNote, sp: number): string {
 
   // Flag (only if not in a beam group)
   if (rn.hasStem && !rn.beamGroupId) {
-    const flagGlyph = lelandFlagGlyph(rn.noteheadType, rn.stemUp ?? true)
+    const flagGlyph = lelandFlagGlyph(rn.durationType, rn.stemUp ?? true)
     if (flagGlyph) {
       // Flag attaches at stem end (top for stem-up, bottom for stem-down)
       const flagY = rn.stemUp ? rn.stemYTop : rn.stemYBottom
@@ -437,7 +437,7 @@ function renderTuplet(t: RenderedTuplet, sp: number): string {
   const bw = ENGRAVING.tupletBracketThickness * sp
   if (t.bracket) {
     const { x1, y1, x2, hookHeight } = t.bracket
-    const dir  = t.above ? -1 : 1
+    const dir  = t.above ? 1 : -1
     const gapW = sp * 1.8
     const mid  = (x1 + x2) / 2
     parts.push(`<line x1="${n(x1)}" y1="${n(y1)}" x2="${n(mid - gapW / 2)}" y2="${n(y1)}" stroke="${INK}" stroke-width="${n(bw, 2)}"/>`)
@@ -457,28 +457,27 @@ function renderTuplet(t: RenderedTuplet, sp: number): string {
  * Inner arc: same control x-positions, slightly less curvature — creates
  * the tapered endpoints and thicker midpoint characteristic of engraved ties.
  */
-function renderTie(tie: RenderedTie, sp: number): string {
-  const { path, above } = tie
+function renderTieArc(path: import('./types').BezierArc, above: boolean, sp: number): string {
   const { x1, y1, cx1, cy1, cx2, cy2, x2, y2 } = path
-
-  // Midpoint thickness: 0.21sp (ENGRAVING.tieMidpointThickness)
   const midT = ENGRAVING.tieMidpointThickness * sp
-
-  // Inner arc is shifted toward the note by midT, making it less extreme
-  // "toward the note" means +y if above (arc goes upward, so inner is lower)
   const signInward = above ? 1 : -1
   const cy1i = cy1 + signInward * midT
   const cy2i = cy2 + signInward * midT
-
-  // Closed lune: outer arc forward, inner arc backward (reversed control points)
   const d = [
     `M ${n(x1)},${n(y1)}`,
     `C ${n(cx1)},${n(cy1)} ${n(cx2)},${n(cy2)} ${n(x2)},${n(y2)}`,
     `C ${n(cx2)},${n(cy2i)} ${n(cx1)},${n(cy1i)} ${n(x1)},${n(y1)}`,
     'Z',
   ].join(' ')
-
   return `<path class="tie" d="${d}" fill="${INK}" stroke="none"/>`
+}
+
+function renderTie(tie: RenderedTie, sp: number): string {
+  // Cross-system ties: render two separate half-arcs
+  if (tie.crossSystem && tie.halfArcs) {
+    return tie.halfArcs.map(arc => renderTieArc(arc, tie.above, sp)).join('\n')
+  }
+  return renderTieArc(tie.path, tie.above, sp)
 }
 
 // ─── Measure ──────────────────────────────────────────────────────────────────
