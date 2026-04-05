@@ -362,6 +362,7 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 | 5 | SVG renderer (Unicode glyphs) | ✅ נבנה — Checkpoint B **לא אושר** — 8 בעיות ויזואליות |
 | 5.5 | Bugfix Pass — pixel comparison vs webmscore | 🔄 בעבודה — 0/15 pass, ~99.1–99.8% match. תוקן: noteX=left-edge, noteheadWidth=1.3sp, stemX=right/left edge. **הגישה הנכונה: קרא C++ → תרגם TS.** WYSIWYG confirmed: L1↔L2 = 100% (0 CSS regressions). כל diff שנותר הוא logic bug בלבד. **תוקן: squeeze tolerance ב-collectSystems(), repeat-start direction (leftward from hMeasure.x). 12-barlines: 10,682px (ניסיון הסרת suppression → 11,296px → חזרנו). הבא: לחקור מה גורם ל-10,682px ב-12-barlines (note X positions, repeat-start dot coords).** |
 | 5.6 | Dual-layer testing + WYSIWYG fix | ✅ הושלם — `/app-test` route, `app-integration.spec.ts` (Layer 2), `compare-layers.ts`, font-guard + CSS isolation. 15/15 WYSIWYG match. |
+| 5.7 | Pipeline test framework — numeric comparison vs webmscore | ✅ הושלם — 214 tests, 117/214 pass (55%). A=48% B=31% C=73% D=92% E=72%. Stem attachment sign fix (C++ trace). |
 | 6 | אינטגרציה ב-MAP, הסרת Verovio | ⬜ **Checkpoint C** |
 | 7 | Classical full support (SATB, tuplets, voltas) | ⬜ |
 | 8 | Bravura glyphs | ⬜ |
@@ -381,11 +382,27 @@ npm run build
 
 # Push to GitHub (auto-deploys via Vercel)
 git add . && git commit -m "..." && git push origin master
+
+# Pipeline tests (native renderer vs webmscore)
+npm run test:r:pipeline          # all 214 tests
+npm run test:r:pipeline:h        # horizontal only (B-tests)
+npm run test:r:pipeline:v        # vertical only (C-tests)
+npm run test:r:gaps              # gap regression (E-tests)
+npx tsx renderer-tests/pipeline/run.ts --case=05-stems --verbose  # specific fixture
+npm run test:r:extract           # re-extract reference data (one fixture at a time due to WASM)
 ```
 
 Always test with DONNALEE.XML (click "♩ Donna Lee" button on empty state).
 
 **Important:** After HMR, if useEffect deps array changed size — do a full page reload (Ctrl+Shift+R). HMR breaks on deps array size changes in React.
+
+### Pipeline test system (renderer-tests/pipeline/)
+- **Reference data:** `renderer-tests/reference-data/*.ref.json` — extracted from webmscore WASM (measures, notes, stems, beams, barlines, staff lines)
+- **Extraction quirks:** Node.js 24 needs fetch/navigator/location polyfills for webmscore WASM. One fixture at a time (multi-score WASM corruption).
+- **Test categories:** A=extraction(12), B=horizontal(7), C=vertical(17), D=SVG(10), E=gaps(8) — 54 test definitions × 15 fixtures = 214 runs
+- **Key finding:** webmscore `measurePositions()` includes system header in measure 1 width/x. Our layout stores headerWidth separately.
+- **Stem fix applied:** attachment point sign was flipped (stemUpSE.y = -0.168sp ABOVE center, not +0.168sp below). C++ trace: stem.cpp:103-106.
+- **Remaining B5 drift:** ~8px/beat cumulative within measures. Root cause: spring model in `computeStretch()` vs C++ `Segment::computeWidth()`. Needs C++ trace.
 
 ---
 
