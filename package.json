@@ -17,7 +17,13 @@
     "test:r:layer2": "npx playwright test renderer-tests/app-integration.spec.ts",
     "test:r:compare-layers": "npx tsx renderer-tests/scripts/compare-layers.ts",
     "test:r:structural": "npx tsx renderer-tests/structural/runStructural.ts --all",
-    "test:r:structural:donnalee": "npx tsx renderer-tests/structural/runStructural.ts --donnalee --verbose"
+    "test:r:structural:donnalee": "npx tsx renderer-tests/structural/runStructural.ts --donnalee --verbose",
+    "test:r:extract": "npx tsx renderer-tests/scripts/extract-reference-data.ts",
+    "test:r:pipeline": "npx tsx renderer-tests/pipeline/run.ts --all",
+    "test:r:pipeline:h": "npx tsx renderer-tests/pipeline/run.ts --stage=B --all",
+    "test:r:pipeline:v": "npx tsx renderer-tests/pipeline/run.ts --stage=C --all",
+    "test:r:pipeline:verbose": "npx tsx renderer-tests/pipeline/run.ts --all --verbose",
+    "test:r:gaps": "npx tsx renderer-tests/pipeline/run.ts --gaps"
   },
   "dependencies": {
     "i18next": "^25.0.0",

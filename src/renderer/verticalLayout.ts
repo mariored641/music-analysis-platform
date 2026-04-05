@@ -999,8 +999,17 @@ export function computeVerticalLayout(
         const stemLWCorr = (0.10 / 2) * sp   // stem.cpp:120 — Sid::stemWidth=0.10sp, lineWidthMag()*0.5
         const stemX      = stemUp ? noteX + noteheadWidth - stemLWCorr : noteX + stemLWCorr
         const stemAttach = noteheadRy   // 0.168sp — distance from notehead center to stem attach edge
-        const stemYTop   = stemUp ? noteY + stemAttach - stemLength : noteY - stemAttach
-        const stemYBot   = stemUp ? noteY + stemAttach              : noteY - stemAttach + stemLength
+        // C++ stem.cpp:103-106: y1 = note->stemUpSE().y() [stem-up] or note->stemDownNW().y() [stem-down]
+        //   stemUpSE.y = -0.168sp in SMuFL = ABOVE center (MuseScore y-down: negative = up)
+        //   stemDownNW.y = +0.168sp in SMuFL = BELOW center (MuseScore y-down: positive = down)
+        // C++ stem.cpp:74: y2 = _up * (baseLength) where _up = -1 for stem-up, +1 for stem-down
+        //   stem-up tip:  noteY - stemLength (3.5sp above note center)
+        //   stem-down tip: noteY + stemLength (3.5sp below note center)
+        // Visible stem from base to tip:
+        //   stem-up:   base = noteY - stemAttach,  tip = noteY - stemLength
+        //   stem-down: base = noteY + stemAttach,  tip = noteY + stemLength
+        const stemYTop   = stemUp ? noteY - stemLength  : noteY + stemAttach
+        const stemYBot   = stemUp ? noteY - stemAttach  : noteY + stemLength
 
         // ── Accidental ─────────────────────────────────────────────
         let accidental: AccidentalType | undefined
