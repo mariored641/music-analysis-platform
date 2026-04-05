@@ -34,6 +34,10 @@ const DIFF_DIR = path.join(ROOT, 'diff')
 
 fs.mkdirSync(DIFF_DIR, { recursive: true })
 
+// Title band cutoff — pixels with y < this are title region, y >= this are content
+// Based on observed title band in diff images (title text at y=214-295, generous margin)
+const TITLE_CUTOFF_Y = 350
+
 export interface CompareResult {
   id:           string
   title:        string
@@ -41,6 +45,9 @@ export interface CompareResult {
   diffPixels:   number | null
   totalPixels:  number | null
   matchPct:     number | null   // 0–100, null if no comparison possible
+  // Region-aware diff breakdown
+  titleDiffPx:   number | null  // diff pixels in title band (y < TITLE_CUTOFF_Y)
+  contentDiffPx: number | null  // diff pixels in content band (y >= TITLE_CUTOFF_Y)
   refPath:      string | null
   curPath:      string | null
   diffPath:     string | null
@@ -94,12 +101,33 @@ function comparePngs(
     diffColorAlt: [0, 255, 0], // green for dimmed matches (not used here)
   })
 
+  // Count diff pixels by region (title vs content)
+  // pixelmatch uses diffColor (255,0,0) for positive delta and diffColorAlt (0,255,0) for negative delta
+  // Both are counted in the returned diffPixels — scan for both
+  let titleDiffPx = 0
+  let contentDiffPx = 0
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const idx = (y * w + x) * 4
+      const r = diffData[idx], g = diffData[idx + 1], b = diffData[idx + 2]
+      const isDiff = (r === 255 && g === 0 && b === 0) ||  // diffColor (red)
+                     (r === 0 && g === 255 && b === 0)      // diffColorAlt (green)
+      if (isDiff) {
+        if (y < TITLE_CUTOFF_Y) {
+          titleDiffPx++
+        } else {
+          contentDiffPx++
+        }
+      }
+    }
+  }
+
   // Write diff PNG
   const diffPng = new PNG({ width: w, height: h })
   diffData.copy(diffPng.data)
   fs.writeFileSync(outPath, PNG.sync.write(diffPng))
 
-  return { diffPixels, totalPixels: w * h }
+  return { diffPixels, totalPixels: w * h, titleDiffPx, contentDiffPx }
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -130,6 +158,7 @@ for (const tc of TEST_CASES) {
   if (!curPng) {
     result = { id: tc.id, title: tc.title, status: 'missing',
       diffPixels: null, totalPixels: null, matchPct: null,
+      titleDiffPx: null, contentDiffPx: null,
       refPath: refPng ? refPath : null, curPath: null, diffPath: null,
       refWidth: refPng?.width ?? null, refHeight: refPng?.height ?? null,
       curWidth: null, curHeight: null, sizeMismatch: false }
@@ -138,6 +167,7 @@ for (const tc of TEST_CASES) {
   } else if (!refPng) {
     result = { id: tc.id, title: tc.title, status: 'new',
       diffPixels: null, totalPixels: null, matchPct: null,
+      titleDiffPx: null, contentDiffPx: null,
       refPath: null, curPath, diffPath: null,
       refWidth: null, refHeight: null,
       curWidth: curPng.width, curHeight: curPng.height, sizeMismatch: false }
@@ -145,11 +175,12 @@ for (const tc of TEST_CASES) {
     console.log(`  🆕 NEW      ${tc.id}  (run update-refs to approve)`)
   } else {
     const sizeMismatch = refPng.width !== curPng.width || refPng.height !== curPng.height
-    const { diffPixels, totalPixels } = comparePngs(refPng, curPng, diffPath)
+    const { diffPixels, totalPixels, titleDiffPx, contentDiffPx } = comparePngs(refPng, curPng, diffPath)
     const matchPct = Math.round((1 - diffPixels / totalPixels) * 1000) / 10
     const status   = diffPixels === 0 ? 'pass' : 'fail'
     result = { id: tc.id, title: tc.title, status,
       diffPixels, totalPixels, matchPct,
+      titleDiffPx, contentDiffPx,
       refPath, curPath, diffPath: diffPixels > 0 ? diffPath : null,
       refWidth: refPng.width, refHeight: refPng.height,
       curWidth: curPng.width, curHeight: curPng.height, sizeMismatch }
@@ -162,7 +193,7 @@ for (const tc of TEST_CASES) {
       console.log(`  ✅ PASS     ${tc.id}  (100% match)`)
     } else {
       failCount++
-      console.log(`  ❌ FAIL     ${tc.id}  ${matchPct}% match — ${diffPixels.toLocaleString()} px differ`)
+      console.log(`  ❌ FAIL     ${tc.id}  ${matchPct}% match — ${diffPixels.toLocaleString()} px differ  [title: ${titleDiffPx.toLocaleString()} | content: ${contentDiffPx.toLocaleString()}]`)
     }
   }
 

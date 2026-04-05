@@ -81,51 +81,55 @@ webmscore vtest scores: `C:\Users\DELL\Documents\webmscore\vtest\scores\` (357 m
 
 ## מצב נוכחי
 
-**ריצה אחרונה:** 2026-04-03 (סשן 3 — baseline rebuild + orchestrator) | **Pass: 0/15**
+**ריצה אחרונה:** 2026-04-05 (סשן 5 — region-aware diff + stride analysis) | **Pass: 0/15**
 
 **BASELINE נקי:** ref=cur=2978×4209px, SIZE MISMATCH=0. כל הבדל הוא layout בלבד.
+**compare.ts מעודכן:** מדווח `titleDiffPx` + `contentDiffPx` בנפרד (title cutoff y=350).
 
-| ID | Match% | px differ | Δ מסשן קודם | עדיפות | הערות עיקריות |
-|----|--------|-----------|------------|--------|----------------|
-| 01-noteheads | 99.3% | 90,355 | −17K ✓ | גבוהה | title font, notes x-positions |
-| 02-accidentals | 99.6% | 47,099 | same | בינונית | |
-| 03-rests | 99.4% | 71,310 | +3K | בינונית | |
-| 04-beams | 99.1% | 113,649 | same | גבוהה | beam geometry |
-| 05-stems | 99.7% | 34,355 | same | בינונית | |
-| 06-key-signatures | 99.3% | 83,356 | same | גבוהה | clef + key-sig x-position |
-| 07-time-signatures | 99.3% | 92,669 | +1K | גבוהה | time-sig x-position |
-| 08-ledger-lines | 99.6% | 45,752 | same | נמוכה | |
-| 09-tuplets | 99.6% | 48,191 | −52K ✓✓ | נמוכה | |
-| 10-ties | 99.7% | 38,890 | −34K ✓✓ | נמוכה | |
-| 11-chord-symbols | 99.6% | 45,170 | same | בינונית | |
-| 12-barlines | 99.8% | 29,458 | same | נמוכה | |
-| 13-dots | 99.5% | 60,298 | same | נמוכה | |
-| 14-chords | 99.5% | 61,015 | −37K ✓✓ | נמוכה | |
-| 15-mixed | 99.1% | 115,293 | −3K ✓ | בינונית | |
+| ID | Match% | px total | title px | content px | עדיפות | הערות עיקריות |
+|----|--------|----------|----------|------------|--------|----------------|
+| 01-noteheads | 99.2% | 97,011 | 14,834 | **82,177** | גבוהה | sys2 stride +9px (page-spread mismatch) |
+| 02-accidentals | 99.8% | 31,292 | 4,812 | **26,480** | בינונית | |
+| 03-rests | 99.5% | 56,602 | 6,385 | **50,217** | בינונית | stride OK — element geometry |
+| 04-beams | 99.5% | 65,579 | 7,275 | **58,304** | גבוהה | stride OK — beam slope/position |
+| 05-stems | 99.9% | 14,558 | 3,467 | **11,091** | בינונית | single system, stem geometry |
+| 06-key-signatures | 99.5% | 67,324 | 21,220 | **46,104** | גבוהה | key-sig x-position per measure |
+| 07-time-signatures | 99.4% | 78,149 | 13,440 | **64,709** | גבוהה | time-sig x-position |
+| 08-ledger-lines | 99.8% | 18,883 | 4,645 | **14,238** | נמוכה | |
+| 09-tuplets | 99.7% | 37,546 | 3,724 | **33,822** | נמוכה | |
+| 10-ties | 99.8% | 25,764 | 4,591 | **21,173** | נמוכה | |
+| 11-chord-symbols | 99.8% | 26,925 | 8,078 | **18,847** | בינונית | |
+| 12-barlines | 99.9% | 10,682 | 7,897 | **2,785** | גבוהה | **קרוב ביותר!** barline x/dots |
+| 13-dots | 99.7% | 35,905 | 16,904 | **19,001** | נמוכה | |
+| 14-chords | 99.6% | 45,960 | 15,697 | **30,263** | נמוכה | |
+| 15-mixed | 99.5% | 57,859 | 22,857 | **35,002** | בינונית | |
 
 ---
 
 ## 🎯 הבאים בתור (סדר עדיפויות)
 
-### 1. Note/glyph x-positions ← הבא!
-ה-diff bands הגדולים ב-01-noteheads:
-- `y=1250-1445` (max 690px/row) — system 2, כל התוים מוזזים
-- `y=636-773` — system 1 staff area (note heads, stems)
-סיבה סבירה: `BAR_NOTE_DIST_SP`, barline width, או header-width שגוי קצת.
-בדוק: `placeSystem()` ב-horizontalLayout.ts, ו-x של note heads ב-svgRenderer.ts.
+### 1. ← הבא! 12-barlines — content 2,785px (קל ביותר לעבור)
+diff מרוכז ב-3 אזורים:
+- `x=900-949` (680px) — גבול מ-2/3, likely double barline
+- `x=1800-1949` (1,050px) — repeat-end barline
+- `x=1350-1399` (108px) — barline נוסף
+כולם ב-`y=600-749` (על ה-staff ומסביב).
+**בדוק:** repeat dot y-position בsvgRenderer.ts — אנחנו משתמשים ב-`mid ± 0.5sp`; C++ משתמש ב-`mid ± sp`. גם בדוק barline x-origin של `repeat-start`.
 
-### 2. Title font rendering
-Title band עדיין מופיע בdiff (y=214-295, max=142px/row).
-אנו מציירים SVG `<text>` עם Leland, webmscore מציאר paths של Edwin.
-הy-position תוקן (marginTop+83), ה-font-size תוקן (110px).
-מה שנשאר: הבדל visual בין Edwin (paths) לבין Edwin/Leland (SVG text) — לא קל לתקן ב-100%.
+### 2. 01-noteheads — sys2 stride (9px)
+`debug-note-x.ts` אישר: ref stride=673px, cur=682px → sys2 9px נמוך מדי.
+**סיבה:** page-spread algorithm — webmscore מחלק space שנותר בין מערכות.
+עבור 03-rests/04-beams stride=682px תואם ref — 01-noteheads מיוחד (מעט יותר content overhead).
+**טרם לממש:** מדוד stride ב-01 ב-C++ (layoutpage.cpp).
 
-### 3. Clef + time-sig x-position
-ב-06-key-signatures ו-07-time-signatures עדיין offset.
-בדוק: `svgRenderer.ts` → `renderClef()`, `renderTimeSig()` — האם headerWidth מחושב נכון?
+### 3. 05-stems — content 11,091px (מערכת יחידה)
+stem geometry — direction, length, tip position.
 
-### 4. Beam geometry (04-beams — 114,019 px differ)
-הbeams הם ה-worst case. slope, thickness, position — כולם שונים מ-webmscore.
+### 4. Key/time-sig x-position (06, 07 — content 46K / 65K)
+inline key-sig accidentals per-measure x offset.
+
+### 5. Beam geometry (04-beams — content 58K)
+slope, end-positions.
 
 ---
 
@@ -158,6 +162,20 @@ Title band עדיין מופיע בdiff (y=214-295, max=142px/row).
 - `ceil(8.27 × 360 DPI) = ceil(2977.2) = 2978px` ← **webmscore actual output**
 - שלנו היה: `floor(210/25.4 × 360) = floor(2976.38) = 2976px` ← שגוי
 
+### סשן 2026-04-05 (סשן 5 — Region-aware diff + Stride Analysis)
+
+| # | בעיה / ממצא | פעולה | קובץ | השפעה |
+|---|-------------|-------|------|-------|
+| 16 | compare.ts דיווח רק על red pixels — green (diffColorAlt) נעדר | הוסף סריקת ירוק + `titleDiffPx`/`contentDiffPx` (cutoff y=350) | `compare.ts` | כעת רואים title noise vs content diff בנפרד |
+| 17 | **note x-positions** — חשד לשגיאה | **אומת CORRECT**: first note = measureX + 1.3sp (BAR_NOTE_DIST_SP) ← פעולה לא נדרשת | `horizontalLayout.ts` | ✅ אין שינוי נדרש |
+| 18 | **system stride** — `debug-note-x.ts` חשף: 01-noteheads ref stride=673px, cur=682px (+9px) | ממצא: page-spread algorithm שונה; 03/04 stride כבר תואמים (682px=682px) | `verticalLayout.ts` | root cause מזוהה — תיקון בסשן הבא |
+| 19 | **12-barlines scan** — `scan-diff.ts` אישר: content diff=2,785px ב-3 barline positions | ממצא: x=900 (double), x=1800-1900 (repeat-end), y=600-749 (staff area) | `svgRenderer.ts` | target ברור לתיקון הבא |
+| 20 | scan של 06-key-sigs הראה "sys0=614px" — false detection | ניתוח: key-sig accidental ב-x=700 יוצר dark pixel. real sys0=633px לכל הטסטים | `debug-note-x.ts` | **אין Y error ב-06/07** — הiff שם הוא element x-position |
+
+**כלים חדשים שנוצרו:**
+- `renderer-tests/scripts/debug-note-x.ts` — מדידת system stride מ-PNG (ref ו-cur), grouping staff lines
+- `renderer-tests/scripts/scan-diff.ts` — bucket analysis של diff pixels לפי x/y (50px buckets)
+
 ### סשן 2026-04-01 (סשן 2)
 
 | # | בעיה | ערך ישן | ערך חדש | קובץ | השפעה |
@@ -186,9 +204,11 @@ Title band עדיין מופיע בdiff (y=214-295, max=142px/row).
 
 ## סדר עבודה מומלץ
 
-1. התחל מ-**06-key-signatures** / **07-time-signatures** (clef + time-sig positioning)
-2. לאחר מכן **01-noteheads** (title + system-2 stride + note x)
-3. לאחר מכן **04-beams** (beam geometry)
+1. התחל מ-**12-barlines** (content 2,785px — קרוב ביותר. תקן repeat dot y=`mid±sp` ו-barline x)
+2. לאחר מכן **05-stems** (content 11K — מערכת יחידה, stem tips)
+3. לאחר מכן **01-noteheads** stride (sys2 9px — page-spread)
+4. לאחר מכן **06/07** key/time-sig x-positions
+5. לאחר מכן **04-beams** (beam geometry)
 4. צפה ב-`diff/XX-name.diff.png` — אדום = הבדל
 5. פתח `renderer-tests/current/XX.png` לצד `reference/XX.png`
 6. זהה את ההבדל → חפש בקוד webmscore מה אחראי
