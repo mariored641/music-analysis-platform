@@ -107,8 +107,11 @@ export function justifySystem(
  * C++: layoutsystem.cpp:98 — squeezability = 0.3
  * A system can overflow targetWidth by up to squeezability × squeezableSpace
  * before a line break is forced.
+ * Also used as pre-stretch factor: preStretch = 1 - SQUEEZABILITY = 0.7
+ * when system overflows before justification.
+ * C++: layoutsystem.cpp:416
  */
-const SQUEEZABILITY = 0.3
+export const SQUEEZABILITY = 0.3
 
 /**
  * Absolute minimum note horizontal distance (no stretch).

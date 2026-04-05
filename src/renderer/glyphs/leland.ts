@@ -58,6 +58,10 @@ export const LELAND_FLAG_32ND_DOWN = '\uE245'
 // ─── Augmentation dot ─────────────────────────────────────────────────────────
 export const LELAND_AUGMENTATION_DOT = '\uE1E7'
 
+// ─── Repeat barline dot ───────────────────────────────────────────────────────
+/** SMuFL U+E044 — single dot used in repeat barlines */
+export const LELAND_REPEAT_DOT = '\uE044'
+
 // ─── Time signatures ──────────────────────────────────────────────────────────
 /** Digits 0–9 for time signatures */
 export const LELAND_TIME_SIG: Record<number, string> = {

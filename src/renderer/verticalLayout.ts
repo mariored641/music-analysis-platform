@@ -29,6 +29,8 @@ import {
   CLEF_KEY_DIST_SP,
   CLEF_TIMESIG_DIST_SP,
   KEY_ACC_STRIDE_SP,
+  KEY_SHARP_STRIDE_SP, KEY_FLAT_STRIDE_SP,
+  keySigWidthSp as keySigWidthSpLocal,
   KEY_TIMESIG_DIST_SP,
   TIMESIG_GLYPH_WIDTH_SP,
   BAR_NOTE_DIST_SP,
@@ -262,17 +264,74 @@ function buildBeams(
     const first  = gNotes[0]
     const last   = gNotes[gNotes.length - 1]
 
-    // Stem tips for angle calculation
+    // Stem tips
     const y1raw = stemUp ? first.stemYTop  : first.stemYBottom
     const y2raw = stemUp ? last.stemYTop   : last.stemYBottom
+    const dx    = last.x - first.x || 1
 
-    const dx = last.x - first.x || 1
-    const rawAngle = (y2raw - y1raw) / dx
-    const angle    = Math.max(-0.1, Math.min(0.1, rawAngle))
-    const y2       = y1raw + angle * dx
+    // MuseScore beam anchor: beam center = stemTip offset by beamWidth/2 toward notehead
+    // beam.cpp:724: anchorY = noteY + stemLength*upValue - beamWidth/2*upValue
+    //   up-stem (upValue=-1): anchorY = stemTip + beamWidth/2
+    //   down-stem (upValue=+1): anchorY = stemTip - beamWidth/2
+    const bw2      = beamThickness / 2  // 0.25sp
+    const y1anchor = y1raw + (stemUp ?  bw2 : -bw2)
+    const y2anchor = y2raw + (stemUp ?  bw2 : -bw2)
 
-    // beamY(x) = y1raw + angle * (x - first.x)
-    const beamY = (x: number) => y1raw + angle * (x - first.x)
+    // MuseScore slope algorithm — beam.cpp computeDesiredSlant() + getMaxSlope()
+    // _maxSlopes = {0,1,2,3,4,5,6,7}: max QS (sp/4) per half-space interval — beam.h
+    const startLine   = first.staffLine
+    const endLine     = last.staffLine
+    const interval    = Math.abs(startLine - endLine)
+    const beamWidthSp = dx / sp
+    const maxSlopeFromWidth = (   // beam.cpp getMaxSlope()
+      beamWidthSp < 3.0  ? 1 :
+      beamWidthSp < 5.0  ? 2 :
+      beamWidthSp < 7.5  ? 3 :
+      beamWidthSp < 10.0 ? 4 :
+      beamWidthSp < 15.0 ? 5 :
+      beamWidthSp < 20.0 ? 6 : 7
+    )
+
+    // isSlopeConstrained: any middle note more extreme than both endpoints → flat
+    // beam.cpp:540 isSlopeConstrained()
+    let forceFlat = (interval === 0)
+    if (!forceFlat && gNotes.length > 2) {
+      const midNotes = gNotes.slice(1, -1)
+      if (stemUp) {
+        const higherEnd = Math.min(startLine, endLine)
+        if (midNotes.some(n => n.staffLine < higherEnd)) forceFlat = true
+      } else {
+        const lowerEnd = Math.max(startLine, endLine)
+        if (midNotes.some(n => n.staffLine > lowerEnd)) forceFlat = true
+      }
+    }
+
+    let y1: number, y2: number
+    if (forceFlat) {
+      // Flat beam: more extreme anchor dictates both ends
+      // beam.cpp:1532: dictator = min(pointer, dictator) for up-stem
+      const flatY = stemUp ? Math.min(y1anchor, y2anchor) : Math.max(y1anchor, y2anchor)
+      y1 = flatY
+      y2 = flatY
+    } else {
+      const BEAM_MAX_SLOPES = [0, 1, 2, 3, 4, 5, 6, 7] as const
+      const slopeQS = Math.min(maxSlopeFromWidth, BEAM_MAX_SLOPES[Math.min(interval, 7)])
+      const rise    = slopeQS * sp / 4  // QS → pixels, always positive
+
+      // Dictator = note most extreme in stem direction (determines beam Y)
+      // Up-stem: smaller staffLine = higher on staff = dictator; down-stem: larger staffLine
+      const startIsDictator = stemUp ? (startLine <= endLine) : (startLine >= endLine)
+      if (startIsDictator) {
+        y1 = y1anchor
+        y2 = y1anchor + (stemUp ? rise : -rise)
+      } else {
+        y2 = y2anchor
+        y1 = y2anchor + (stemUp ? rise : -rise)
+      }
+    }
+
+    // beamY(x) = linear interpolation from y1 (first.x) to y2 (last.x)
+    const beamY = (x: number) => y1 + (y2 - y1) * (x - first.x) / dx
 
     // Primary beam: level 1 — connects all notes
     const allSegments: BeamSegment[][] = [[
@@ -482,6 +541,7 @@ function buildBarlines(
   staffTop: number,
   staffHeight: number,
   isLastMeasure: boolean,
+  nextHasLeftBarline: boolean = false,
 ): RenderedBarline[] {
   const barlines: RenderedBarline[] = []
   const yTop    = staffTop
@@ -498,11 +558,15 @@ function buildBarlines(
     }
   }
 
-  // Right barline (end of measure)
-  const rightStyle = extMeasure.barlineRight?.style ?? 'regular'
-  const rightX = hMeasure.x + hMeasure.width
-  const effectiveRight = (isLastMeasure && rightStyle === 'regular') ? 'final' : rightStyle
-  barlines.push({ x: rightX, yTop, yBottom, type: effectiveRight as RenderedBarline['type'] })
+  // Right barline (end of measure).
+  // C++: when the next measure has an explicit left barline (e.g. repeat-start), MuseScore
+  // suppresses the current measure's right barline — only the stronger one is drawn.
+  if (!nextHasLeftBarline) {
+    const rightStyle = extMeasure.barlineRight?.style ?? 'regular'
+    const rightX = hMeasure.x + hMeasure.width
+    const effectiveRight = (isLastMeasure && rightStyle === 'regular') ? 'final' : rightStyle
+    barlines.push({ x: rightX, yTop, yBottom, type: effectiveRight as RenderedBarline['type'] })
+  }
 
   return barlines
 }
@@ -518,7 +582,8 @@ function buildKeySignature(
   prevFifths: number = 0,
 ): RenderedKeySignature {
   const sp = halfSp * 2
-  const accStride = KEY_ACC_STRIDE_SP * sp  // per-accidental stride (glyph width + gap)
+  const KEY_NATURAL_STRIDE_SP = 0.956   // natural width 0.556 + keysigNaturalDistance 0.4
+  const CROSS_TYPE_GAP_SP     = 0.6     // doubled gap when switching natural→sharp/flat
   const accs: Array<{ x: number; y: number; type: 'sharp' | 'flat' | 'natural' }> = []
   let xOff = 0
 
@@ -533,7 +598,16 @@ function buildKeySignature(
       for (let i = 0; i < cancels; i++) {
         const sl = oldLines[Math.abs(prevFifths) - 1 - i]
         accs.push({ x: x + xOff, y: staffTop + sl * halfSp, type: 'natural' })
-        xOff += accStride
+        // Last natural: use cross-type gap if followed by new sharps/flats, else natural stride
+        // C++: addLayout() x = prevXPos + prevWidth + gap
+        //   natural→sharp/flat: stride = naturalWidth(0.556sp) + crossTypeGap(0.6sp) = 1.156sp
+        //   natural→natural:    stride = naturalWidth(0.556sp) + keysigNaturalDist(0.4sp) = 0.956sp
+        const KEY_NATURAL_WIDTH_SP = 0.556
+        const isLastNatural = i === cancels - 1
+        const stride = (isLastNatural && Math.abs(fifths) > 0)
+          ? (KEY_NATURAL_WIDTH_SP + CROSS_TYPE_GAP_SP) * sp    // naturalWidth + 0.6sp gap
+          : KEY_NATURAL_STRIDE_SP * sp
+        xOff += stride
       }
     }
   }
@@ -541,9 +615,10 @@ function buildKeySignature(
   // New key accidentals
   const lines = getKeySigLines(fifths, clef)
   const accType = fifths > 0 ? 'sharp' : 'flat'
+  const newStride = (fifths > 0 ? KEY_SHARP_STRIDE_SP : KEY_FLAT_STRIDE_SP) * sp
   for (const sl of lines) {
     accs.push({ x: x + xOff, y: staffTop + sl * halfSp, type: accType as 'sharp' | 'flat' })
-    xOff += accStride
+    xOff += newStride
   }
 
   return { fifths, x, staffIndex: 0, accidentals: accs }
@@ -570,11 +645,15 @@ export function computeVerticalLayout(
   const halfSp      = lineSpacing / 2   // 5 px — one diatonic step
 
   const staffHeight   = 4 * lineSpacing   // 40 px
-  // Bravura metadata: noteheadBlack.stemUpSE = [1.18, -0.168], stemDownNW = [0, 0.168]
-  // chord.cpp:stemPosX: up=noteHeadWidth()=1.18sp, down=0.0 → note.pos().x() = LEFT edge
-  const noteheadWidth = sp * 1.18         // Bravura stemUpSE.x = 1.18sp (visual notehead width)
-  const noteheadRx    = noteheadWidth / 2 // half-width (0.59sp) for tie geometry
-  const noteheadRy    = sp * 0.168        // Bravura stemUpSE.y offset = 0.168sp
+  // Leland font metadata (fonts/leland/leland_metadata.json):
+  //   noteheadBlack.cutOutNE   = [1.184, 0.42]     (bbox right ≈ 1.18sp, same as Bravura)
+  //   noteheadBlack.stemUpSE   = [1.3,   +0.16]    (stem attach x; +Y = up in SMuFL)
+  //   noteheadBlack.stemDownNW = [0,     -0.168]    (stem attach x=0; -Y = down in SMuFL)
+  // chord.cpp:stemPosX: up=noteHeadWidth()=symWidth(bbox.width), down=0.0
+  // Leland: stemUpSE.x = 1.3sp = actual right edge; cutOutNE.x=1.184sp is the stem cut-out notch
+  const noteheadWidth   = sp * 1.3         // Leland glyph bbox right ≈ stemUpSE.x = 1.3sp
+  const noteheadRx      = noteheadWidth / 2 // half-width (0.65sp) for tie geometry
+  const noteheadRy      = sp * 0.168        // half-height offset for stem attach + bbox/tie
   const stemLength    = sp * 3.5          // standard un-beamed stem
   const beamThickness = sp * 0.5          // beam rectangle height
   const beamGap       = sp * 0.25         // gap between beam levels
@@ -720,11 +799,11 @@ export function computeVerticalLayout(
         //   lineX = _up * lineWidthCorrection            (_up = -1 for up, +1 for down)
         //   → up:   line center = noteHeadWidth - lineWidthCorr = 1.18 - 0.05 = 1.13sp
         //   → down: line center = 0 + lineWidthCorr            = 0.05sp
-        // Bravura: stemUpSE=[1.18, -0.168] → attach at bottom-right of notehead (noteY + 0.168sp)
-        //          stemDownNW=[0, 0.168]   → attach at top-left of notehead   (noteY - 0.168sp)
+        // Bravura: stemUpSE=[1.18, -0.168] → attach below center; stemDownNW=[0, 0.168] → above center
+        // (C++ sign convention: negative=above, positive=below staff line)
         const stemLWCorr = (0.10 / 2) * sp   // stem.cpp:120 — Sid::stemWidth=0.10sp, lineWidthMag()*0.5
         const stemX      = stemUp ? noteX + noteheadWidth - stemLWCorr : noteX + stemLWCorr
-        const stemAttach = noteheadRy   // 0.168sp — distance from notehead center to edge
+        const stemAttach = noteheadRy   // 0.168sp — distance from notehead center to stem attach edge
         const stemYTop   = stemUp ? noteY + stemAttach - stemLength : noteY - stemAttach
         const stemYBot   = stemUp ? noteY + stemAttach              : noteY - stemAttach + stemLength
 
@@ -825,8 +904,12 @@ export function computeVerticalLayout(
       }
 
       // ── Barlines ───────────────────────────────────────────────
+      // Suppress right barline when the next measure has an explicit left barline
+      // (e.g. repeat-start). C++: MuseScore resolves conflicting barlines at same tick.
+      const nextExtMeasure = score.measures[measureNum]
+      const nextHasLeftBarline = !!nextExtMeasure?.barlineLeft
       const barlines = buildBarlines(
-        extMeasure, hMeasure, primaryStaffTop, staffHeight, isLastMeasure,
+        extMeasure, hMeasure, primaryStaffTop, staffHeight, isLastMeasure, nextHasLeftBarline,
       )
 
       // ── Ties ───────────────────────────────────────────────────
@@ -884,7 +967,7 @@ export function computeVerticalLayout(
       const fifths = hSys.currentFifths
       const keySigX = clefX + CLEF_GLYPH_WIDTH_SP * sp + CLEF_KEY_DIST_SP * sp
       const timeSigLeftEdge = fifths !== 0
-        ? keySigX + Math.abs(fifths) * KEY_ACC_STRIDE_SP * sp + KEY_TIMESIG_DIST_SP * sp
+        ? keySigX + keySigWidthSpLocal(fifths) * sp + KEY_TIMESIG_DIST_SP * sp
         : clefX + CLEF_GLYPH_WIDTH_SP * sp + CLEF_TIMESIG_DIST_SP * sp
       // timeSig is rendered with text-anchor="middle", so pass center x
       const timeSigCenterX = timeSigLeftEdge + TIMESIG_GLYPH_WIDTH_SP / 2 * sp
@@ -935,7 +1018,7 @@ export function computeVerticalLayout(
           : extMeasure.keyChange
             ? buildKeySignature(
                 extMeasure.keyChange.fifths, clef,
-                hMeasure.x + BAR_NOTE_DIST_SP * sp,
+                hMeasure.x + 0.5 * sp,  // C++: Sid::keysigLeftMargin = 0.5sp from barline left
                 primaryStaffTop, halfSp,
                 prevFifthsPerMeasure.get(measureNum) ?? fifths,
               )

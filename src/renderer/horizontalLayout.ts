@@ -82,13 +82,23 @@ export const CLEF_KEY_DIST_SP       = 1.0
 /** Gap from clef right edge to time-sig left edge when no key sig (Sid::clefTimesigDistance = 1.0sp) */
 export const CLEF_TIMESIG_DIST_SP   = 1.0
 
-/** Per-accidental stride in key signature.
- * From Leland.otf (fonttools): accidentalFlat.xMax = 0.812sp, accidentalSharp.xMax = 0.976sp.
- * Flat stride ≈ flat.xMax (no inter-accidental gap, consistent with Bravura where 0.904→0.9sp).
- * Using 0.812sp (flat) as the universal stride — sharps are slightly wider but keys are rarer.
- * TODO: differentiate flat vs sharp stride for exact keysig width.
+/**
+ * Per-accidental stride in key signature — DIFFERS by accidental type.
+ * C++: keysig.cpp addLayout(): stride = symWidth(prev) / sp + keysigAccidentalDistance - cutoutX
+ *   keysigAccidentalDistance = 0.3sp (styledef.cpp:206)
+ *   cutoutX = 0.18sp for sharps (always applies for treble/bass patterns)
+ *   cutoutX = 0 for flats (accidentalFlat has no SW/NW cutouts in Leland)
+ * Leland.otf (fonttools):
+ *   accidentalSharp.xMax = 0.976sp → stride_sharp = 0.976 + 0.3 - 0.18 = 1.096sp
+ *   accidentalFlat.xMax  = 0.812sp → stride_flat  = 0.812 + 0.3 - 0    = 1.112sp
+ * Width formula (C++): total = (N-1) * stride + symWidth (last glyph not followed by gap)
  */
-export const KEY_ACC_STRIDE_SP      = 0.812
+export const KEY_SHARP_STRIDE_SP    = 1.096   // sharp: 0.976 + 0.3 - 0.18
+export const KEY_FLAT_STRIDE_SP     = 1.112   // flat:  0.812 + 0.3
+export const KEY_SHARP_WIDTH_SP     = 0.976   // Leland accidentalSharp.xMax
+export const KEY_FLAT_WIDTH_SP      = 0.812   // Leland accidentalFlat.xMax
+/** @deprecated use KEY_SHARP_STRIDE_SP / KEY_FLAT_STRIDE_SP */
+export const KEY_ACC_STRIDE_SP      = 0.812   // kept for legacy callers
 
 /** Gap from key-sig right edge to time-sig left edge (Sid::keyTimesigDistance = 1.0sp) */
 export const KEY_TIMESIG_DIST_SP    = 1.0
@@ -101,6 +111,52 @@ export const TIMESIG_GLYPH_WIDTH_SP = 1.768
 
 /** Minimum gap from time-sig right edge to first note (Sid::systemHeaderTimeSigDistance = 2.0sp) */
 export const SYS_HDR_TIMESIG_SP     = 2.0
+
+/**
+ * Compute total key-signature width in staff-spaces.
+ * C++: keysig.cpp addLayout() — width = (N-1) * stride + symWidth(last)
+ *   (last glyph adds only its own width, no trailing gap)
+ * @param fifths Key signature (positive = sharps, negative = flats, 0 = no key sig)
+ */
+export function keySigWidthSp(fifths: number): number {
+  const n = Math.abs(fifths)
+  if (n === 0) return 0
+  if (fifths > 0) {
+    // Sharps: stride=1.096, symWidth=0.976 → width=(N-1)*1.096 + 0.976
+    return (n - 1) * KEY_SHARP_STRIDE_SP + KEY_SHARP_WIDTH_SP
+  } else {
+    // Flats: stride=1.112, symWidth=0.812 → width=(N-1)*1.112 + 0.812
+    return (n - 1) * KEY_FLAT_STRIDE_SP + KEY_FLAT_WIDTH_SP
+  }
+}
+
+/**
+ * Compute width of an INLINE key change: cancel naturals + new accidentals.
+ * C++: keysig.cpp — naturals use keysigNaturalDistance=0.4sp; type-switch doubles the gap.
+ * Simplified: natural_stride ≈ 0.956sp, plus extra 0.3sp gap if switching accidental type.
+ */
+export function inlineKeySigWidthSp(cancels: number, newFifths: number): number {
+  const KEY_NATURAL_WIDTH_SP  = 0.556   // Leland accidentalNatural.cutOutSW.x
+  const KEY_NATURAL_STRIDE_SP = 0.956   // 0.556 + 0.4 (keysigNaturalDistance)
+  const newAccCount = Math.abs(newFifths)
+  let width = 0
+
+  if (cancels > 0) {
+    width += (cancels - 1) * KEY_NATURAL_STRIDE_SP + KEY_NATURAL_WIDTH_SP
+    if (newAccCount > 0) {
+      // Type switch: gap doubles (0.6sp), plus the first new accidental width
+      width += 0.6   // gap between last natural and first sharp/flat
+      if (newFifths > 0) {
+        width += KEY_SHARP_WIDTH_SP + (newAccCount - 1) * KEY_SHARP_STRIDE_SP
+      } else {
+        width += KEY_FLAT_WIDTH_SP  + (newAccCount - 1) * KEY_FLAT_STRIDE_SP
+      }
+    }
+  } else if (newAccCount > 0) {
+    width += keySigWidthSp(newFifths)
+  }
+  return width
+}
 
 /**
  * First-system indent in staff-spaces.
@@ -234,10 +290,10 @@ export function computeHorizontalLayout(
     // double-count and push notes ~2sp too far right.
     // Verified empirically: reference first note at 7.42sp from system start =
     //   (0.75 + 2.560 + 1.0 + 1.768) + 1.3 = 7.378sp ≈ 7.42sp ✓
-    const hasFifths     = Math.abs(fifths) > 0
-    const keySigWidthSp = Math.abs(fifths) * KEY_ACC_STRIDE_SP
-    const gapAfterClef  = hasFifths
-      ? CLEF_KEY_DIST_SP + keySigWidthSp + KEY_TIMESIG_DIST_SP
+    const hasFifths    = Math.abs(fifths) > 0
+    const kSigWidth    = keySigWidthSp(fifths)
+    const gapAfterClef = hasFifths
+      ? CLEF_KEY_DIST_SP + kSigWidth + KEY_TIMESIG_DIST_SP
       : CLEF_TIMESIG_DIST_SP
     return (CLEF_LEFT_MARGIN_SP + CLEF_GLYPH_WIDTH_SP + gapAfterClef
       + TIMESIG_GLYPH_WIDTH_SP) * sp

@@ -18,6 +18,7 @@
 
 import type { ExtractedScore, ExtractedMeasure } from '../extractorTypes'
 import type { RenderOptions } from '../types'
+import { Sid } from '../style/StyleDef'
 
 // Type-only imports from horizontalLayout — interface definitions, NOT computation logic
 import type {
@@ -30,6 +31,8 @@ import {
   KEY_ACC_STRIDE_SP, KEY_TIMESIG_DIST_SP, TIMESIG_GLYPH_WIDTH_SP, SYS_HDR_TIMESIG_SP,
   BAR_NOTE_DIST_SP,
   FIRST_SYSTEM_INDENT_SP,
+  keySigWidthSp,
+  inlineKeySigWidthSp,
 } from '../horizontalLayout'
 
 // Engine computation functions
@@ -40,6 +43,7 @@ import {
 } from './layout/LayoutMeasure'
 import {
   collectSystems, justifySystem, shouldJustifyLastSystem, computeMeasureSqueezable,
+  SQUEEZABILITY,
   type SystemSpring,
 } from './layout/LayoutSystem'
 
@@ -155,21 +159,43 @@ export function orchestrateHorizontalLayout(
     const sysMinDur = clampMinDur(findSystemMinDur(mNums, allSegments))
 
     // Re-compute segment widths with per-system min duration
-    const sysSegWidths: Map<number, number[]> = new Map()
+    const sysSegWidths:   Map<number, number[]> = new Map()
     const sysMeasureWidths: Map<number, number> = new Map()
+    // Effective firstNotePad per measure — may differ from global firstNotePads for
+    // the first measure of non-initial systems (key/time in sys header, not inline).
+    const sysFirstNotePads: Map<number, number> = new Map()
 
-    for (const mNum of mNums) {
-      const segs   = allSegments.get(mNum) ?? []
-      const pad    = firstNotePads.get(mNum) ?? 0
-      const segWs  = computeSegmentWidths(segs, sysMinDur, sp)
+    for (let mi = 0; mi < mNums.length; mi++) {
+      const mNum = mNums[mi]
+      const segs = allSegments.get(mNum) ?? []
+      // For the first measure of a non-initial system (mi===0, mNum>1),
+      // key/time changes appear in the system header — NOT as inline changes.
+      // Recompute firstNotePad with hasTimeChange=false (sys header handles it).
+      // C++: isSystemHeader = s->header() — true only for first-system-measure segs.
+      let pad: number
+      if (mi === 0 && mNum > 1) {
+        const m     = extMeasures[mNum - 1]
+        const state = measureStartState[mNum - 1]
+        pad = computeFirstNotePad(m, state, false, sp)   // hasTimeChange=false → sys header
+      } else {
+        pad = firstNotePads.get(mNum) ?? 0
+      }
+      sysFirstNotePads.set(mNum, pad)
+      const segWs = computeSegmentWidths(segs, sysMinDur, sp)
       sysSegWidths.set(mNum, segWs)
       sysMeasureWidths.set(mNum, computeMeasureWidth(pad, segWs, sp))
     }
 
-    // Per-system header (key active at system start)
-    const firstMeasureIdx = mNums[0] - 1
-    const sysState        = measureStartState[firstMeasureIdx]
-    const sysHeaderWidth  = computeHeaderWidth(sysState.fifths, sp)
+    // Per-system header (key/time active at system start)
+    // C++: addSystemHeader() uses the state AT the beginning of the first measure,
+    // which includes any key/time changes IN that measure (not just the pre-state).
+    const firstMeasureIdx  = mNums[0] - 1
+    const sysState         = measureStartState[firstMeasureIdx]
+    const firstExtMeasure  = extMeasures[firstMeasureIdx]
+    const sysDisplayFifths   = firstExtMeasure.keyChange?.fifths    ?? sysState.fifths
+    const sysDisplayBeats    = firstExtMeasure.timeChange?.beats    ?? sysState.beats
+    const sysDisplayBeatType = firstExtMeasure.timeChange?.beatType ?? sysState.beatType
+    const sysHeaderWidth  = computeHeaderWidth(sysDisplayFifths, sp)
 
     // ── Spring model justification (C++: layoutsystem.cpp:496) ──────────────
     // Springs: one per measure.  stretch ∝ note content (= noteArea itself).
@@ -178,13 +204,30 @@ export function orchestrateHorizontalLayout(
     const sysUsableWidth = isFirstSystem ? firstSysUsableWidth : usableWidth
     const sysX           = opts.marginLeft + (isFirstSystem ? firstSysIndentPx : 0)
 
-    const totalMeasureWidth = mNums.reduce((s, mn) => s + (sysMeasureWidths.get(mn) ?? 0), 0)
-    const targetWidth       = sysUsableWidth - sysHeaderWidth
+    const targetWidth = sysUsableWidth - sysHeaderWidth
+
+    // ── Pre-stretch: C++: layoutsystem.cpp:415–425 ──────────────────────────
+    // "if system is currently larger than margin (because of acceptanceRange)
+    //  compute width with a reduced pre-stretch, because justifySystem expects
+    //  curSysWidth < targetWidth"
+    // preStretch = 1.0  (system fits naturally)
+    // preStretch = 1 - squeezability = 0.7  (system overflows — compress note areas)
+    let totalMeasureWidth = mNums.reduce((s, mn) => s + (sysMeasureWidths.get(mn) ?? 0), 0)
+    if (totalMeasureWidth > targetWidth) {
+      const preStretch = 1 - SQUEEZABILITY  // 0.7
+      for (const mNum of mNums) {
+        const pad       = sysFirstNotePads.get(mNum) ?? 0
+        const segWs     = sysSegWidths.get(mNum) ?? []
+        const compressed = segWs.map(w => w * preStretch)
+        sysSegWidths.set(mNum, compressed)
+        sysMeasureWidths.set(mNum, computeMeasureWidth(pad, compressed, sp))
+      }
+      totalMeasureWidth = mNums.reduce((s, mn) => s + (sysMeasureWidths.get(mn) ?? 0), 0)
+    }
 
     const springs: SystemSpring[] = mNums.map(mNum => {
-      const segs   = allSegments.get(mNum) ?? []
       const segWs  = sysSegWidths.get(mNum) ?? []
-      // Note area = sum of stretched segment widths (proxy for "note content")
+      // Note area = sum of (pre-)stretched segment widths (proxy for "note content")
       const noteArea = segWs.reduce((s, w) => s + w, 0)
       return {
         stretch:      noteArea,    // proportional to note content
@@ -215,9 +258,9 @@ export function orchestrateHorizontalLayout(
       y:               0,
       width:           sysUsableWidth,
       headerWidth:     sysHeaderWidth,
-      currentFifths:   sysState.fifths,
-      currentBeats:    sysState.beats,
-      currentBeatType: sysState.beatType,
+      currentFifths:   sysDisplayFifths,
+      currentBeats:    sysDisplayBeats,
+      currentBeatType: sysDisplayBeatType,
     }
     systems.push(system)
     pageSysIndices.push(sysIdx)
@@ -228,7 +271,7 @@ export function orchestrateHorizontalLayout(
     for (let mi = 0; mi < mNums.length; mi++) {
       const mNum  = mNums[mi]
       const m     = extMeasures[mNum - 1]
-      const pad   = firstNotePads.get(mNum) ?? 0
+      const pad   = sysFirstNotePads.get(mNum) ?? 0
       const segs  = allSegments.get(mNum) ?? []
       const segWs = sysSegWidths.get(mNum) ?? []
       const minMW = sysMeasureWidths.get(mNum) ?? 0
@@ -339,9 +382,18 @@ function buildMeasureSegments(m: ExtractedMeasure, beatsPerMeasure: number): Mea
 // ─── Helper: first note padding ──────────────────────────────────────────────
 
 /**
- * Space from barline to first notehead x in a measure.
- * Larger when key/time change occurs (accommodates the change glyphs).
- * C++: Measure::computeWidth() — measure.cpp:4165 — headerWidth per segment.
+ * Space from barline LEFT EDGE to first notehead x in a measure.
+ *
+ * C++: Measure::computeWidth() — measure.cpp:4421 — computeFirstSegmentXPosition():
+ *   x = segment->minLeft(barlineShape) + barNoteDistance
+ *
+ * barNoteDistance is measured from the barline's RIGHT edge (the barline occupies
+ * [0, barWidth] in local measure coords, so right edge = barWidth = 0.18sp).
+ * Therefore, from the barline LEFT edge: pad = barWidth + barNoteDistance.
+ *
+ * C++: Sid::barWidth = 0.18sp (styledef.cpp:131)
+ * C++: Sid::barNoteDistance = 1.3sp (styledef.cpp:185)
+ * → total base pad = 0.18 + 1.3 = 1.48sp
  */
 function computeFirstNotePad(
   m: ExtractedMeasure,
@@ -349,26 +401,52 @@ function computeFirstNotePad(
   hasTimeChange: boolean,
   sp: number,
 ): number {
+  // ── Inline header elements (key/time changes mid-system) ─────────────────
+  // C++: score.cpp:5741-5750 — paddingTable for BAR_LINE→KEYSIG / BAR_LINE→TIMESIG
+  //      are Sid::keysigLeftMargin (0.5sp) and Sid::timesigLeftMargin (0.63sp).
+  //      These are spacings from the barline LEFT EDGE (measure start) to the element left.
+  //      Subsequent element spacings: KEYSIG→NOTE = 1.75sp, TIMESIG→NOTE = 1.35sp,
+  //      KEYSIG→TIMESIG = keyTimesigDistance = 1.0sp.
+  //      Note: inline changes use isSystemHeader=false → normal padding, NOT systemHeaderTimeSigDistance.
+  //
+  // C++: paddingTable[BAR_LINE][KEYSIG]  = keysigLeftMargin  = 0.5sp
+  // C++: paddingTable[BAR_LINE][TIMESIG] = timesigLeftMargin = 0.63sp
+  // C++: paddingTable[KEYSIG][NOTE]      = 1.75sp
+  // C++: paddingTable[TIMESIG][NOTE]     = 1.35sp
+  const KEYSIG_LEFT_MARGIN_SP  = 0.5    // Sid::keysigLeftMargin  (from barline left → keySig left)
+  const TIMESIG_LEFT_MARGIN_SP = 0.63   // Sid::timesigLeftMargin (from barline left → timeSig left)
+  const KEYSIG_NOTE_PAD_SP     = 1.75   // paddingTable[KEYSIG][NOTE]
+  const TIMESIG_NOTE_PAD_SP    = 1.35   // paddingTable[TIMESIG][NOTE]
+
   if (m.keyChange && hasTimeChange) {
     const newFifths = m.keyChange.fifths
     const cancels   = state.fifths > 0
       ? Math.max(0, state.fifths - Math.max(0, newFifths))
       : Math.max(0, -state.fifths - Math.max(0, -newFifths))
-    const totalAcc  = cancels + Math.abs(newFifths)
-    return (BAR_NOTE_DIST_SP + totalAcc * KEY_ACC_STRIDE_SP + KEY_TIMESIG_DIST_SP
-      + TIMESIG_GLYPH_WIDTH_SP + SYS_HDR_TIMESIG_SP) * sp
+    const kSigW = inlineKeySigWidthSp(cancels, newFifths)
+    // keySig at 0.5sp, timeSig at (0.5+kSigW+keyTimesigDist), note at +timeSigWidth+1.35sp
+    return (KEYSIG_LEFT_MARGIN_SP + kSigW + KEY_TIMESIG_DIST_SP
+      + TIMESIG_GLYPH_WIDTH_SP + TIMESIG_NOTE_PAD_SP) * sp
   }
   if (m.keyChange) {
     const newFifths = m.keyChange.fifths
     const cancels   = state.fifths > 0
       ? Math.max(0, state.fifths - Math.max(0, newFifths))
       : Math.max(0, -state.fifths - Math.max(0, -newFifths))
-    const totalAcc  = cancels + Math.abs(newFifths)
-    return (BAR_NOTE_DIST_SP + totalAcc * KEY_ACC_STRIDE_SP + KEY_TIMESIG_DIST_SP) * sp
+    const kSigW = inlineKeySigWidthSp(cancels, newFifths)
+    // keySig at 0.5sp, note at keySig right + 1.75sp
+    return (KEYSIG_LEFT_MARGIN_SP + kSigW + KEYSIG_NOTE_PAD_SP) * sp
   }
   if (hasTimeChange) {
-    return (BAR_NOTE_DIST_SP + TIMESIG_GLYPH_WIDTH_SP + SYS_HDR_TIMESIG_SP) * sp
+    // timeSig at 0.63sp, note at timeSig right + 1.35sp
+    return (TIMESIG_LEFT_MARGIN_SP + TIMESIG_GLYPH_WIDTH_SP + TIMESIG_NOTE_PAD_SP) * sp
   }
+
+  // ── Regular measure (no key/time change) ─────────────────────────────────
+  // C++: computeFirstSegmentXPosition() line 4432:
+  //   x = prevMeasEnd->minHorizontalCollidingDistance(segment) - prevMeasEnd->minRight()
+  //   = (barWidth + barNoteDistance) - barWidth = barNoteDistance only.
+  // barWidth CANCELS OUT — do NOT add it separately.
 
   // Check if first note has accidental
   const sortedBeats = [...new Set(
@@ -398,10 +476,10 @@ function computeHeaderWidth(fifths: number, sp: number): number {
   // Including SYS_HDR_TIMESIG_SP here would double-count it and push all notes 2sp too far right.
   // Verified: reference first note at sysX + (6.078sp) + (1.3sp barNoteDistance) ≈ measureX + BAR_NOTE_DIST.
   // From horizontalLayout.ts — same fix applied there.
-  const hasFifths    = Math.abs(fifths) > 0
-  const keySigWidthSp = Math.abs(fifths) * KEY_ACC_STRIDE_SP
-  const gapAfterClef  = hasFifths
-    ? CLEF_KEY_DIST_SP + keySigWidthSp + KEY_TIMESIG_DIST_SP
+  const hasFifths   = Math.abs(fifths) > 0
+  const kSigWidth   = keySigWidthSp(fifths)
+  const gapAfterClef = hasFifths
+    ? CLEF_KEY_DIST_SP + kSigWidth + KEY_TIMESIG_DIST_SP
     : CLEF_TIMESIG_DIST_SP
   return (CLEF_LEFT_MARGIN_SP + CLEF_GLYPH_WIDTH_SP + gapAfterClef
     + TIMESIG_GLYPH_WIDTH_SP) * sp

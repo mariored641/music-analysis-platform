@@ -43,6 +43,7 @@ import {
   LELAND_NATURAL,
   LELAND_TIME_SIG,
   LELAND_AUGMENTATION_DOT,
+  LELAND_REPEAT_DOT,
   ENGRAVING,
   smuflFontSize,
   lelandAccidentalGlyph,
@@ -192,7 +193,8 @@ function renderBarline(bl: RenderedBarline, sp: number): string {
   const eDist  = 0.37 * sp   // Sid::endBarDistance (inner gap between thin+thick)
   const dDist  = 0.37 * sp   // Sid::doubleBarDistance (inner gap between double lines)
   const dotSep = 0.37 * sp   // Sid::repeatBarlineDotSeparation
-  const dotR   = sp * 0.25   // approx. radius of repeatDot glyph (symBbox ≈ 0.5sp wide)
+  const dotR   = sp * 0.25   // symBbox(repeatDot).width() ≈ 0.5sp → radius ≈ 0.25sp
+  const fs     = smuflFontSize(sp)  // SMuFL font size for glyph elements
   const parts: string[] = []
   const { x: ox, yTop, yBottom, type } = bl
   const mid = (yTop + yBottom) / 2
@@ -242,17 +244,26 @@ function renderBarline(bl: RenderedBarline, sp: number): string {
 
     case 'repeat-start': {
       // From MuseScore: src/engraving/libmscore/barline.cpp:661-678 — BarLineType::START_REPEAT
-      // bl.x = LEFT EDGE of barline (start of measure) → draw rightward
-      //   lw2 = endBarWidth → thick first: x = lw2*.5 = 0.275sp
-      //   lw  = barWidth    → thin:        x += (lw2*.5 + eDist + lw*.5) = 0.275+0.37+0.09 → total 1.01sp
-      //                      dots left:    x += (lw*.5 + dotSep) = 0.09+0.37 → total 1.47sp
-      const cxThick = ox + lw2 / 2
-      const cxThin  = ox + lw2 + eDist + lw / 2     // = cxThick + lw2/2 + eDist + lw/2
-      const dotLeft = ox + lw2 + eDist + lw + dotSep // left edge of dot glyph (x passed to drawDots)
+      //
+      // COORDINATE CONVENTION (mirrored from END_REPEAT):
+      //   bl.x = RIGHT EDGE of barline = measure content start (= hMeasure.x).
+      //   The barline draws LEFTWARD into the previous measure's trailing space.
+      //   Structure right→left: [note] ← barNoteDistance ← [dots] ← dotSep ← [thin] ← eDist ← [thick]
+      //
+      // C++ draws rightward from left-edge origin. We invert:
+      //   cxThick = ox - dotW - dotSep - lw - eDist - lw2/2
+      //   cxThin  = ox - dotW - dotSep - lw/2
+      //   dotLeft = ox - dotW
+      //
+      // dotW = symBbox(repeatDot).width() ≈ 0.5sp (same as END_REPEAT)
+      const dotW    = dotR * 2                              // ≈ 0.5sp
+      const dotLeft = ox - dotW
+      const cxThin  = ox - dotW - dotSep - lw / 2
+      const cxThick = ox - dotW - dotSep - lw - eDist - lw2 / 2
       parts.push(`<line x1="${n(cxThick)}" y1="${n(yTop)}" x2="${n(cxThick)}" y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(lw2, 2)}"/>`)
       parts.push(`<line x1="${n(cxThin)}"  y1="${n(yTop)}" x2="${n(cxThin)}"  y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(lw, 2)}"/>`)
-      parts.push(`<circle cx="${n(dotLeft + dotR)}" cy="${n(mid - sp * 0.5)}" r="${n(dotR)}" fill="${INK}"/>`)
-      parts.push(`<circle cx="${n(dotLeft + dotR)}" cy="${n(mid + sp * 0.5)}" r="${n(dotR)}" fill="${INK}"/>`)
+      parts.push(`<text x="${n(dotLeft)}" y="${n(mid - sp * 0.5)}" font-family="${LELAND_FONT}" font-size="${n(fs)}" fill="${INK}">${LELAND_REPEAT_DOT}</text>`)
+      parts.push(`<text x="${n(dotLeft)}" y="${n(mid + sp * 0.5)}" font-family="${LELAND_FONT}" font-size="${n(fs)}" fill="${INK}">${LELAND_REPEAT_DOT}</text>`)
       break
     }
 
@@ -261,18 +272,19 @@ function renderBarline(bl: RenderedBarline, sp: number): string {
       // bl.x = RIGHT EDGE of barline (end of measure) → invert C++ formula (mirror of final)
       //
       // C++ from origin (left edge), rightward:
-      //   dots at x=0, thin at dotW + dotSep + lw/2, thick at dotW + dotSep + lw + eDist + lw2/2
+      //   dots at x=0 (left edge), dot advances x += symBbox(repeatDot).width() ≈ dotW=0.5sp
+      //   thin at dotW + dotSep + lw/2, thick at dotW + dotSep + lw + eDist + lw2/2
       //   total = dotW + dotSep + lw + eDist + lw2  (≈ 0.5 + 0.37 + 0.18 + 0.37 + 0.55 = 1.97sp)
       // Inverted (right edge = bl.x):
-      //   thick center = bl.x - lw2/2                          = bl.x - 0.275sp
-      //   thin center  = bl.x - lw2 - eDist - lw/2             = bl.x - 1.01sp
-      //   dot cx       = bl.x - lw2 - eDist - lw - dotSep - dotR = bl.x - 1.845sp
+      //   thick center = bl.x - lw2/2                           = bl.x - 0.275sp
+      //   thin center  = bl.x - lw2 - eDist - lw/2              = bl.x - 1.01sp
+      //   dot left     = bl.x - lw2 - eDist - lw - dotSep - dotW = bl.x - 1.97sp
       const dotW    = dotR * 2                              // symBbox(repeatDot).width() ≈ 0.5sp
       const cxThick = ox - lw2 / 2
       const cxThin  = ox - lw2 - eDist - lw / 2
-      const dotCX   = ox - lw2 - eDist - lw - dotSep - dotR  // dot circle center
-      parts.push(`<circle cx="${n(dotCX)}" cy="${n(mid - sp * 0.5)}" r="${n(dotR)}" fill="${INK}"/>`)
-      parts.push(`<circle cx="${n(dotCX)}" cy="${n(mid + sp * 0.5)}" r="${n(dotR)}" fill="${INK}"/>`)
+      const dotLeft = ox - lw2 - eDist - lw - dotSep - dotW  // glyph left edge
+      parts.push(`<text x="${n(dotLeft)}" y="${n(mid - sp * 0.5)}" font-family="${LELAND_FONT}" font-size="${n(fs)}" fill="${INK}">${LELAND_REPEAT_DOT}</text>`)
+      parts.push(`<text x="${n(dotLeft)}" y="${n(mid + sp * 0.5)}" font-family="${LELAND_FONT}" font-size="${n(fs)}" fill="${INK}">${LELAND_REPEAT_DOT}</text>`)
       parts.push(`<line x1="${n(cxThin)}"  y1="${n(yTop)}" x2="${n(cxThin)}"  y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(lw, 2)}"/>`)
       parts.push(`<line x1="${n(cxThick)}" y1="${n(yTop)}" x2="${n(cxThick)}" y2="${n(yBottom)}" stroke="${INK}" stroke-width="${n(lw2, 2)}"/>`)
       const _ = dotW  // suppress unused warning
