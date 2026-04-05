@@ -360,7 +360,7 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 | 3 | Horizontal layout + דף בדיקה `/renderer-test` | ✅ הושלם — **Checkpoint A** |
 | 4 | Vertical layout + stems + beams + accidentals | ✅ הושלם — `verticalLayout.ts` |
 | 5 | SVG renderer (Unicode glyphs) | ✅ נבנה — Checkpoint B **לא אושר** — 8 בעיות ויזואליות |
-| 5.5 | Bugfix Pass — pixel comparison vs webmscore | 🔄 בעבודה — 0/15 pass, ~99.1–99.8% match. תוקן: noteX=left-edge, noteheadWidth=1.3sp, stemX=right/left edge. **הגישה הנכונה: קרא C++ → תרגם TS.** WYSIWYG confirmed: L1↔L2 = 100% (0 CSS regressions). כל diff שנותר הוא logic bug בלבד. **תוקן בסשן אחרון: squeeze tolerance ב-collectSystems() — acceptanceRange=0.3×squeezableSpace, system break עכשיו תואם MuseScore (M5 על system 1 ב-01-noteheads). horizontalLayout.ts::placeSystem() = DEAD CODE (LayoutOrchestrator.ts הוא הקוד הפעיל).** |
+| 5.5 | Bugfix Pass — pixel comparison vs webmscore | 🔄 בעבודה — 0/15 pass, ~99.1–99.8% match. תוקן: noteX=left-edge, noteheadWidth=1.3sp, stemX=right/left edge. **הגישה הנכונה: קרא C++ → תרגם TS.** WYSIWYG confirmed: L1↔L2 = 100% (0 CSS regressions). כל diff שנותר הוא logic bug בלבד. **תוקן: squeeze tolerance ב-collectSystems(), repeat-start direction (leftward from hMeasure.x). 12-barlines: 10,682px (ניסיון הסרת suppression → 11,296px → חזרנו). הבא: לחקור מה גורם ל-10,682px ב-12-barlines (note X positions, repeat-start dot coords).** |
 | 5.6 | Dual-layer testing + WYSIWYG fix | ✅ הושלם — `/app-test` route, `app-integration.spec.ts` (Layer 2), `compare-layers.ts`, font-guard + CSS isolation. 15/15 WYSIWYG match. |
 | 6 | אינטגרציה ב-MAP, הסרת Verovio | ⬜ **Checkpoint C** |
 | 7 | Classical full support (SATB, tuplets, voltas) | ⬜ |
