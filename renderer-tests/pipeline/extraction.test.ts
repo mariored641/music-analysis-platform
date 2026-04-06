@@ -35,9 +35,12 @@ registerTest('A1', 'noteCount', 'A', 'extraction', 'all', (fixtureId) => {
   // Just verify we extracted some notes
   deltas.push(numericDelta('total notes', totalNotes, 10, totalNotes, 'should have some notes'))
 
-  // Verify no measures are empty (unless rest-only)
+  // Verify no measures are empty (unless rest-only or trailing).
+  // Rest-only measures legitimately have notes.length === 0 in our extraction
+  // (rests are included, but some fixtures have trailing pickup-measure stubs).
+  // Allow up to 1 empty measure per fixture.
   const emptyMeasures = extracted.measures.filter(m => m.notes.length === 0)
-  deltas.push(numericDelta('empty measures', emptyMeasures.length, 0, extracted.measures.length * 0.1))
+  deltas.push(numericDelta('empty measures', emptyMeasures.length, 0, 1))
 
   return buildTestResult('A1', 'noteCount', 'A', 'extraction', fixtureId, deltas)
 })
@@ -172,14 +175,15 @@ registerTest('A7', 'harmonyLabels', 'A', 'extraction', ['11-chord-symbols'], (fi
   const harmonies = extracted.measures.flatMap(m => m.harmonies || [])
   deltas.push(numericDelta('harmony count', harmonies.length, 3, harmonies.length, 'should have chord symbols'))
 
-  // Each should have a root
+  // Each should have a root (extraction uses rootStep, not root)
   for (const h of harmonies.slice(0, 10)) {
-    const hasRoot = h.root !== undefined && h.root.length > 0
+    const rootField = (h as any).rootStep ?? (h as any).root
+    const hasRoot = rootField !== undefined && rootField.length > 0
     deltas.push(exactDelta(
       `harmony root`,
       String(hasRoot),
       'true',
-      `root=${h.root}`,
+      `root=${rootField}`,
     ))
   }
 
@@ -195,11 +199,12 @@ registerTest('A8', 'barlineTypes', 'A', 'extraction', ['12-barlines'], (fixtureI
   let hasRepeat = false, hasDouble = false, hasFinal = false
 
   for (const measure of extracted.measures) {
-    if (measure.barlineLeft?.barStyle?.includes('repeat') || measure.barlineRight?.barStyle?.includes('repeat')) {
-      hasRepeat = true
-    }
-    if (measure.barlineRight?.barStyle === 'light-light') hasDouble = true
-    if (measure.barlineRight?.barStyle === 'light-heavy') hasFinal = true
+    // Extraction uses .style not .barStyle, and maps to 'repeat-start'/'repeat-end'/'final'
+    const lStyle = (measure.barlineLeft as any)?.style ?? (measure.barlineLeft as any)?.barStyle ?? ''
+    const rStyle = (measure.barlineRight as any)?.style ?? (measure.barlineRight as any)?.barStyle ?? ''
+    if (lStyle.includes('repeat') || rStyle.includes('repeat')) hasRepeat = true
+    if (rStyle === 'double' || rStyle === 'light-light') hasDouble = true
+    if (rStyle === 'final' || rStyle === 'light-heavy') hasFinal = true
   }
 
   deltas.push(exactDelta('has repeat barline', String(hasRepeat), 'true'))

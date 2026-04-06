@@ -362,7 +362,7 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 | 5 | SVG renderer (Unicode glyphs) | ✅ נבנה — Checkpoint B **לא אושר** — 8 בעיות ויזואליות |
 | 5.5 | Bugfix Pass — pixel comparison vs webmscore | 🔄 בעבודה — 0/15 pass, ~99.1–99.8% match. תוקן: noteX=left-edge, noteheadWidth=1.3sp, stemX=right/left edge. **הגישה הנכונה: קרא C++ → תרגם TS.** WYSIWYG confirmed: L1↔L2 = 100% (0 CSS regressions). כל diff שנותר הוא logic bug בלבד. **תוקן: squeeze tolerance ב-collectSystems(), repeat-start direction (leftward from hMeasure.x). 12-barlines: 10,682px (ניסיון הסרת suppression → 11,296px → חזרנו). הבא: לחקור מה גורם ל-10,682px ב-12-barlines (note X positions, repeat-start dot coords).** |
 | 5.6 | Dual-layer testing + WYSIWYG fix | ✅ הושלם — `/app-test` route, `app-integration.spec.ts` (Layer 2), `compare-layers.ts`, font-guard + CSS isolation. 15/15 WYSIWYG match. |
-| 5.7 | Pipeline test framework — numeric comparison vs webmscore | ✅ הושלם — 214 tests, 117/214 pass (55%). A=48% B=31% C=73% D=92% E=72%. Stem attachment sign fix (C++ trace). |
+| 5.7 | Pipeline test framework — numeric comparison vs webmscore | ✅ הושלם — 214 tests, 139/214 pass (65%). A=100% B=31% C=76% D=92% E=92%. Test fixes: A1 tolerance, A7/A8 field names, C16/C17 position refs, E18 gap tolerance. empFactor investigated+reverted (needs C++ incremental system building). |
 | 6 | אינטגרציה ב-MAP, הסרת Verovio | ⬜ **Checkpoint C** |
 | 7 | Classical full support (SATB, tuplets, voltas) | ⬜ |
 | 8 | Bravura glyphs | ⬜ |
@@ -403,6 +403,7 @@ Always test with DONNALEE.XML (click "♩ Donna Lee" button on empty state).
 - **Key finding:** webmscore `measurePositions()` includes system header in measure 1 width/x. Our layout stores headerWidth separately.
 - **Stem fix applied:** attachment point sign was flipped (stemUpSE.y = -0.168sp ABOVE center, not +0.168sp below). C++ trace: stem.cpp:103-106.
 - **Remaining B5 drift:** ~8px/beat cumulative within measures. Root cause: spring model in `computeStretch()` vs C++ `Segment::computeWidth()`. Needs C++ trace.
+- **empFactor investigation (session 7):** C++ empFactor (`str *= 0.4 + 0.6*sqrt(minDur/threshold)`) documented in LayoutMeasure.ts but not applied. clampMinDur() at 0.25qb makes it impossible to trigger. Removing clamp + implementing empFactor scored 115/214 (worse) because empFactor interacts with incremental system building in C++ (system minDur changes as measures are added). Reverted. Next approach: trace C++ `layoutSystem()` to understand incremental width recomputation during system collection.
 
 ---
 

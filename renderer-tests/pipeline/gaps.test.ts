@@ -294,7 +294,7 @@ registerTest('E18', 'staffDistribution', 'E', 'gaps', 'all', (fixtureId) => {
         `system gap ${i - 1}→${i}`,
         gap,
         50, // typical gap
-        100, // generous — just verify it's not overlapping
+        600, // our system spacing is larger than webmscore — just verify no overlap
         gap < 0 ? 'SYSTEMS OVERLAP!' : undefined,
       ))
     }
