@@ -60,42 +60,53 @@ export const NOTE_BAR_DIST_SP = 1.5    // Sid::noteBarDistance, styledef.cpp:186
  *
  * C++: segment.cpp:2812 — Segment::computeDurationStretch()
  *
- *   double slope = score()->styleD(Sid::measureSpacing);  // 1.5
- *   static constexpr double longNoteThreshold = Fraction(1, 16).toDouble(); // 0.0625
- *   static constexpr double maxRatio = 32.0;
- *
- *   // HACK: if ratio >= 2 AND minTicks < 1/16, double minTicks
- *   if (maxTicks/minTicks >= 2.0 && minTicks < longNoteThreshold)
- *       minTicks *= 2.0;
- *
- *   double ratio = curTicks / minTicks;
- *   // cap ratio for extreme ranges
- *   if (maxSysRatio > maxRatio):
- *       A = (minTicks*(maxRatio-1)) / (maxTicks-minTicks)
- *       B = (maxTicks - maxRatio*minTicks) / (maxTicks-minTicks)
- *       ratio = A*ratio + B
- *
- *   str = pow(slope, log2(ratio))
- *
- *   // empFactor: for scores where minTicks > 1/16
- *   if (minTicks > longNoteThreshold):
- *       empFactor = 0.6
- *       str *= (1 - empFactor + empFactor * sqrt(minTicks / longNoteThreshold))
- *
- * NOTE: MAP uses quarter-beat durations (1.0 = quarter note) NOT Ticks.
+ * Full C++ formula including HACK, maxRatio cap, and empFactor.
+ * MAP uses quarter-beat durations (1.0 = quarter note) NOT Ticks.
  * The longNoteThreshold = 0.0625 in Ticks (1/16 of a whole note) = 0.25 in quarter-beats.
- * The empFactor and HACK have been tested and make pixel tests worse in MAP context —
- * they are documented here but NOT applied (see comment in horizontalLayout.ts for why).
  *
- * @param durationQb   Duration of this segment in quarter-beat units
- * @param minDurationQb  Minimum duration across all segments in the system (capped at 0.25 qb)
+ * @param durationQb    Duration of this segment in quarter-beat units
+ * @param minDurationQb Minimum duration across all segments in the system
+ * @param maxDurationQb Maximum duration across all segments in the system
  */
-export function computeDurationStretch(durationQb: number, minDurationQb: number): number {
-  if (minDurationQb <= 0 || durationQb <= minDurationQb + 1e-9) return 1.0
-  // C++: ratio = curTicks / minTicks; capped at maxRatio=32
-  const ratio = Math.min(durationQb / minDurationQb, 32.0)
+export function computeDurationStretch(
+  durationQb: number,
+  minDurationQb: number,
+  maxDurationQb: number = minDurationQb,
+): number {
+  if (minDurationQb <= 0) return 1.0
+
+  let dMin = minDurationQb
+  const dMax = maxDurationQb
+
+  // C++: segment.cpp:2832-2834 — HACK: double minTicks when range >= 2 and min < sixteenth
+  const longNoteThreshold = 0.25   // sixteenth note in quarter-beat units
+  if (dMax / dMin >= 2.0 && dMin < longNoteThreshold) {
+    dMin *= 2.0
+  }
+
+  // C++: ratio = curTicks / minTicks
+  let ratio = durationQb / dMin
+  if (ratio <= 1.0 + 1e-9) ratio = 1.0
+
+  // C++: segment.cpp:2839-2842 — cap ratio for extreme ranges
+  const maxRatio = 32.0
+  const maxSysRatio = dMax / dMin
+  if (maxSysRatio > maxRatio) {
+    const A = (dMin * (maxRatio - 1)) / (dMax - dMin)
+    const B = (dMax - maxRatio * dMin) / (dMax - dMin)
+    ratio = A * ratio + B
+  }
+
   // C++: str = pow(slope, log2(ratio))
-  return Math.pow(MEASURE_SPACING_SLOPE, Math.log2(ratio))
+  let str = ratio <= 1.0 ? 1.0 : Math.pow(MEASURE_SPACING_SLOPE, Math.log2(ratio))
+
+  // C++: segment.cpp:2847-2848 — empFactor: widen when all notes are long
+  if (dMin > longNoteThreshold) {
+    const empFactor = 0.6
+    str *= (1 - empFactor + empFactor * Math.sqrt(dMin / longNoteThreshold))
+  }
+
+  return str
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -110,6 +121,8 @@ export interface MeasureSegment {
   beat: number
   /** Duration in quarter-beat units */
   durationQb: number
+  /** Whether any note at this beat has a visible accidental */
+  hasAccidental?: boolean
 }
 
 /**
@@ -127,21 +140,31 @@ export interface MeasureSegment {
  * @param segments     List of segments in this measure
  * @param minSysDurQb  System-wide minimum duration (denominator for stretch)
  * @param sp           Spatium in pixels
+ * @param maxSysDurQb  System-wide maximum duration (for HACK + maxRatio cap)
  * @returns            Array of widths in pixels, one per segment
  */
 export function computeSegmentWidths(
   segments: MeasureSegment[],
   minSysDurQb: number,
   sp: number,
+  maxSysDurQb: number = minSysDurQb,
 ): number[] {
   const noteHeadWidthSp = 1.18  // 2 * NOTEHEAD_RX_SP
   // C++: measure.cpp:4175
   const minNoteSpaceSp = noteHeadWidthSp + SPACING_MULTIPLIER * MIN_NOTE_DIST_SP
 
+  // C++: accidental adds to shape's left extent → increases minHorizontalDistance
+  // from previous segment. Approximate as additional padding.
+  // Leland accidental width ≈ 0.45sp, plus clearance ≈ 0.25sp → ~0.7sp total
+  const accidentalPaddingSp = 0.7
+
   return segments.map(seg => {
-    const stretch = computeDurationStretch(seg.durationQb, minSysDurQb)
+    const stretch = computeDurationStretch(seg.durationQb, minSysDurQb, maxSysDurQb)
     // C++: measure.cpp:4219 — minStretchedWidth = minNoteSpace * durStretch * usrStretch * stretchCoeff
-    const minWidthSp = minNoteSpaceSp * stretch
+    let minWidthSp = minNoteSpaceSp * stretch
+    if (seg.hasAccidental) {
+      minWidthSp += accidentalPaddingSp
+    }
     return minWidthSp * sp
   })
 }

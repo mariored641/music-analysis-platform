@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-04-05T16:31:16.995Z",
+  "timestamp": "2026-04-07T05:37:06.927Z",
   "fixtures": [
     {
       "fixtureId": "01-noteheads",
-      "timestamp": "2026-04-05T16:31:16.788Z",
+      "timestamp": "2026-04-07T05:37:06.557Z",
       "results": [
         {
           "testId": "B1",
@@ -12,41 +12,55 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "01-noteheads",
-          "summary": "4/4 exceed tolerance (max Δ 270.9px)",
+          "summary": "5/6 exceed tolerance (max Δ 14.0px)",
           "deltas": [
             {
               "label": "measure 1 width",
-              "actual": 420.4,
+              "actual": 528.8,
               "expected": 518,
-              "diff": 97.6,
+              "diff": 10.8,
               "withinTolerance": false
             },
             {
               "label": "measure 2 width",
-              "actual": 336.4,
+              "actual": 480.9,
               "expected": 474.5,
-              "diff": 138.1,
+              "diff": 6.4,
               "withinTolerance": false
             },
             {
               "label": "measure 3 width",
-              "actual": 425.5,
+              "actual": 618.1,
               "expected": 620.4,
-              "diff": 195,
-              "withinTolerance": false
+              "diff": 2.4,
+              "withinTolerance": true
             },
             {
               "label": "measure 4 width",
-              "actual": 544.1,
+              "actual": 801,
               "expected": 815,
-              "diff": 270.9,
+              "diff": 14,
+              "withinTolerance": false
+            },
+            {
+              "label": "measure 5 width",
+              "actual": 1939.4,
+              "expected": 1929.1,
+              "diff": 10.3,
+              "withinTolerance": false
+            },
+            {
+              "label": "measure 6 width",
+              "actual": 613.4,
+              "expected": 622.9,
+              "diff": 9.5,
               "withinTolerance": false
             }
           ],
-          "totalCompared": 4,
-          "exceededCount": 4,
-          "maxDelta": 270.9,
-          "avgDelta": 175.4
+          "totalCompared": 6,
+          "exceededCount": 5,
+          "maxDelta": 14,
+          "avgDelta": 8.9
         },
         {
           "testId": "B2",
@@ -55,7 +69,7 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "01-noteheads",
-          "summary": "3/4 exceed tolerance (max Δ 430.6px)",
+          "summary": "4/6 exceed tolerance (max Δ 17.2px)",
           "deltas": [
             {
               "label": "measure 1 x",
@@ -66,39 +80,53 @@
             },
             {
               "label": "measure 2 x",
-              "actual": 757,
+              "actual": 865.4,
               "expected": 854.6,
-              "diff": 97.6,
+              "diff": 10.8,
               "withinTolerance": false
             },
             {
               "label": "measure 3 x",
-              "actual": 1093.5,
+              "actual": 1346.3,
               "expected": 1329.1,
-              "diff": 235.6,
+              "diff": 17.2,
               "withinTolerance": false
             },
             {
               "label": "measure 4 x",
-              "actual": 1518.9,
+              "actual": 1964.4,
               "expected": 1949.6,
-              "diff": 430.6,
+              "diff": 14.8,
+              "withinTolerance": false
+            },
+            {
+              "label": "measure 5 x",
+              "actual": 212.6,
+              "expected": 212.6,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "measure 6 x",
+              "actual": 2152,
+              "expected": 2141.7,
+              "diff": 10.3,
               "withinTolerance": false
             }
           ],
-          "totalCompared": 4,
-          "exceededCount": 3,
-          "maxDelta": 430.6,
-          "avgDelta": 191
+          "totalCompared": 6,
+          "exceededCount": 4,
+          "maxDelta": 17.2,
+          "avgDelta": 8.9
         },
         {
           "testId": "B3",
           "name": "systemBreaks",
           "stage": "B",
           "category": "horizontal",
-          "passed": false,
+          "passed": true,
           "fixtureId": "01-noteheads",
-          "summary": "1/3 exceed tolerance (max Δ 0.0px)",
+          "summary": "3 compared, all within tolerance",
           "deltas": [
             {
               "label": "system count",
@@ -114,13 +142,13 @@
             },
             {
               "label": "system 2 starts at measure",
-              "actual": "6",
+              "actual": "5",
               "expected": "5",
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 3,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 0,
           "avgDelta": 0
         },
@@ -154,7 +182,7 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "01-noteheads",
-          "summary": "15/15 exceed tolerance (max Δ 712.5px)",
+          "summary": "27/31 exceed tolerance (max Δ 42.2px)",
           "deltas": [
             {
               "label": "m1 note[0] x (note-m1b100-C5)",
@@ -165,107 +193,219 @@
             },
             {
               "label": "m2 note[0] x (note-m2b100-C5)",
-              "actual": 789.3,
+              "actual": 897.6,
               "expected": 903,
-              "diff": 113.7,
+              "diff": 5.3,
               "withinTolerance": false
             },
             {
               "label": "m2 note[1] x (note-m2b300-E5)",
-              "actual": 922.8,
+              "actual": 1103.4,
               "expected": 1121.9,
-              "diff": 199.1,
+              "diff": 18.5,
               "withinTolerance": false
             },
             {
               "label": "m3 note[0] x (note-m3b100-C5)",
-              "actual": 1125.7,
+              "actual": 1378.6,
               "expected": 1377.5,
-              "diff": 251.8,
-              "withinTolerance": false
+              "diff": 1.1,
+              "withinTolerance": true
             },
             {
               "label": "m3 note[1] x (note-m3b200-D5)",
-              "actual": 1214.7,
+              "actual": 1515.7,
               "expected": 1523.4,
-              "diff": 308.7,
+              "diff": 7.7,
               "withinTolerance": false
             },
             {
               "label": "m3 note[2] x (note-m3b300-E5)",
-              "actual": 1303.7,
+              "actual": 1652.9,
               "expected": 1669.4,
-              "diff": 365.6,
+              "diff": 16.5,
               "withinTolerance": false
             },
             {
               "label": "m3 note[3] x (note-m3b400-F5)",
-              "actual": 1392.7,
+              "actual": 1790.1,
               "expected": 1815.3,
-              "diff": 422.6,
+              "diff": 25.2,
               "withinTolerance": false
             },
             {
               "label": "m4 note[0] x (note-m4b100-C5)",
-              "actual": 1551.2,
+              "actual": 1996.7,
               "expected": 1997.9,
-              "diff": 446.8,
-              "withinTolerance": false
+              "diff": 1.3,
+              "withinTolerance": true
             },
             {
               "label": "m4 note[1] x (note-m4b150-D5)",
-              "actual": 1610.5,
+              "actual": 2088.1,
               "expected": 2095.2,
-              "diff": 484.7,
+              "diff": 7.1,
               "withinTolerance": false
             },
             {
               "label": "m4 note[2] x (note-m4b200-E5)",
-              "actual": 1669.8,
+              "actual": 2179.5,
               "expected": 2192.5,
-              "diff": 522.7,
+              "diff": 13,
               "withinTolerance": false
             },
             {
               "label": "m4 note[3] x (note-m4b250-F5)",
-              "actual": 1729.2,
+              "actual": 2271,
               "expected": 2289.8,
-              "diff": 560.6,
+              "diff": 18.8,
               "withinTolerance": false
             },
             {
               "label": "m4 note[4] x (note-m4b300-G5)",
-              "actual": 1788.5,
+              "actual": 2362.4,
               "expected": 2387.1,
-              "diff": 598.6,
+              "diff": 24.7,
               "withinTolerance": false
             },
             {
               "label": "m4 note[5] x (note-m4b350-A5)",
-              "actual": 1847.8,
+              "actual": 2453.9,
               "expected": 2484.4,
-              "diff": 636.5,
+              "diff": 30.5,
               "withinTolerance": false
             },
             {
               "label": "m4 note[6] x (note-m4b400-B5)",
-              "actual": 1907.2,
+              "actual": 2545.3,
               "expected": 2581.7,
-              "diff": 674.5,
+              "diff": 36.4,
               "withinTolerance": false
             },
             {
               "label": "m4 note[7] x (note-m4b450-C6)",
-              "actual": 1966.5,
+              "actual": 2636.8,
               "expected": 2679,
-              "diff": 712.5,
+              "diff": 42.2,
+              "withinTolerance": false
+            },
+            {
+              "label": "m5 note[0] x (note-m5b100-C5)",
+              "actual": 395.6,
+              "expected": 372.8,
+              "diff": 22.8,
+              "withinTolerance": false
+            },
+            {
+              "label": "m5 note[1] x (note-m5b125-D5)",
+              "actual": 503,
+              "expected": 484.1,
+              "diff": 18.9,
+              "withinTolerance": false
+            },
+            {
+              "label": "m5 note[2] x (note-m5b150-E5)",
+              "actual": 610.5,
+              "expected": 595.4,
+              "diff": 15.1,
+              "withinTolerance": false
+            },
+            {
+              "label": "m5 note[3] x (note-m5b175-F5)",
+              "actual": 717.9,
+              "expected": 706.7,
+              "diff": 11.3,
+              "withinTolerance": false
+            },
+            {
+              "label": "m5 note[4] x (note-m5b200-G5)",
+              "actual": 825.4,
+              "expected": 817.9,
+              "diff": 7.4,
+              "withinTolerance": false
+            },
+            {
+              "label": "m5 note[5] x (note-m5b225-A5)",
+              "actual": 932.8,
+              "expected": 929.2,
+              "diff": 3.6,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[6] x (note-m5b250-B5)",
+              "actual": 1040.3,
+              "expected": 1040.5,
+              "diff": 0.2,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[7] x (note-m5b275-C6)",
+              "actual": 1147.7,
+              "expected": 1151.8,
+              "diff": 4.1,
+              "withinTolerance": false
+            },
+            {
+              "label": "m5 note[8] x (note-m5b300-C5)",
+              "actual": 1255.2,
+              "expected": 1263.1,
+              "diff": 7.9,
+              "withinTolerance": false
+            },
+            {
+              "label": "m5 note[9] x (note-m5b325-D5)",
+              "actual": 1362.6,
+              "expected": 1374.4,
+              "diff": 11.7,
+              "withinTolerance": false
+            },
+            {
+              "label": "m5 note[10] x (note-m5b350-E5)",
+              "actual": 1470.1,
+              "expected": 1485.6,
+              "diff": 15.6,
+              "withinTolerance": false
+            },
+            {
+              "label": "m5 note[11] x (note-m5b375-F5)",
+              "actual": 1577.5,
+              "expected": 1596.9,
+              "diff": 19.4,
+              "withinTolerance": false
+            },
+            {
+              "label": "m5 note[12] x (note-m5b400-G5)",
+              "actual": 1685,
+              "expected": 1708.2,
+              "diff": 23.2,
+              "withinTolerance": false
+            },
+            {
+              "label": "m5 note[13] x (note-m5b425-A5)",
+              "actual": 1792.4,
+              "expected": 1819.5,
+              "diff": 27.1,
+              "withinTolerance": false
+            },
+            {
+              "label": "m5 note[14] x (note-m5b450-B5)",
+              "actual": 1899.9,
+              "expected": 1930.8,
+              "diff": 30.9,
+              "withinTolerance": false
+            },
+            {
+              "label": "m5 note[15] x (note-m5b475-C6)",
+              "actual": 2007.3,
+              "expected": 2042.1,
+              "diff": 34.7,
               "withinTolerance": false
             }
           ],
-          "totalCompared": 15,
-          "exceededCount": 15,
-          "maxDelta": 712.5,
-          "avgDelta": 421.1
+          "totalCompared": 31,
+          "exceededCount": 27,
+          "maxDelta": 42.2,
+          "avgDelta": 16.8
         },
         {
           "testId": "B6",
@@ -294,9 +434,9 @@
           "name": "justificationSlack",
           "stage": "B",
           "category": "horizontal",
-          "passed": false,
+          "passed": true,
           "fixtureId": "01-noteheads",
-          "summary": "1/2 exceed tolerance (max Δ 2109.1px)",
+          "summary": "2 compared, all within tolerance",
           "deltas": [
             {
               "label": "system 1 fill",
@@ -304,21 +444,21 @@
               "expected": 2428.8,
               "diff": 0,
               "withinTolerance": true,
-              "detail": "5 measures"
+              "detail": "4 measures"
             },
             {
               "label": "system 2 fill",
-              "actual": 443.7,
+              "actual": 2552.8,
               "expected": 2552.8,
-              "diff": 2109.1,
-              "withinTolerance": false,
-              "detail": "1 measures"
+              "diff": 0,
+              "withinTolerance": true,
+              "detail": "2 measures"
             }
           ],
           "totalCompared": 2,
-          "exceededCount": 1,
-          "maxDelta": 2109.1,
-          "avgDelta": 1054.6
+          "exceededCount": 0,
+          "maxDelta": 0,
+          "avgDelta": 0
         },
         {
           "testId": "C1",
@@ -327,7 +467,7 @@
           "category": "vertical",
           "passed": true,
           "fixtureId": "01-noteheads",
-          "summary": "15 compared, all within tolerance (max Δ 0.1px)",
+          "summary": "31 compared, all within tolerance (max Δ 0.1px)",
           "deltas": [
             {
               "label": "m1 note[0] y (note-m1b100-C5)",
@@ -433,9 +573,121 @@
               "expected": 584.6,
               "diff": 0,
               "withinTolerance": true
+            },
+            {
+              "label": "m5 note[0] y (note-m5b100-C5)",
+              "actual": 1353.4,
+              "expected": 1353.4,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[1] y (note-m5b125-D5)",
+              "actual": 1341,
+              "expected": 1341,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[2] y (note-m5b150-E5)",
+              "actual": 1328.6,
+              "expected": 1328.6,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[3] y (note-m5b175-F5)",
+              "actual": 1316.2,
+              "expected": 1316.2,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[4] y (note-m5b200-G5)",
+              "actual": 1303.8,
+              "expected": 1303.8,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[5] y (note-m5b225-A5)",
+              "actual": 1291.4,
+              "expected": 1291.4,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[6] y (note-m5b250-B5)",
+              "actual": 1279,
+              "expected": 1279,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[7] y (note-m5b275-C6)",
+              "actual": 1266.6,
+              "expected": 1266.6,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[8] y (note-m5b300-C5)",
+              "actual": 1353.4,
+              "expected": 1353.4,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[9] y (note-m5b325-D5)",
+              "actual": 1341,
+              "expected": 1341,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[10] y (note-m5b350-E5)",
+              "actual": 1328.6,
+              "expected": 1328.6,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[11] y (note-m5b375-F5)",
+              "actual": 1316.2,
+              "expected": 1316.2,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[12] y (note-m5b400-G5)",
+              "actual": 1303.8,
+              "expected": 1303.8,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[13] y (note-m5b425-A5)",
+              "actual": 1291.4,
+              "expected": 1291.4,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[14] y (note-m5b450-B5)",
+              "actual": 1279,
+              "expected": 1279,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[15] y (note-m5b475-C6)",
+              "actual": 1266.6,
+              "expected": 1266.6,
+              "diff": 0,
+              "withinTolerance": true
             }
           ],
-          "totalCompared": 15,
+          "totalCompared": 31,
           "exceededCount": 0,
           "maxDelta": 0.1,
           "avgDelta": 0
@@ -539,9 +791,88 @@
           "category": "vertical",
           "passed": true,
           "fixtureId": "01-noteheads",
-          "summary": "0 compared, all within tolerance",
-          "deltas": [],
-          "totalCompared": 0,
+          "summary": "13 compared, all within tolerance",
+          "deltas": [
+            {
+              "label": "stem[8] direction (note-m2b300-E5)",
+              "actual": "down",
+              "expected": "down",
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[10] direction (note-m5b300-C5)",
+              "actual": "down",
+              "expected": "down",
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[11] direction (note-m5b325-D5)",
+              "actual": "down",
+              "expected": "down",
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[13] direction (note-m5b350-E5)",
+              "actual": "down",
+              "expected": "down",
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[14] direction (note-m3b200-D5)",
+              "actual": "down",
+              "expected": "down",
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[15] direction (note-m5b375-F5)",
+              "actual": "down",
+              "expected": "down",
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[16] direction (note-m3b300-E5)",
+              "actual": "down",
+              "expected": "down",
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[17] direction (note-m5b400-G5)",
+              "actual": "down",
+              "expected": "down",
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[18] direction (note-m3b400-F5)",
+              "actual": "down",
+              "expected": "down",
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[23] direction (note-m4b150-D5)",
+              "actual": "down",
+              "expected": "down",
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[24] direction (note-m4b200-E5)",
+              "actual": "down",
+              "expected": "down",
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[25] direction (note-m4b250-F5)",
+              "actual": "down",
+              "expected": "down",
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[26] direction (note-m4b300-G5)",
+              "actual": "down",
+              "expected": "down",
+              "withinTolerance": true
+            }
+          ],
+          "totalCompared": 13,
           "exceededCount": 0,
           "maxDelta": 0,
           "avgDelta": 0
@@ -551,37 +882,312 @@
           "name": "stemLengths",
           "stage": "C",
           "category": "vertical",
-          "passed": true,
+          "passed": false,
           "fixtureId": "01-noteheads",
-          "summary": "0 compared, all within tolerance",
-          "deltas": [],
-          "totalCompared": 0,
-          "exceededCount": 0,
-          "maxDelta": 0,
-          "avgDelta": 0
+          "summary": "9/13 exceed tolerance (max Δ 18.7px)",
+          "deltas": [
+            {
+              "label": "stem[8] length (note-m2b300-E5)",
+              "actual": 82.6,
+              "expected": 82.6,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[10] length (note-m5b300-C5)",
+              "actual": 76.4,
+              "expected": 82.6,
+              "diff": 6.3,
+              "withinTolerance": false
+            },
+            {
+              "label": "stem[11] length (note-m5b325-D5)",
+              "actual": 82.6,
+              "expected": 93,
+              "diff": 10.4,
+              "withinTolerance": false
+            },
+            {
+              "label": "stem[13] length (note-m5b350-E5)",
+              "actual": 88.8,
+              "expected": 103.3,
+              "diff": 14.5,
+              "withinTolerance": false
+            },
+            {
+              "label": "stem[14] length (note-m3b200-D5)",
+              "actual": 82.6,
+              "expected": 82.6,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[15] length (note-m5b375-F5)",
+              "actual": 95,
+              "expected": 113.7,
+              "diff": 18.7,
+              "withinTolerance": false
+            },
+            {
+              "label": "stem[16] length (note-m3b300-E5)",
+              "actual": 82.6,
+              "expected": 82.6,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[17] length (note-m5b400-G5)",
+              "actual": 76.4,
+              "expected": 82.6,
+              "diff": 6.3,
+              "withinTolerance": false
+            },
+            {
+              "label": "stem[18] length (note-m3b400-F5)",
+              "actual": 82.6,
+              "expected": 82.6,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[23] length (note-m4b150-D5)",
+              "actual": 82.5,
+              "expected": 72.3,
+              "diff": 10.3,
+              "withinTolerance": false
+            },
+            {
+              "label": "stem[24] length (note-m4b200-E5)",
+              "actual": 88.7,
+              "expected": 80.6,
+              "diff": 8.2,
+              "withinTolerance": false
+            },
+            {
+              "label": "stem[25] length (note-m4b250-F5)",
+              "actual": 94.9,
+              "expected": 88.9,
+              "diff": 6.1,
+              "withinTolerance": false
+            },
+            {
+              "label": "stem[26] length (note-m4b300-G5)",
+              "actual": 76.3,
+              "expected": 64,
+              "diff": 12.4,
+              "withinTolerance": false
+            }
+          ],
+          "totalCompared": 13,
+          "exceededCount": 9,
+          "maxDelta": 18.7,
+          "avgDelta": 7.2
         },
         {
           "testId": "C5",
           "name": "stemEndpoints",
           "stage": "C",
           "category": "vertical",
-          "passed": true,
+          "passed": false,
           "fixtureId": "01-noteheads",
-          "summary": "0 compared, all within tolerance",
-          "deltas": [],
-          "totalCompared": 0,
-          "exceededCount": 0,
-          "maxDelta": 0,
-          "avgDelta": 0
+          "summary": "9/26 exceed tolerance (max Δ 18.7px)",
+          "deltas": [
+            {
+              "label": "stem[8] yTop",
+              "actual": 650.8,
+              "expected": 650.8,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[8] yBottom",
+              "actual": 733.4,
+              "expected": 733.4,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[10] yTop",
+              "actual": 1357.6,
+              "expected": 1357.6,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[10] yBottom",
+              "actual": 1433.9,
+              "expected": 1440.2,
+              "diff": 6.3,
+              "withinTolerance": false
+            },
+            {
+              "label": "stem[11] yTop",
+              "actual": 1345.2,
+              "expected": 1345.2,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[11] yBottom",
+              "actual": 1427.7,
+              "expected": 1438.1,
+              "diff": 10.4,
+              "withinTolerance": false
+            },
+            {
+              "label": "stem[13] yTop",
+              "actual": 1332.8,
+              "expected": 1332.8,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[13] yBottom",
+              "actual": 1421.5,
+              "expected": 1436.1,
+              "diff": 14.5,
+              "withinTolerance": false
+            },
+            {
+              "label": "stem[14] yTop",
+              "actual": 663.2,
+              "expected": 663.2,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[14] yBottom",
+              "actual": 745.8,
+              "expected": 745.8,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[15] yTop",
+              "actual": 1320.4,
+              "expected": 1320.4,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[15] yBottom",
+              "actual": 1415.3,
+              "expected": 1434,
+              "diff": 18.7,
+              "withinTolerance": false
+            },
+            {
+              "label": "stem[16] yTop",
+              "actual": 650.8,
+              "expected": 650.8,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[16] yBottom",
+              "actual": 733.4,
+              "expected": 733.4,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[17] yTop",
+              "actual": 1308,
+              "expected": 1308,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[17] yBottom",
+              "actual": 1384.3,
+              "expected": 1390.6,
+              "diff": 6.3,
+              "withinTolerance": false
+            },
+            {
+              "label": "stem[18] yTop",
+              "actual": 638.4,
+              "expected": 638.4,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[18] yBottom",
+              "actual": 721,
+              "expected": 721,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[23] yTop",
+              "actual": 663.2,
+              "expected": 663.2,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[23] yBottom",
+              "actual": 745.7,
+              "expected": 735.4,
+              "diff": 10.3,
+              "withinTolerance": false
+            },
+            {
+              "label": "stem[24] yTop",
+              "actual": 650.8,
+              "expected": 650.8,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[24] yBottom",
+              "actual": 739.5,
+              "expected": 731.3,
+              "diff": 8.2,
+              "withinTolerance": false
+            },
+            {
+              "label": "stem[25] yTop",
+              "actual": 638.4,
+              "expected": 638.4,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[25] yBottom",
+              "actual": 733.3,
+              "expected": 727.3,
+              "diff": 6.1,
+              "withinTolerance": false
+            },
+            {
+              "label": "stem[26] yTop",
+              "actual": 626,
+              "expected": 626,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "stem[26] yBottom",
+              "actual": 702.3,
+              "expected": 689.9,
+              "diff": 12.4,
+              "withinTolerance": false
+            }
+          ],
+          "totalCompared": 26,
+          "exceededCount": 9,
+          "maxDelta": 18.7,
+          "avgDelta": 3.6
         },
         {
           "testId": "A1",
           "name": "noteCount",
           "stage": "A",
           "category": "extraction",
-          "passed": false,
+          "passed": true,
           "fixtureId": "01-noteheads",
-          "summary": "1/2 exceed tolerance (max Δ 21.0px)",
+          "summary": "2 compared, all within tolerance (max Δ 21.0px)",
           "deltas": [
             {
               "label": "total notes",
@@ -596,11 +1202,11 @@
               "actual": 1,
               "expected": 0,
               "diff": 1,
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 2,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 21,
           "avgDelta": 11
         },
@@ -1145,39 +1751,39 @@
           "name": "staffDistribution",
           "stage": "E",
           "category": "gaps",
-          "passed": false,
+          "passed": true,
           "fixtureId": "01-noteheads",
-          "summary": "1/1 exceed tolerance (max Δ 532.8px)",
+          "summary": "1 compared, all within tolerance (max Δ 532.8px)",
           "deltas": [
             {
               "label": "system gap 0→1",
               "actual": 582.8,
               "expected": 50,
               "diff": 532.8,
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 1,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 532.8,
           "avgDelta": 532.8
         }
       ],
       "totalTests": 19,
-      "passed": 9,
-      "failed": 10,
+      "passed": 11,
+      "failed": 8,
       "stageBreakdown": {
         "A": {
           "total": 2,
-          "passed": 1
+          "passed": 2
         },
         "B": {
           "total": 7,
-          "passed": 0
+          "passed": 2
         },
         "C": {
           "total": 5,
-          "passed": 5
+          "passed": 3
         },
         "D": {
           "total": 3,
@@ -1185,13 +1791,13 @@
         },
         "E": {
           "total": 2,
-          "passed": 1
+          "passed": 2
         }
       }
     },
     {
       "fixtureId": "02-accidentals",
-      "timestamp": "2026-04-05T16:31:16.815Z",
+      "timestamp": "2026-04-07T05:37:06.612Z",
       "results": [
         {
           "testId": "B1",
@@ -1200,48 +1806,48 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "02-accidentals",
-          "summary": "5/5 exceed tolerance (max Δ 33.4px)",
+          "summary": "5/5 exceed tolerance (max Δ 37.9px)",
           "deltas": [
             {
               "label": "measure 1 width",
-              "actual": 641.4,
+              "actual": 644.8,
               "expected": 629.1,
-              "diff": 12.3,
+              "diff": 15.7,
               "withinTolerance": false
             },
             {
               "label": "measure 2 width",
-              "actual": 490.7,
+              "actual": 517,
               "expected": 479.1,
-              "diff": 11.5,
+              "diff": 37.9,
               "withinTolerance": false
             },
             {
               "label": "measure 3 width",
-              "actual": 490.7,
+              "actual": 494.1,
               "expected": 497.1,
-              "diff": 6.5,
+              "diff": 3,
               "withinTolerance": false
             },
             {
               "label": "measure 4 width",
-              "actual": 490.7,
+              "actual": 494.1,
               "expected": 524,
-              "diff": 33.4,
+              "diff": 29.9,
               "withinTolerance": false
             },
             {
               "label": "measure 5 width",
-              "actual": 315.4,
+              "actual": 278.8,
               "expected": 298.6,
-              "diff": 16.8,
+              "diff": 19.8,
               "withinTolerance": false
             }
           ],
           "totalCompared": 5,
           "exceededCount": 5,
-          "maxDelta": 33.4,
-          "avgDelta": 16.1
+          "maxDelta": 37.9,
+          "avgDelta": 21.3
         },
         {
           "testId": "B2",
@@ -1250,7 +1856,7 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "02-accidentals",
-          "summary": "4/5 exceed tolerance (max Δ 23.8px)",
+          "summary": "4/5 exceed tolerance (max Δ 53.6px)",
           "deltas": [
             {
               "label": "measure 1 x",
@@ -1261,37 +1867,37 @@
             },
             {
               "label": "measure 2 x",
-              "actual": 978,
+              "actual": 981.4,
               "expected": 965.7,
-              "diff": 12.3,
+              "diff": 15.7,
               "withinTolerance": false
             },
             {
               "label": "measure 3 x",
-              "actual": 1468.6,
+              "actual": 1498.4,
               "expected": 1444.8,
-              "diff": 23.8,
+              "diff": 53.6,
               "withinTolerance": false
             },
             {
               "label": "measure 4 x",
-              "actual": 1959.3,
+              "actual": 1992.5,
               "expected": 1941.9,
-              "diff": 17.4,
+              "diff": 50.6,
               "withinTolerance": false
             },
             {
               "label": "measure 5 x",
-              "actual": 2450,
+              "actual": 2486.6,
               "expected": 2466,
-              "diff": 16,
+              "diff": 20.6,
               "withinTolerance": false
             }
           ],
           "totalCompared": 5,
           "exceededCount": 4,
-          "maxDelta": 23.8,
-          "avgDelta": 13.9
+          "maxDelta": 53.6,
+          "avgDelta": 28.1
         },
         {
           "testId": "B3",
@@ -1350,7 +1956,7 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "02-accidentals",
-          "summary": "18/19 exceed tolerance (max Δ 77.2px)",
+          "summary": "19/19 exceed tolerance (max Δ 81.6px)",
           "deltas": [
             {
               "label": "m1 note[0] x (note-m1b100-F5)",
@@ -1361,135 +1967,135 @@
             },
             {
               "label": "m1 note[1] x (note-m1b200-B4)",
-              "actual": 612.8,
+              "actual": 619.4,
               "expected": 658.6,
-              "diff": 45.8,
+              "diff": 39.2,
               "withinTolerance": false
             },
             {
               "label": "m1 note[2] x (note-m1b300-E5)",
-              "actual": 722.1,
+              "actual": 735.3,
               "expected": 764.8,
-              "diff": 42.7,
+              "diff": 29.5,
               "withinTolerance": false
             },
             {
               "label": "m1 note[3] x (note-m1b400-C5)",
-              "actual": 831.5,
+              "actual": 851.2,
               "expected": 871.1,
-              "diff": 39.6,
+              "diff": 19.9,
               "withinTolerance": false
             },
             {
               "label": "m2 note[0] x (note-m2b100-F5)",
-              "actual": 994.1,
+              "actual": 997.6,
               "expected": 1031.4,
-              "diff": 37.3,
+              "diff": 33.9,
               "withinTolerance": false
             },
             {
               "label": "m2 note[1] x (note-m2b200-B4)",
-              "actual": 1103.4,
+              "actual": 1113.5,
               "expected": 1137.7,
-              "diff": 34.2,
+              "diff": 24.2,
               "withinTolerance": false
             },
             {
               "label": "m2 note[2] x (note-m2b300-D5)",
-              "actual": 1212.8,
+              "actual": 1229.4,
               "expected": 1243.9,
-              "diff": 31.2,
+              "diff": 14.6,
               "withinTolerance": false
             },
             {
               "label": "m2 note[3] x (note-m2b400-A4)",
-              "actual": 1322.1,
+              "actual": 1345.3,
               "expected": 1350.2,
-              "diff": 28.1,
+              "diff": 4.9,
               "withinTolerance": false
             },
             {
               "label": "m3 note[0] x (note-m3b100-C5)",
-              "actual": 1484.8,
+              "actual": 1514.5,
               "expected": 1528.5,
-              "diff": 43.8,
+              "diff": 14,
               "withinTolerance": false
             },
             {
               "label": "m3 note[1] x (note-m3b200-F5)",
-              "actual": 1594.1,
+              "actual": 1630.4,
               "expected": 1634.8,
-              "diff": 40.7,
+              "diff": 4.4,
               "withinTolerance": false
             },
             {
               "label": "m3 note[2] x (note-m3b300-B4)",
-              "actual": 1703.4,
+              "actual": 1746.4,
               "expected": 1741.1,
-              "diff": 37.6,
+              "diff": 5.3,
               "withinTolerance": false
             },
             {
               "label": "m3 note[3] x (note-m3b400-G5)",
-              "actual": 1812.8,
+              "actual": 1862.3,
               "expected": 1847.3,
-              "diff": 34.6,
+              "diff": 14.9,
               "withinTolerance": false
             },
             {
               "label": "m4 note[0] x (note-m4b100-C5)",
-              "actual": 1975.4,
+              "actual": 2008.6,
               "expected": 2052.6,
-              "diff": 77.2,
+              "diff": 44,
               "withinTolerance": false
             },
             {
               "label": "m4 note[1] x (note-m4b200-D5)",
-              "actual": 2052.5,
+              "actual": 2092.3,
               "expected": 2052.6,
-              "diff": 0.1,
-              "withinTolerance": true
+              "diff": 39.7,
+              "withinTolerance": false
             },
             {
               "label": "m4 note[2] x (note-m4b200-E5)",
-              "actual": 2084.8,
+              "actual": 2124.5,
               "expected": 2052.6,
-              "diff": 32.2,
+              "diff": 72,
               "withinTolerance": false
             },
             {
               "label": "m4 note[3] x (note-m4b200-G5)",
-              "actual": 2084.8,
+              "actual": 2124.5,
               "expected": 2158.9,
-              "diff": 74.1,
+              "diff": 34.3,
               "withinTolerance": false
             },
             {
               "label": "m4 note[4] x (note-m4b300-F5)",
-              "actual": 2194.1,
+              "actual": 2240.5,
               "expected": 2158.9,
-              "diff": 35.2,
+              "diff": 81.6,
               "withinTolerance": false
             },
             {
               "label": "m4 note[5] x (note-m4b300-B4)",
-              "actual": 2194.1,
+              "actual": 2240.5,
               "expected": 2265.1,
-              "diff": 71,
+              "diff": 24.7,
               "withinTolerance": false
             },
             {
               "label": "m4 note[6] x (note-m4b400-A4)",
-              "actual": 2303.4,
+              "actual": 2356.4,
               "expected": 2371.4,
-              "diff": 68,
+              "diff": 15,
               "withinTolerance": false
             }
           ],
           "totalCompared": 19,
-          "exceededCount": 18,
-          "maxDelta": 77.2,
-          "avgDelta": 43.3
+          "exceededCount": 19,
+          "maxDelta": 81.6,
+          "avgDelta": 29.7
         },
         {
           "testId": "B7",
@@ -1851,9 +2457,9 @@
           "name": "noteCount",
           "stage": "A",
           "category": "extraction",
-          "passed": false,
+          "passed": true,
           "fixtureId": "02-accidentals",
-          "summary": "1/2 exceed tolerance (max Δ 9.0px)",
+          "summary": "2 compared, all within tolerance (max Δ 9.0px)",
           "deltas": [
             {
               "label": "total notes",
@@ -1868,11 +2474,11 @@
               "actual": 1,
               "expected": 0,
               "diff": 1,
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 2,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 9,
           "avgDelta": 5
         },
@@ -2269,12 +2875,12 @@
         }
       ],
       "totalTests": 16,
-      "passed": 9,
-      "failed": 7,
+      "passed": 10,
+      "failed": 6,
       "stageBreakdown": {
         "A": {
           "total": 3,
-          "passed": 2
+          "passed": 3
         },
         "B": {
           "total": 6,
@@ -2296,7 +2902,7 @@
     },
     {
       "fixtureId": "03-rests",
-      "timestamp": "2026-04-05T16:31:16.830Z",
+      "timestamp": "2026-04-07T05:37:06.635Z",
       "results": [
         {
           "testId": "B1",
@@ -2305,62 +2911,48 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "03-rests",
-          "summary": "7/7 exceed tolerance (max Δ 1218.6px)",
+          "summary": "5/5 exceed tolerance (max Δ 275.4px)",
           "deltas": [
             {
               "label": "measure 1 width",
-              "actual": 420.4,
+              "actual": 528.8,
               "expected": 390.1,
-              "diff": 30.4,
+              "diff": 138.7,
               "withinTolerance": false
             },
             {
               "label": "measure 2 width",
-              "actual": 336.4,
+              "actual": 480.9,
               "expected": 307.1,
-              "diff": 29.4,
+              "diff": 173.9,
               "withinTolerance": false
             },
             {
               "label": "measure 3 width",
-              "actual": 425.5,
+              "actual": 618.1,
               "expected": 397.2,
-              "diff": 28.3,
+              "diff": 220.9,
               "withinTolerance": false
             },
             {
               "label": "measure 4 width",
-              "actual": 544.1,
+              "actual": 801,
               "expected": 525.6,
-              "diff": 18.6,
-              "withinTolerance": false
-            },
-            {
-              "label": "measure 5 width",
-              "actual": 702.3,
-              "expected": 808.1,
-              "diff": 105.8,
-              "withinTolerance": false
-            },
-            {
-              "label": "measure 6 width",
-              "actual": 1668.6,
-              "expected": 450.1,
-              "diff": 1218.6,
+              "diff": 275.4,
               "withinTolerance": false
             },
             {
               "label": "measure 7 width",
-              "actual": 884.2,
+              "actual": 438.9,
               "expected": 229.1,
-              "diff": 655.1,
+              "diff": 209.7,
               "withinTolerance": false
             }
           ],
-          "totalCompared": 7,
-          "exceededCount": 7,
-          "maxDelta": 1218.6,
-          "avgDelta": 298
+          "totalCompared": 5,
+          "exceededCount": 5,
+          "maxDelta": 275.4,
+          "avgDelta": 203.7
         },
         {
           "testId": "B2",
@@ -2369,7 +2961,7 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "03-rests",
-          "summary": "5/7 exceed tolerance (max Δ 1218.6px)",
+          "summary": "4/5 exceed tolerance (max Δ 1663.9px)",
           "deltas": [
             {
               "label": "measure 1 x",
@@ -2380,60 +2972,46 @@
             },
             {
               "label": "measure 2 x",
-              "actual": 757,
+              "actual": 865.4,
               "expected": 726.7,
-              "diff": 30.4,
+              "diff": 138.7,
               "withinTolerance": false
             },
             {
               "label": "measure 3 x",
-              "actual": 1093.5,
+              "actual": 1346.3,
               "expected": 1033.7,
-              "diff": 59.8,
+              "diff": 312.6,
               "withinTolerance": false
             },
             {
               "label": "measure 4 x",
-              "actual": 1518.9,
+              "actual": 1964.4,
               "expected": 1430.9,
-              "diff": 88,
+              "diff": 533.5,
               "withinTolerance": false
-            },
-            {
-              "label": "measure 5 x",
-              "actual": 2063.1,
-              "expected": 1956.5,
-              "diff": 106.6,
-              "withinTolerance": false
-            },
-            {
-              "label": "measure 6 x",
-              "actual": 212.6,
-              "expected": 212.6,
-              "diff": 0,
-              "withinTolerance": true
             },
             {
               "label": "measure 7 x",
-              "actual": 1881.2,
+              "actual": 2326.5,
               "expected": 662.7,
-              "diff": 1218.6,
+              "diff": 1663.9,
               "withinTolerance": false
             }
           ],
-          "totalCompared": 7,
-          "exceededCount": 5,
-          "maxDelta": 1218.6,
-          "avgDelta": 214.8
+          "totalCompared": 5,
+          "exceededCount": 4,
+          "maxDelta": 1663.9,
+          "avgDelta": 529.7
         },
         {
           "testId": "B3",
           "name": "systemBreaks",
           "stage": "B",
           "category": "horizontal",
-          "passed": true,
+          "passed": false,
           "fixtureId": "03-rests",
-          "summary": "3 compared, all within tolerance",
+          "summary": "1/3 exceed tolerance (max Δ 0.0px)",
           "deltas": [
             {
               "label": "system count",
@@ -2449,13 +3027,13 @@
             },
             {
               "label": "system 2 starts at measure",
-              "actual": "6",
+              "actual": "5",
               "expected": "6",
-              "withinTolerance": true
+              "withinTolerance": false
             }
           ],
           "totalCompared": 3,
-          "exceededCount": 0,
+          "exceededCount": 1,
           "maxDelta": 0,
           "avgDelta": 0
         },
@@ -2487,29 +3065,21 @@
           "name": "noteXPositions",
           "stage": "B",
           "category": "horizontal",
-          "passed": false,
+          "passed": true,
           "fixtureId": "03-rests",
-          "summary": "2/2 exceed tolerance (max Δ 596.2px)",
+          "summary": "1 compared, all within tolerance",
           "deltas": [
             {
-              "label": "m6 note[0] x (note-m6b100-C5)",
-              "actual": 395.6,
-              "expected": 372.8,
-              "diff": 22.8,
-              "withinTolerance": false
-            },
-            {
-              "label": "m6 note[1] x (note-m6b300-E5)",
-              "actual": 1119.8,
-              "expected": 523.6,
-              "diff": 596.2,
-              "withinTolerance": false
+              "label": "no notes to compare",
+              "actual": "0",
+              "expected": "0",
+              "withinTolerance": true
             }
           ],
-          "totalCompared": 2,
-          "exceededCount": 2,
-          "maxDelta": 596.2,
-          "avgDelta": 309.5
+          "totalCompared": 1,
+          "exceededCount": 0,
+          "maxDelta": 0,
+          "avgDelta": 0
         },
         {
           "testId": "B7",
@@ -2526,7 +3096,7 @@
               "expected": 2428.8,
               "diff": 0,
               "withinTolerance": true,
-              "detail": "5 measures"
+              "detail": "4 measures"
             },
             {
               "label": "system 2 fill",
@@ -2534,7 +3104,7 @@
               "expected": 2552.8,
               "diff": 0,
               "withinTolerance": true,
-              "detail": "2 measures"
+              "detail": "3 measures"
             }
           ],
           "totalCompared": 2,
@@ -2549,24 +3119,9 @@
           "category": "vertical",
           "passed": true,
           "fixtureId": "03-rests",
-          "summary": "2 compared, all within tolerance",
-          "deltas": [
-            {
-              "label": "m6 note[0] y (note-m6b100-C5)",
-              "actual": 1353.4,
-              "expected": 1353.4,
-              "diff": 0,
-              "withinTolerance": true
-            },
-            {
-              "label": "m6 note[1] y (note-m6b300-E5)",
-              "actual": 1328.6,
-              "expected": 1328.6,
-              "diff": 0,
-              "withinTolerance": true
-            }
-          ],
-          "totalCompared": 2,
+          "summary": "0 compared, all within tolerance",
+          "deltas": [],
+          "totalCompared": 0,
           "exceededCount": 0,
           "maxDelta": 0,
           "avgDelta": 0
@@ -2914,9 +3469,9 @@
           "name": "noteCount",
           "stage": "A",
           "category": "extraction",
-          "passed": false,
+          "passed": true,
           "fixtureId": "03-rests",
-          "summary": "1/2 exceed tolerance (max Δ 25.0px)",
+          "summary": "2 compared, all within tolerance (max Δ 25.0px)",
           "deltas": [
             {
               "label": "total notes",
@@ -2931,11 +3486,11 @@
               "actual": 1,
               "expected": 0,
               "diff": 1,
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 2,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 25,
           "avgDelta": 13
         },
@@ -3489,31 +4044,31 @@
           "name": "staffDistribution",
           "stage": "E",
           "category": "gaps",
-          "passed": false,
+          "passed": true,
           "fixtureId": "03-rests",
-          "summary": "1/1 exceed tolerance (max Δ 532.8px)",
+          "summary": "1 compared, all within tolerance (max Δ 532.8px)",
           "deltas": [
             {
               "label": "system gap 0→1",
               "actual": 582.8,
               "expected": 50,
               "diff": 532.8,
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 1,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 532.8,
           "avgDelta": 532.8
         }
       ],
       "totalTests": 15,
-      "passed": 9,
-      "failed": 6,
+      "passed": 11,
+      "failed": 4,
       "stageBreakdown": {
         "A": {
           "total": 2,
-          "passed": 1
+          "passed": 2
         },
         "B": {
           "total": 6,
@@ -3529,13 +4084,13 @@
         },
         "E": {
           "total": 2,
-          "passed": 1
+          "passed": 2
         }
       }
     },
     {
       "fixtureId": "04-beams",
-      "timestamp": "2026-04-05T16:31:16.860Z",
+      "timestamp": "2026-04-07T05:37:06.698Z",
       "results": [
         {
           "testId": "B1",
@@ -4536,9 +5091,9 @@
           "name": "noteCount",
           "stage": "A",
           "category": "extraction",
-          "passed": false,
+          "passed": true,
           "fixtureId": "04-beams",
-          "summary": "1/2 exceed tolerance (max Δ 30.0px)",
+          "summary": "2 compared, all within tolerance (max Δ 30.0px)",
           "deltas": [
             {
               "label": "total notes",
@@ -4553,11 +5108,11 @@
               "actual": 1,
               "expected": 0,
               "diff": 1,
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 2,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 30,
           "avgDelta": 15.5
         },
@@ -4662,31 +5217,31 @@
           "name": "staffDistribution",
           "stage": "E",
           "category": "gaps",
-          "passed": false,
+          "passed": true,
           "fixtureId": "04-beams",
-          "summary": "1/1 exceed tolerance (max Δ 532.8px)",
+          "summary": "1 compared, all within tolerance (max Δ 532.8px)",
           "deltas": [
             {
               "label": "system gap 0→1",
               "actual": 582.8,
               "expected": 50,
               "diff": 532.8,
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 1,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 532.8,
           "avgDelta": 532.8
         }
       ],
       "totalTests": 16,
-      "passed": 9,
-      "failed": 7,
+      "passed": 11,
+      "failed": 5,
       "stageBreakdown": {
         "A": {
           "total": 2,
-          "passed": 1
+          "passed": 2
         },
         "B": {
           "total": 6,
@@ -4702,13 +5257,13 @@
         },
         "E": {
           "total": 2,
-          "passed": 1
+          "passed": 2
         }
       }
     },
     {
       "fixtureId": "05-stems",
-      "timestamp": "2026-04-05T16:31:16.872Z",
+      "timestamp": "2026-04-07T05:37:06.757Z",
       "results": [
         {
           "testId": "B1",
@@ -5419,9 +5974,9 @@
           "name": "noteCount",
           "stage": "A",
           "category": "extraction",
-          "passed": false,
+          "passed": true,
           "fixtureId": "05-stems",
-          "summary": "1/2 exceed tolerance (max Δ 5.0px)",
+          "summary": "2 compared, all within tolerance (max Δ 5.0px)",
           "deltas": [
             {
               "label": "total notes",
@@ -5436,11 +5991,11 @@
               "actual": 1,
               "expected": 0,
               "diff": 1,
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 2,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 5,
           "avgDelta": 3
         },
@@ -5512,12 +6067,12 @@
         }
       ],
       "totalTests": 15,
-      "passed": 7,
-      "failed": 8,
+      "passed": 8,
+      "failed": 7,
       "stageBreakdown": {
         "A": {
           "total": 1,
-          "passed": 0
+          "passed": 1
         },
         "B": {
           "total": 6,
@@ -5539,7 +6094,7 @@
     },
     {
       "fixtureId": "06-key-signatures",
-      "timestamp": "2026-04-05T16:31:16.891Z",
+      "timestamp": "2026-04-07T05:37:06.801Z",
       "results": [
         {
           "testId": "B1",
@@ -5548,55 +6103,69 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "06-key-signatures",
-          "summary": "6/6 exceed tolerance (max Δ 295.4px)",
+          "summary": "4/8 exceed tolerance (max Δ 70.8px)",
           "deltas": [
             {
               "label": "measure 1 width",
-              "actual": 664,
+              "actual": 537.4,
               "expected": 535.1,
-              "diff": 128.9,
-              "withinTolerance": false
+              "diff": 2.3,
+              "withinTolerance": true
             },
             {
               "label": "measure 2 width",
-              "actual": 561.1,
+              "actual": 434.5,
               "expected": 432.3,
-              "diff": 128.8,
-              "withinTolerance": false
+              "diff": 2.1,
+              "withinTolerance": true
             },
             {
               "label": "measure 3 width",
-              "actual": 588.3,
+              "actual": 461.6,
               "expected": 459.5,
-              "diff": 128.8,
-              "withinTolerance": false
+              "diff": 2.1,
+              "withinTolerance": true
             },
             {
               "label": "measure 4 width",
-              "actual": 615.4,
+              "actual": 488.8,
               "expected": 486.7,
-              "diff": 128.8,
+              "diff": 2.1,
+              "withinTolerance": true
+            },
+            {
+              "label": "measure 5 width",
+              "actual": 506.5,
+              "expected": 514.4,
+              "diff": 7.9,
+              "withinTolerance": false
+            },
+            {
+              "label": "measure 6 width",
+              "actual": 1114.6,
+              "expected": 1043.8,
+              "diff": 70.8,
               "withinTolerance": false
             },
             {
               "label": "measure 7 width",
-              "actual": 690.4,
+              "actual": 946.5,
               "expected": 985.9,
-              "diff": 295.4,
+              "diff": 39.4,
               "withinTolerance": false
             },
             {
               "label": "measure 8 width",
-              "actual": 347.6,
+              "actual": 491.7,
               "expected": 522.3,
-              "diff": 174.7,
+              "diff": 30.6,
               "withinTolerance": false
             }
           ],
-          "totalCompared": 6,
-          "exceededCount": 6,
-          "maxDelta": 295.4,
-          "avgDelta": 164.2
+          "totalCompared": 8,
+          "exceededCount": 4,
+          "maxDelta": 70.8,
+          "avgDelta": 19.7
         },
         {
           "testId": "B2",
@@ -5605,7 +6174,7 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "06-key-signatures",
-          "summary": "5/6 exceed tolerance (max Δ 470.9px)",
+          "summary": "5/8 exceed tolerance (max Δ 70.8px)",
           "deltas": [
             {
               "label": "measure 1 x",
@@ -5616,53 +6185,67 @@
             },
             {
               "label": "measure 2 x",
-              "actual": 1000.6,
+              "actual": 874,
               "expected": 871.7,
-              "diff": 128.9,
-              "withinTolerance": false
+              "diff": 2.3,
+              "withinTolerance": true
             },
             {
               "label": "measure 3 x",
-              "actual": 1561.7,
+              "actual": 1308.5,
               "expected": 1304,
-              "diff": 257.7,
+              "diff": 4.4,
               "withinTolerance": false
             },
             {
               "label": "measure 4 x",
-              "actual": 2150,
+              "actual": 1770.1,
               "expected": 1763.5,
-              "diff": 386.4,
+              "diff": 6.6,
               "withinTolerance": false
             },
             {
+              "label": "measure 5 x",
+              "actual": 2258.9,
+              "expected": 2250.2,
+              "diff": 8.7,
+              "withinTolerance": false
+            },
+            {
+              "label": "measure 6 x",
+              "actual": 212.6,
+              "expected": 212.6,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
               "label": "measure 7 x",
-              "actual": 1727.3,
+              "actual": 1327.2,
               "expected": 1256.4,
-              "diff": 470.9,
+              "diff": 70.8,
               "withinTolerance": false
             },
             {
               "label": "measure 8 x",
-              "actual": 2417.8,
+              "actual": 2273.7,
               "expected": 2242.3,
-              "diff": 175.5,
+              "diff": 31.4,
               "withinTolerance": false
             }
           ],
-          "totalCompared": 6,
+          "totalCompared": 8,
           "exceededCount": 5,
-          "maxDelta": 470.9,
-          "avgDelta": 236.6
+          "maxDelta": 70.8,
+          "avgDelta": 15.5
         },
         {
           "testId": "B3",
           "name": "systemBreaks",
           "stage": "B",
           "category": "horizontal",
-          "passed": false,
+          "passed": true,
           "fixtureId": "06-key-signatures",
-          "summary": "1/3 exceed tolerance (max Δ 0.0px)",
+          "summary": "3 compared, all within tolerance",
           "deltas": [
             {
               "label": "system count",
@@ -5678,13 +6261,13 @@
             },
             {
               "label": "system 2 starts at measure",
-              "actual": "5",
+              "actual": "6",
               "expected": "6",
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 3,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 0,
           "avgDelta": 0
         },
@@ -5695,7 +6278,7 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "06-key-signatures",
-          "summary": "20/20 exceed tolerance (max Δ 454.8px)",
+          "summary": "27/28 exceed tolerance (max Δ 94.1px)",
           "deltas": [
             {
               "label": "m1 note[0] x (note-m1b100-C5)",
@@ -5706,142 +6289,198 @@
             },
             {
               "label": "m1 note[1] x (note-m1b200-E5)",
-              "actual": 630.5,
+              "actual": 598.9,
               "expected": 622.5,
-              "diff": 8,
+              "diff": 23.6,
               "withinTolerance": false
             },
             {
               "label": "m1 note[2] x (note-m1b300-G5)",
-              "actual": 741.5,
+              "actual": 678.2,
               "expected": 709.5,
-              "diff": 32.1,
+              "diff": 31.3,
               "withinTolerance": false
             },
             {
               "label": "m1 note[3] x (note-m1b400-C5)",
-              "actual": 852.5,
+              "actual": 757.5,
               "expected": 796.4,
-              "diff": 56.1,
+              "diff": 38.9,
               "withinTolerance": false
             },
             {
               "label": "m2 note[0] x (note-m2b100-G4)",
-              "actual": 1080.6,
+              "actual": 954,
               "expected": 967.8,
-              "diff": 112.8,
+              "diff": 13.8,
               "withinTolerance": false
             },
             {
               "label": "m2 note[1] x (note-m2b200-B4)",
-              "actual": 1191.6,
+              "actual": 1033.3,
               "expected": 1054.8,
-              "diff": 136.8,
+              "diff": 21.5,
               "withinTolerance": false
             },
             {
               "label": "m2 note[2] x (note-m2b300-D5)",
-              "actual": 1302.6,
+              "actual": 1112.7,
               "expected": 1141.8,
-              "diff": 160.8,
+              "diff": 29.1,
               "withinTolerance": false
             },
             {
               "label": "m2 note[3] x (note-m2b400-G4)",
-              "actual": 1413.5,
+              "actual": 1192,
               "expected": 1228.7,
-              "diff": 184.8,
+              "diff": 36.8,
               "withinTolerance": false
             },
             {
               "label": "m3 note[0] x (note-m3b100-D5)",
-              "actual": 1668.9,
+              "actual": 1415.7,
               "expected": 1427.3,
-              "diff": 241.6,
+              "diff": 11.7,
               "withinTolerance": false
             },
             {
               "label": "m3 note[1] x (note-m3b200-F5)",
-              "actual": 1779.9,
+              "actual": 1495,
               "expected": 1514.3,
-              "diff": 265.6,
+              "diff": 19.3,
               "withinTolerance": false
             },
             {
               "label": "m3 note[2] x (note-m3b300-A5)",
-              "actual": 1890.8,
+              "actual": 1574.3,
               "expected": 1601.3,
-              "diff": 289.6,
+              "diff": 27,
               "withinTolerance": false
             },
             {
               "label": "m3 note[3] x (note-m3b400-D5)",
-              "actual": 2001.8,
+              "actual": 1653.6,
               "expected": 1688.2,
-              "diff": 313.6,
+              "diff": 34.6,
               "withinTolerance": false
             },
             {
               "label": "m4 note[0] x (note-m4b100-A4)",
-              "actual": 2284.3,
+              "actual": 1904.5,
               "expected": 1914,
-              "diff": 370.3,
+              "diff": 9.5,
               "withinTolerance": false
             },
             {
               "label": "m4 note[1] x (note-m4b200-C5)",
-              "actual": 2395.3,
+              "actual": 1983.8,
               "expected": 2001,
-              "diff": 394.3,
+              "diff": 17.2,
               "withinTolerance": false
             },
             {
               "label": "m4 note[2] x (note-m4b300-E5)",
-              "actual": 2506.3,
+              "actual": 2063.1,
               "expected": 2087.9,
-              "diff": 418.3,
+              "diff": 24.8,
               "withinTolerance": false
             },
             {
               "label": "m4 note[3] x (note-m4b400-A4)",
-              "actual": 2617.2,
+              "actual": 2142.4,
               "expected": 2174.9,
-              "diff": 442.3,
+              "diff": 32.5,
+              "withinTolerance": false
+            },
+            {
+              "label": "m5 note[0] x (note-m5b100-F4)",
+              "actual": 2411,
+              "expected": 2342.3,
+              "diff": 68.7,
+              "withinTolerance": false
+            },
+            {
+              "label": "m5 note[1] x (note-m5b200-A4)",
+              "actual": 2490.3,
+              "expected": 2429.2,
+              "diff": 61,
+              "withinTolerance": false
+            },
+            {
+              "label": "m5 note[2] x (note-m5b300-C5)",
+              "actual": 2569.6,
+              "expected": 2516.2,
+              "diff": 53.4,
+              "withinTolerance": false
+            },
+            {
+              "label": "m5 note[3] x (note-m5b400-F4)",
+              "actual": 2648.9,
+              "expected": 2603.2,
+              "diff": 45.7,
+              "withinTolerance": false
+            },
+            {
+              "label": "m6 note[0] x (note-m6b100-B4)",
+              "actual": 539.4,
+              "expected": 445.3,
+              "diff": 94.1,
+              "withinTolerance": false
+            },
+            {
+              "label": "m6 note[1] x (note-m6b200-D5)",
+              "actual": 727,
+              "expected": 651,
+              "diff": 76,
+              "withinTolerance": false
+            },
+            {
+              "label": "m6 note[2] x (note-m6b300-F5)",
+              "actual": 914.7,
+              "expected": 856.7,
+              "diff": 58,
+              "withinTolerance": false
+            },
+            {
+              "label": "m6 note[3] x (note-m6b400-B4)",
+              "actual": 1102.3,
+              "expected": 1062.4,
+              "diff": 40,
               "withinTolerance": false
             },
             {
               "label": "m7 note[0] x (note-m7b100-A4)",
-              "actual": 1886,
+              "actual": 1485.9,
               "expected": 1431.2,
-              "diff": 454.8,
+              "diff": 54.7,
               "withinTolerance": false
             },
             {
               "label": "m7 note[1] x (note-m7b200-C5)",
-              "actual": 2009.6,
+              "actual": 1673.5,
               "expected": 1636.9,
-              "diff": 372.8,
+              "diff": 36.7,
               "withinTolerance": false
             },
             {
               "label": "m7 note[2] x (note-m7b300-E5)",
-              "actual": 2133.3,
+              "actual": 1861.2,
               "expected": 1842.6,
-              "diff": 290.7,
+              "diff": 18.6,
               "withinTolerance": false
             },
             {
               "label": "m7 note[3] x (note-m7b400-A4)",
-              "actual": 2256.9,
+              "actual": 2048.9,
               "expected": 2048.3,
-              "diff": 208.7,
-              "withinTolerance": false
+              "diff": 0.6,
+              "withinTolerance": true
             }
           ],
-          "totalCompared": 20,
-          "exceededCount": 20,
-          "maxDelta": 454.8,
-          "avgDelta": 238.5
+          "totalCompared": 28,
+          "exceededCount": 27,
+          "maxDelta": 94.1,
+          "avgDelta": 35.5
         },
         {
           "testId": "B6",
@@ -5880,7 +6519,7 @@
               "expected": 2428.8,
               "diff": 0,
               "withinTolerance": true,
-              "detail": "4 measures"
+              "detail": "5 measures"
             },
             {
               "label": "system 2 fill",
@@ -5888,7 +6527,7 @@
               "expected": 2552.8,
               "diff": 0,
               "withinTolerance": true,
-              "detail": "4 measures"
+              "detail": "3 measures"
             }
           ],
           "totalCompared": 2,
@@ -5903,7 +6542,7 @@
           "category": "vertical",
           "passed": true,
           "fixtureId": "06-key-signatures",
-          "summary": "20 compared, all within tolerance",
+          "summary": "28 compared, all within tolerance",
           "deltas": [
             {
               "label": "m1 note[0] y (note-m1b100-C5)",
@@ -6018,6 +6657,62 @@
               "withinTolerance": true
             },
             {
+              "label": "m5 note[0] y (note-m5b100-F4)",
+              "actual": 721,
+              "expected": 721,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[1] y (note-m5b200-A4)",
+              "actual": 696.2,
+              "expected": 696.2,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[2] y (note-m5b300-C5)",
+              "actual": 671.4,
+              "expected": 671.4,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m5 note[3] y (note-m5b400-F4)",
+              "actual": 721,
+              "expected": 721,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m6 note[0] y (note-m6b100-B4)",
+              "actual": 1365.8,
+              "expected": 1365.8,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m6 note[1] y (note-m6b200-D5)",
+              "actual": 1341,
+              "expected": 1341,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m6 note[2] y (note-m6b300-F5)",
+              "actual": 1316.2,
+              "expected": 1316.2,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
+              "label": "m6 note[3] y (note-m6b400-B4)",
+              "actual": 1365.8,
+              "expected": 1365.8,
+              "diff": 0,
+              "withinTolerance": true
+            },
+            {
               "label": "m7 note[0] y (note-m7b100-A4)",
               "actual": 1378.2,
               "expected": 1378.2,
@@ -6046,7 +6741,7 @@
               "withinTolerance": true
             }
           ],
-          "totalCompared": 20,
+          "totalCompared": 28,
           "exceededCount": 0,
           "maxDelta": 0,
           "avgDelta": 0
@@ -6148,122 +6843,143 @@
           "name": "keySignatureX",
           "stage": "C",
           "category": "vertical",
-          "passed": false,
+          "passed": true,
           "fixtureId": "06-key-signatures",
-          "summary": "14/14 exceed tolerance (max Δ 1795.8px)",
+          "summary": "17 compared, all within tolerance (max Δ 76.9px)",
           "deltas": [
             {
               "label": "keySig m1 x",
               "actual": 443.5,
               "expected": 366.6,
               "diff": 76.9,
-              "withinTolerance": false
+              "withinTolerance": true
             },
             {
               "label": "keySig m2 x",
-              "actual": 1013,
-              "expected": 366.6,
-              "diff": 646.4,
-              "withinTolerance": false
+              "actual": 886.4,
+              "expected": 886,
+              "diff": 0.4,
+              "withinTolerance": true
             },
             {
               "label": "keySig m3 x",
-              "actual": 1574.1,
-              "expected": 366.6,
-              "diff": 1207.5,
-              "withinTolerance": false
+              "actual": 1320.9,
+              "expected": 1320.5,
+              "diff": 0.4,
+              "withinTolerance": true
             },
             {
               "label": "keySig m3 acc[1] gap",
               "actual": 27.2,
-              "expected": 6,
-              "diff": 21.2,
-              "withinTolerance": false
+              "expected": 15,
+              "diff": 12.2,
+              "withinTolerance": true
             },
             {
               "label": "keySig m4 x",
-              "actual": 2162.4,
-              "expected": 366.6,
-              "diff": 1795.8,
-              "withinTolerance": false
+              "actual": 1782.5,
+              "expected": 1782.1,
+              "diff": 0.4,
+              "withinTolerance": true
             },
             {
               "label": "keySig m4 acc[1] gap",
               "actual": 27.2,
-              "expected": 6,
-              "diff": 21.2,
-              "withinTolerance": false
+              "expected": 15,
+              "diff": 12.2,
+              "withinTolerance": true
             },
             {
               "label": "keySig m4 acc[2] gap",
               "actual": 27.2,
-              "expected": 6,
-              "diff": 21.2,
-              "withinTolerance": false
+              "expected": 15,
+              "diff": 12.2,
+              "withinTolerance": true
             },
             {
               "label": "keySig m5 x",
-              "actual": 319.5,
-              "expected": 242.6,
-              "diff": 76.9,
-              "withinTolerance": false
+              "actual": 2271.3,
+              "expected": 2270.9,
+              "diff": 0.4,
+              "withinTolerance": true
+            },
+            {
+              "label": "keySig m5 acc[1] gap",
+              "actual": 23.7,
+              "expected": 15,
+              "diff": 8.7,
+              "withinTolerance": true
+            },
+            {
+              "label": "keySig m5 acc[2] gap",
+              "actual": 23.7,
+              "expected": 15,
+              "diff": 8.7,
+              "withinTolerance": true
+            },
+            {
+              "label": "keySig m5 acc[3] gap",
+              "actual": 28.7,
+              "expected": 15,
+              "diff": 13.7,
+              "withinTolerance": true
             },
             {
               "label": "keySig m6 x",
-              "actual": 1104.5,
+              "actual": 319.5,
               "expected": 242.6,
-              "diff": 861.9,
-              "withinTolerance": false
+              "diff": 76.9,
+              "withinTolerance": true
             },
             {
               "label": "keySig m6 acc[1] gap",
               "actual": 27.6,
-              "expected": 6,
-              "diff": 21.6,
-              "withinTolerance": false
+              "expected": 15,
+              "diff": 12.6,
+              "withinTolerance": true
             },
             {
               "label": "keySig m7 x",
-              "actual": 1739.7,
-              "expected": 242.6,
-              "diff": 1497.1,
-              "withinTolerance": false
+              "actual": 1339.6,
+              "expected": 1339.2,
+              "diff": 0.4,
+              "withinTolerance": true
             },
             {
               "label": "keySig m7 acc[1] gap",
               "actual": 27.6,
-              "expected": 6,
-              "diff": 21.6,
-              "withinTolerance": false
+              "expected": 15,
+              "diff": 12.6,
+              "withinTolerance": true
             },
             {
               "label": "keySig m7 acc[2] gap",
               "actual": 27.6,
-              "expected": 6,
-              "diff": 21.6,
-              "withinTolerance": false
+              "expected": 15,
+              "diff": 12.6,
+              "withinTolerance": true
             },
             {
               "label": "keySig m7 acc[3] gap",
               "actual": 27.6,
-              "expected": 6,
-              "diff": 21.6,
-              "withinTolerance": false
+              "expected": 15,
+              "diff": 12.6,
+              "withinTolerance": true
             }
           ],
-          "totalCompared": 14,
-          "exceededCount": 14,
-          "maxDelta": 1795.8,
-          "avgDelta": 450.9
+          "totalCompared": 17,
+          "exceededCount": 0,
+          "maxDelta": 76.9,
+          "avgDelta": 16.1
         },
         {
           "testId": "A1",
           "name": "noteCount",
           "stage": "A",
           "category": "extraction",
-          "passed": false,
+          "passed": true,
           "fixtureId": "06-key-signatures",
-          "summary": "1/2 exceed tolerance (max Δ 18.0px)",
+          "summary": "2 compared, all within tolerance (max Δ 18.0px)",
           "deltas": [
             {
               "label": "total notes",
@@ -6278,11 +6994,11 @@
               "actual": 1,
               "expected": 0,
               "diff": 1,
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 2,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 18,
           "avgDelta": 9.5
         },
@@ -6358,39 +7074,39 @@
           "name": "staffDistribution",
           "stage": "E",
           "category": "gaps",
-          "passed": false,
+          "passed": true,
           "fixtureId": "06-key-signatures",
-          "summary": "1/1 exceed tolerance (max Δ 532.8px)",
+          "summary": "1 compared, all within tolerance (max Δ 532.8px)",
           "deltas": [
             {
               "label": "system gap 0→1",
               "actual": 582.8,
               "expected": 50,
               "diff": 532.8,
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 1,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 532.8,
           "avgDelta": 532.8
         }
       ],
       "totalTests": 14,
-      "passed": 6,
-      "failed": 8,
+      "passed": 10,
+      "failed": 4,
       "stageBreakdown": {
         "A": {
           "total": 2,
-          "passed": 1
+          "passed": 2
         },
         "B": {
           "total": 6,
-          "passed": 1
+          "passed": 2
         },
         "C": {
           "total": 3,
-          "passed": 2
+          "passed": 3
         },
         "D": {
           "total": 2,
@@ -6398,13 +7114,13 @@
         },
         "E": {
           "total": 1,
-          "passed": 0
+          "passed": 1
         }
       }
     },
     {
       "fixtureId": "07-time-signatures",
-      "timestamp": "2026-04-05T16:31:16.908Z",
+      "timestamp": "2026-04-07T05:37:06.818Z",
       "results": [
         {
           "testId": "B1",
@@ -6707,9 +7423,9 @@
           "name": "justificationSlack",
           "stage": "B",
           "category": "horizontal",
-          "passed": true,
+          "passed": false,
           "fixtureId": "07-time-signatures",
-          "summary": "2 compared, all within tolerance",
+          "summary": "1/2 exceed tolerance (max Δ 1960.7px)",
           "deltas": [
             {
               "label": "system 1 fill",
@@ -6721,17 +7437,17 @@
             },
             {
               "label": "system 2 fill",
-              "actual": 2552.8,
+              "actual": 592.1,
               "expected": 2552.8,
-              "diff": 0,
-              "withinTolerance": true,
+              "diff": 1960.7,
+              "withinTolerance": false,
               "detail": "2 measures"
             }
           ],
           "totalCompared": 2,
-          "exceededCount": 0,
-          "maxDelta": 0,
-          "avgDelta": 0
+          "exceededCount": 1,
+          "maxDelta": 1960.7,
+          "avgDelta": 980.4
         },
         {
           "testId": "C1",
@@ -6971,66 +7687,66 @@
           "name": "timeSignatureX",
           "stage": "C",
           "category": "vertical",
-          "passed": false,
+          "passed": true,
           "fixtureId": "07-time-signatures",
-          "summary": "6/6 exceed tolerance (max Δ 1790.5px)",
+          "summary": "6 compared, all within tolerance (max Δ 78.8px)",
           "deltas": [
             {
               "label": "timeSig m1 x",
               "actual": 465.4,
               "expected": 386.6,
               "diff": 78.8,
-              "withinTolerance": false
+              "withinTolerance": true
             },
             {
               "label": "timeSig m2 x",
               "actual": 983.5,
-              "expected": 386.6,
-              "diff": 596.9,
-              "withinTolerance": false
+              "expected": 929.3,
+              "diff": 54.2,
+              "withinTolerance": true
             },
             {
               "label": "timeSig m3 x",
               "actual": 1439.7,
-              "expected": 386.6,
-              "diff": 1053.1,
-              "withinTolerance": false
+              "expected": 1385.5,
+              "diff": 54.2,
+              "withinTolerance": true
             },
             {
               "label": "timeSig m4 x",
               "actual": 1802.7,
-              "expected": 386.6,
-              "diff": 1416.1,
-              "withinTolerance": false
+              "expected": 1748.5,
+              "diff": 54.2,
+              "withinTolerance": true
             },
             {
               "label": "timeSig m5 x",
               "actual": 2177.1,
-              "expected": 386.6,
-              "diff": 1790.5,
-              "withinTolerance": false
+              "expected": 2123,
+              "diff": 54.2,
+              "withinTolerance": true
             },
             {
               "label": "timeSig m6 x",
               "actual": 341.4,
               "expected": 262.6,
               "diff": 78.8,
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 6,
-          "exceededCount": 6,
-          "maxDelta": 1790.5,
-          "avgDelta": 835.7
+          "exceededCount": 0,
+          "maxDelta": 78.8,
+          "avgDelta": 62.4
         },
         {
           "testId": "A1",
           "name": "noteCount",
           "stage": "A",
           "category": "extraction",
-          "passed": false,
+          "passed": true,
           "fixtureId": "07-time-signatures",
-          "summary": "1/2 exceed tolerance (max Δ 10.0px)",
+          "summary": "2 compared, all within tolerance (max Δ 10.0px)",
           "deltas": [
             {
               "label": "total notes",
@@ -7045,11 +7761,11 @@
               "actual": 1,
               "expected": 0,
               "diff": 1,
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 2,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 10,
           "avgDelta": 5.5
         },
@@ -7103,39 +7819,39 @@
           "name": "staffDistribution",
           "stage": "E",
           "category": "gaps",
-          "passed": false,
+          "passed": true,
           "fixtureId": "07-time-signatures",
-          "summary": "1/1 exceed tolerance (max Δ 532.8px)",
+          "summary": "1 compared, all within tolerance (max Δ 532.8px)",
           "deltas": [
             {
               "label": "system gap 0→1",
               "actual": 582.8,
               "expected": 50,
               "diff": 532.8,
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 1,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 532.8,
           "avgDelta": 532.8
         }
       ],
       "totalTests": 13,
-      "passed": 5,
-      "failed": 8,
+      "passed": 7,
+      "failed": 6,
       "stageBreakdown": {
         "A": {
           "total": 2,
-          "passed": 1
+          "passed": 2
         },
         "B": {
           "total": 6,
-          "passed": 1
+          "passed": 0
         },
         "C": {
           "total": 3,
-          "passed": 2
+          "passed": 3
         },
         "D": {
           "total": 1,
@@ -7143,13 +7859,13 @@
         },
         "E": {
           "total": 1,
-          "passed": 0
+          "passed": 1
         }
       }
     },
     {
       "fixtureId": "08-ledger-lines",
-      "timestamp": "2026-04-05T16:31:16.916Z",
+      "timestamp": "2026-04-07T05:37:06.833Z",
       "results": [
         {
           "testId": "B1",
@@ -7856,9 +8572,9 @@
           "name": "noteCount",
           "stage": "A",
           "category": "extraction",
-          "passed": false,
+          "passed": true,
           "fixtureId": "08-ledger-lines",
-          "summary": "1/2 exceed tolerance (max Δ 6.0px)",
+          "summary": "2 compared, all within tolerance (max Δ 6.0px)",
           "deltas": [
             {
               "label": "total notes",
@@ -7873,11 +8589,11 @@
               "actual": 1,
               "expected": 0,
               "diff": 1,
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 2,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 6,
           "avgDelta": 3.5
         },
@@ -7926,12 +8642,12 @@
         }
       ],
       "totalTests": 11,
-      "passed": 6,
-      "failed": 5,
+      "passed": 7,
+      "failed": 4,
       "stageBreakdown": {
         "A": {
           "total": 1,
-          "passed": 0
+          "passed": 1
         },
         "B": {
           "total": 5,
@@ -7953,7 +8669,7 @@
     },
     {
       "fixtureId": "09-tuplets",
-      "timestamp": "2026-04-05T16:31:16.930Z",
+      "timestamp": "2026-04-07T05:37:06.852Z",
       "results": [
         {
           "testId": "B1",
@@ -7962,41 +8678,41 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "09-tuplets",
-          "summary": "4/4 exceed tolerance (max Δ 75.3px)",
+          "summary": "4/4 exceed tolerance (max Δ 58.6px)",
           "deltas": [
             {
               "label": "measure 1 width",
-              "actual": 898.5,
+              "actual": 877.5,
               "expected": 823.2,
-              "diff": 75.3,
+              "diff": 54.3,
               "withinTolerance": false
             },
             {
               "label": "measure 2 width",
-              "actual": 593.8,
+              "actual": 561.9,
               "expected": 620.5,
-              "diff": 26.7,
+              "diff": 58.6,
               "withinTolerance": false
             },
             {
               "label": "measure 3 width",
-              "actual": 617.8,
+              "actual": 685.9,
               "expected": 647.3,
-              "diff": 29.5,
+              "diff": 38.6,
               "withinTolerance": false
             },
             {
               "label": "measure 4 width",
-              "actual": 318.7,
+              "actual": 303.5,
               "expected": 337,
-              "diff": 18.3,
+              "diff": 33.5,
               "withinTolerance": false
             }
           ],
           "totalCompared": 4,
           "exceededCount": 4,
-          "maxDelta": 75.3,
-          "avgDelta": 37.5
+          "maxDelta": 58.6,
+          "avgDelta": 46.3
         },
         {
           "testId": "B2",
@@ -8005,7 +8721,7 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "09-tuplets",
-          "summary": "3/4 exceed tolerance (max Δ 75.3px)",
+          "summary": "3/4 exceed tolerance (max Δ 54.3px)",
           "deltas": [
             {
               "label": "measure 1 x",
@@ -8016,30 +8732,30 @@
             },
             {
               "label": "measure 2 x",
-              "actual": 1235.1,
+              "actual": 1214.1,
               "expected": 1159.8,
-              "diff": 75.3,
+              "diff": 54.3,
               "withinTolerance": false
             },
             {
               "label": "measure 3 x",
-              "actual": 1828.9,
+              "actual": 1776,
               "expected": 1780.3,
-              "diff": 48.6,
+              "diff": 4.3,
               "withinTolerance": false
             },
             {
               "label": "measure 4 x",
-              "actual": 2446.7,
+              "actual": 2461.9,
               "expected": 2427.6,
-              "diff": 19.1,
+              "diff": 34.3,
               "withinTolerance": false
             }
           ],
           "totalCompared": 4,
           "exceededCount": 3,
-          "maxDelta": 75.3,
-          "avgDelta": 35.8
+          "maxDelta": 54.3,
+          "avgDelta": 23.2
         },
         {
           "testId": "B3",
@@ -8075,7 +8791,7 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "09-tuplets",
-          "summary": "22/22 exceed tolerance (max Δ 119.2px)",
+          "summary": "21/22 exceed tolerance (max Δ 87.3px)",
           "deltas": [
             {
               "label": "m1 note[0] x (note-m1b100-C5)",
@@ -8086,156 +8802,156 @@
             },
             {
               "label": "m1 note[1] x (note-m1b167-D5)",
-              "actual": 607,
+              "actual": 601.7,
               "expected": 600.4,
-              "diff": 6.6,
-              "withinTolerance": false
+              "diff": 1.3,
+              "withinTolerance": true
             },
             {
               "label": "m1 note[2] x (note-m1b233-E5)",
-              "actual": 694.3,
+              "actual": 683.7,
               "expected": 665.3,
-              "diff": 29.1,
+              "diff": 18.4,
               "withinTolerance": false
             },
             {
               "label": "m1 note[3] x (note-m1b300-F5)",
-              "actual": 781.7,
+              "actual": 765.8,
               "expected": 730.1,
-              "diff": 51.6,
+              "diff": 35.7,
               "withinTolerance": false
             },
             {
               "label": "m1 note[4] x (note-m1b367-G5)",
-              "actual": 869.2,
+              "actual": 847.9,
               "expected": 795,
-              "diff": 74.2,
+              "diff": 52.9,
               "withinTolerance": false
             },
             {
               "label": "m1 note[5] x (note-m1b433-A5)",
-              "actual": 956.5,
+              "actual": 929.9,
               "expected": 859.9,
-              "diff": 96.6,
+              "diff": 70,
               "withinTolerance": false
             },
             {
               "label": "m1 note[6] x (note-m1b500-G5)",
-              "actual": 1043.9,
+              "actual": 1012,
               "expected": 924.7,
-              "diff": 119.2,
+              "diff": 87.3,
               "withinTolerance": false
             },
             {
               "label": "m1 note[7] x (note-m1b600-C5)",
-              "actual": 1154.7,
+              "actual": 1116,
               "expected": 1048.1,
-              "diff": 106.6,
+              "diff": 68,
               "withinTolerance": false
             },
             {
               "label": "m2 note[0] x (note-m2b100-C5)",
-              "actual": 1267.3,
+              "actual": 1246.3,
               "expected": 1208.1,
-              "diff": 59.2,
+              "diff": 38.2,
               "withinTolerance": false
             },
             {
               "label": "m2 note[1] x (note-m2b167-E5)",
-              "actual": 1354.8,
+              "actual": 1328.4,
               "expected": 1305.4,
-              "diff": 49.3,
+              "diff": 23,
               "withinTolerance": false
             },
             {
               "label": "m2 note[2] x (note-m2b233-G5)",
-              "actual": 1442.1,
+              "actual": 1410.5,
               "expected": 1402.7,
-              "diff": 39.4,
+              "diff": 7.7,
               "withinTolerance": false
             },
             {
               "label": "m2 note[3] x (note-m2b300-F5)",
-              "actual": 1529.5,
+              "actual": 1492.6,
               "expected": 1500,
-              "diff": 29.5,
+              "diff": 7.5,
               "withinTolerance": false
             },
             {
               "label": "m2 note[4] x (note-m2b367-A5)",
-              "actual": 1616.9,
+              "actual": 1574.6,
               "expected": 1597.3,
-              "diff": 19.6,
-              "withinTolerance": false
-            },
-            {
-              "label": "m2 note[5] x (note-m2b433-C6)",
-              "actual": 1704.3,
-              "expected": 1694.6,
-              "diff": 9.6,
-              "withinTolerance": false
-            },
-            {
-              "label": "m3 note[0] x (note-m3b100-C5)",
-              "actual": 1861.1,
-              "expected": 1828.6,
-              "diff": 32.5,
-              "withinTolerance": false
-            },
-            {
-              "label": "m3 note[1] x (note-m3b120-D5)",
-              "actual": 1904.3,
-              "expected": 1876.7,
-              "diff": 27.6,
-              "withinTolerance": false
-            },
-            {
-              "label": "m3 note[2] x (note-m3b140-E5)",
-              "actual": 1947.5,
-              "expected": 1924.9,
               "diff": 22.7,
               "withinTolerance": false
             },
             {
+              "label": "m2 note[5] x (note-m2b433-C6)",
+              "actual": 1656.7,
+              "expected": 1694.6,
+              "diff": 37.9,
+              "withinTolerance": false
+            },
+            {
+              "label": "m3 note[0] x (note-m3b100-C5)",
+              "actual": 1808.2,
+              "expected": 1828.6,
+              "diff": 20.4,
+              "withinTolerance": false
+            },
+            {
+              "label": "m3 note[1] x (note-m3b120-D5)",
+              "actual": 1869.1,
+              "expected": 1876.7,
+              "diff": 7.7,
+              "withinTolerance": false
+            },
+            {
+              "label": "m3 note[2] x (note-m3b140-E5)",
+              "actual": 1929.9,
+              "expected": 1924.9,
+              "diff": 5.1,
+              "withinTolerance": false
+            },
+            {
               "label": "m3 note[3] x (note-m3b160-F5)",
-              "actual": 1990.7,
+              "actual": 1990.8,
               "expected": 1973,
-              "diff": 17.8,
+              "diff": 17.9,
               "withinTolerance": false
             },
             {
               "label": "m3 note[4] x (note-m3b180-G5)",
-              "actual": 2034,
+              "actual": 2051.7,
               "expected": 2021.1,
-              "diff": 12.9,
+              "diff": 30.6,
               "withinTolerance": false
             },
             {
               "label": "m3 note[5] x (note-m3b200-G5)",
-              "actual": 2077.2,
+              "actual": 2112.6,
               "expected": 2069.2,
-              "diff": 8,
+              "diff": 43.4,
               "withinTolerance": false
             },
             {
               "label": "m3 note[6] x (note-m3b300-E5)",
-              "actual": 2187.9,
+              "actual": 2216.6,
               "expected": 2192.5,
-              "diff": 4.6,
+              "diff": 24.1,
               "withinTolerance": false
             },
             {
               "label": "m3 note[7] x (note-m3b400-C5)",
-              "actual": 2298.7,
+              "actual": 2320.6,
               "expected": 2315.9,
-              "diff": 17.1,
+              "diff": 4.8,
               "withinTolerance": false
             }
           ],
           "totalCompared": 22,
-          "exceededCount": 22,
-          "maxDelta": 119.2,
-          "avgDelta": 38.6
+          "exceededCount": 21,
+          "maxDelta": 87.3,
+          "avgDelta": 29.1
         },
         {
           "testId": "B7",
@@ -8514,9 +9230,9 @@
           "name": "noteCount",
           "stage": "A",
           "category": "extraction",
-          "passed": false,
+          "passed": true,
           "fixtureId": "09-tuplets",
-          "summary": "1/2 exceed tolerance (max Δ 12.0px)",
+          "summary": "2 compared, all within tolerance (max Δ 12.0px)",
           "deltas": [
             {
               "label": "total notes",
@@ -8531,11 +9247,11 @@
               "actual": 1,
               "expected": 0,
               "diff": 1,
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 2,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 12,
           "avgDelta": 6.5
         },
@@ -8567,22 +9283,22 @@
           "name": "staffLineCount",
           "stage": "D",
           "category": "svgRender",
-          "passed": true,
+          "passed": false,
           "fixtureId": "09-tuplets",
-          "summary": "1 compared, all within tolerance",
+          "summary": "1/1 exceed tolerance (max Δ 2.0px)",
           "deltas": [
             {
               "label": "staff lines in SVG",
-              "actual": 5,
+              "actual": 7,
               "expected": 5,
-              "diff": 0,
-              "withinTolerance": true
+              "diff": 2,
+              "withinTolerance": false
             }
           ],
           "totalCompared": 1,
-          "exceededCount": 0,
-          "maxDelta": 0,
-          "avgDelta": 0
+          "exceededCount": 1,
+          "maxDelta": 2,
+          "avgDelta": 2
         },
         {
           "testId": "E18",
@@ -8612,7 +9328,7 @@
       "stageBreakdown": {
         "A": {
           "total": 2,
-          "passed": 1
+          "passed": 2
         },
         "B": {
           "total": 5,
@@ -8624,7 +9340,7 @@
         },
         "D": {
           "total": 1,
-          "passed": 1
+          "passed": 0
         },
         "E": {
           "total": 1,
@@ -8634,7 +9350,7 @@
     },
     {
       "fixtureId": "10-ties",
-      "timestamp": "2026-04-05T16:31:16.943Z",
+      "timestamp": "2026-04-07T05:37:06.865Z",
       "results": [
         {
           "testId": "B1",
@@ -8643,48 +9359,48 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "10-ties",
-          "summary": "5/5 exceed tolerance (max Δ 48.8px)",
+          "summary": "5/5 exceed tolerance (max Δ 98.1px)",
           "deltas": [
             {
               "label": "measure 1 width",
-              "actual": 682.8,
+              "actual": 667.9,
               "expected": 697.1,
-              "diff": 14.3,
+              "diff": 29.2,
               "withinTolerance": false
             },
             {
               "label": "measure 2 width",
-              "actual": 474.2,
+              "actual": 461.2,
               "expected": 482.8,
-              "diff": 8.5,
+              "diff": 21.6,
               "withinTolerance": false
             },
             {
               "label": "measure 3 width",
-              "actual": 474.2,
+              "actual": 461.2,
               "expected": 482.8,
-              "diff": 8.5,
+              "diff": 21.6,
               "withinTolerance": false
             },
             {
               "label": "measure 4 width",
-              "actual": 467.8,
+              "actual": 517.2,
               "expected": 419.1,
-              "diff": 48.8,
+              "diff": 98.1,
               "withinTolerance": false
             },
             {
               "label": "measure 5 width",
-              "actual": 329.7,
+              "actual": 321.3,
               "expected": 346.3,
-              "diff": 16.6,
+              "diff": 25,
               "withinTolerance": false
             }
           ],
           "totalCompared": 5,
           "exceededCount": 5,
-          "maxDelta": 48.8,
-          "avgDelta": 19.3
+          "maxDelta": 98.1,
+          "avgDelta": 39.1
         },
         {
           "testId": "B2",
@@ -8693,7 +9409,7 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "10-ties",
-          "summary": "4/5 exceed tolerance (max Δ 31.4px)",
+          "summary": "4/5 exceed tolerance (max Δ 72.3px)",
           "deltas": [
             {
               "label": "measure 1 x",
@@ -8704,37 +9420,37 @@
             },
             {
               "label": "measure 2 x",
-              "actual": 1019.4,
+              "actual": 1004.5,
               "expected": 1033.7,
-              "diff": 14.3,
+              "diff": 29.2,
               "withinTolerance": false
             },
             {
               "label": "measure 3 x",
-              "actual": 1493.7,
+              "actual": 1465.7,
               "expected": 1516.5,
-              "diff": 22.8,
+              "diff": 50.7,
               "withinTolerance": false
             },
             {
               "label": "measure 4 x",
-              "actual": 1967.9,
+              "actual": 1926.9,
               "expected": 1999.3,
-              "diff": 31.4,
+              "diff": 72.3,
               "withinTolerance": false
             },
             {
               "label": "measure 5 x",
-              "actual": 2435.7,
+              "actual": 2444.1,
               "expected": 2418.3,
-              "diff": 17.4,
+              "diff": 25.8,
               "withinTolerance": false
             }
           ],
           "totalCompared": 5,
           "exceededCount": 4,
-          "maxDelta": 31.4,
-          "avgDelta": 17.2
+          "maxDelta": 72.3,
+          "avgDelta": 35.6
         },
         {
           "testId": "B3",
@@ -8770,7 +9486,7 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "10-ties",
-          "summary": "16/16 exceed tolerance (max Δ 126.0px)",
+          "summary": "16/16 exceed tolerance (max Δ 111.7px)",
           "deltas": [
             {
               "label": "m1 note[0] x (note-m1b100-C5)",
@@ -8781,114 +9497,114 @@
             },
             {
               "label": "m1 note[1] x (note-m1b200-C5)",
-              "actual": 635.2,
+              "actual": 631.5,
               "expected": 663,
-              "diff": 27.8,
+              "diff": 31.5,
               "withinTolerance": false
             },
             {
               "label": "m1 note[2] x (note-m1b300-E5)",
-              "actual": 750.9,
+              "actual": 743.4,
               "expected": 790.4,
-              "diff": 39.5,
+              "diff": 47,
               "withinTolerance": false
             },
             {
               "label": "m1 note[3] x (note-m1b400-G5)",
-              "actual": 866.6,
+              "actual": 855.4,
               "expected": 917.9,
-              "diff": 51.3,
+              "diff": 62.5,
               "withinTolerance": false
             },
             {
               "label": "m2 note[0] x (note-m2b100-G5)",
-              "actual": 1051.7,
+              "actual": 1036.8,
               "expected": 1082,
-              "diff": 30.4,
+              "diff": 45.3,
               "withinTolerance": false
             },
             {
               "label": "m2 note[1] x (note-m2b300-E5)",
-              "actual": 1225.1,
+              "actual": 1204.7,
               "expected": 1273.2,
-              "diff": 48.1,
+              "diff": 68.6,
               "withinTolerance": false
             },
             {
               "label": "m2 note[2] x (note-m2b400-C5)",
-              "actual": 1340.8,
+              "actual": 1316.6,
               "expected": 1400.7,
-              "diff": 59.9,
+              "diff": 84.1,
               "withinTolerance": false
             },
             {
               "label": "m3 note[0] x (note-m3b100-E5)",
-              "actual": 1525.9,
+              "actual": 1498,
               "expected": 1564.8,
-              "diff": 38.9,
+              "diff": 66.9,
               "withinTolerance": false
             },
             {
               "label": "m3 note[1] x (note-m3b300-C5)",
-              "actual": 1699.4,
+              "actual": 1665.9,
               "expected": 1756,
-              "diff": 56.6,
+              "diff": 90.1,
               "withinTolerance": false
             },
             {
               "label": "m3 note[2] x (note-m3b400-G5)",
-              "actual": 1815,
+              "actual": 1777.8,
               "expected": 1883.5,
-              "diff": 68.4,
+              "diff": 105.7,
               "withinTolerance": false
             },
             {
               "label": "m4 note[0] x (note-m4b100-C5)",
-              "actual": 2000.1,
+              "actual": 1959.2,
               "expected": 2047.6,
-              "diff": 47.5,
+              "diff": 88.4,
               "withinTolerance": false
             },
             {
               "label": "m4 note[1] x (note-m4b300-E5)",
-              "actual": 2173.6,
+              "actual": 2127.1,
               "expected": 2047.6,
-              "diff": 126,
+              "diff": 79.5,
               "withinTolerance": false
             },
             {
               "label": "m4 note[2] x (note-m4b300-G5)",
-              "actual": 2173.6,
+              "actual": 2127.1,
               "expected": 2047.6,
-              "diff": 126,
+              "diff": 79.5,
               "withinTolerance": false
             },
             {
               "label": "m4 note[3] x (note-m4b300-C5)",
-              "actual": 2173.6,
+              "actual": 2127.1,
               "expected": 2238.8,
-              "diff": 65.2,
+              "diff": 111.7,
               "withinTolerance": false
             },
             {
               "label": "m4 note[4] x (note-m4b500-E5)",
-              "actual": 2347.1,
+              "actual": 2295,
               "expected": 2238.8,
-              "diff": 108.3,
+              "diff": 56.2,
               "withinTolerance": false
             },
             {
               "label": "m4 note[5] x (note-m4b500-G5)",
-              "actual": 2347.1,
+              "actual": 2295,
               "expected": 2238.8,
-              "diff": 108.3,
+              "diff": 56.2,
               "withinTolerance": false
             }
           ],
           "totalCompared": 16,
           "exceededCount": 16,
-          "maxDelta": 126,
-          "avgDelta": 63.6
+          "maxDelta": 111.7,
+          "avgDelta": 68.1
         },
         {
           "testId": "B7",
@@ -9104,7 +9820,7 @@
           "category": "vertical",
           "passed": false,
           "fixtureId": "10-ties",
-          "summary": "5/7 exceed tolerance (max Δ 291.4px)",
+          "summary": "5/7 exceed tolerance (max Δ 282.1px)",
           "deltas": [
             {
               "label": "tie count",
@@ -9116,60 +9832,60 @@
             },
             {
               "label": "tie note-m1b100-C5→note-m1b200-C5 span",
-              "actual": 78.5,
+              "actual": 74.7,
               "expected": 30,
-              "diff": 48.5,
+              "diff": 44.7,
               "withinTolerance": true
             },
             {
               "label": "tie note-m2b300-E5→note-m3b100-E5 span",
-              "actual": 263.6,
+              "actual": 256.1,
               "expected": 30,
-              "diff": 233.6,
+              "diff": 226.1,
               "withinTolerance": false
             },
             {
               "label": "tie note-m2b400-C5→note-m3b300-C5 span",
-              "actual": 321.4,
+              "actual": 312.1,
               "expected": 30,
-              "diff": 291.4,
+              "diff": 282.1,
               "withinTolerance": false
             },
             {
               "label": "tie note-m4b100-C5→note-m4b300-C5 span",
-              "actual": 136.3,
+              "actual": 130.7,
               "expected": 30,
-              "diff": 106.3,
+              "diff": 100.7,
               "withinTolerance": false
             },
             {
               "label": "tie note-m4b300-E5→note-m4b500-E5 span",
-              "actual": 136.3,
+              "actual": 130.7,
               "expected": 30,
-              "diff": 106.3,
+              "diff": 100.7,
               "withinTolerance": false
             },
             {
               "label": "tie note-m4b300-G5→note-m4b500-G5 span",
-              "actual": 136.3,
+              "actual": 130.7,
               "expected": 30,
-              "diff": 106.3,
+              "diff": 100.7,
               "withinTolerance": false
             }
           ],
           "totalCompared": 7,
           "exceededCount": 5,
-          "maxDelta": 291.4,
-          "avgDelta": 127.9
+          "maxDelta": 282.1,
+          "avgDelta": 122.6
         },
         {
           "testId": "A1",
           "name": "noteCount",
           "stage": "A",
           "category": "extraction",
-          "passed": false,
+          "passed": true,
           "fixtureId": "10-ties",
-          "summary": "1/2 exceed tolerance (max Δ 6.0px)",
+          "summary": "2 compared, all within tolerance (max Δ 6.0px)",
           "deltas": [
             {
               "label": "total notes",
@@ -9184,11 +9900,11 @@
               "actual": 1,
               "expected": 0,
               "diff": 1,
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 2,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 6,
           "avgDelta": 3.5
         },
@@ -9327,12 +10043,12 @@
         }
       ],
       "totalTests": 13,
-      "passed": 8,
-      "failed": 5,
+      "passed": 9,
+      "failed": 4,
       "stageBreakdown": {
         "A": {
           "total": 2,
-          "passed": 1
+          "passed": 2
         },
         "B": {
           "total": 5,
@@ -9354,7 +10070,7 @@
     },
     {
       "fixtureId": "11-chord-symbols",
-      "timestamp": "2026-04-05T16:31:16.953Z",
+      "timestamp": "2026-04-07T05:37:06.877Z",
       "results": [
         {
           "testId": "B1",
@@ -9363,48 +10079,48 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "11-chord-symbols",
-          "summary": "4/5 exceed tolerance (max Δ 13.2px)",
+          "summary": "5/5 exceed tolerance (max Δ 22.1px)",
           "deltas": [
             {
               "label": "measure 1 width",
-              "actual": 635.8,
+              "actual": 630.7,
               "expected": 625.7,
-              "diff": 10.1,
+              "diff": 4.9,
               "withinTolerance": false
             },
             {
               "label": "measure 2 width",
-              "actual": 526.9,
+              "actual": 547.8,
               "expected": 525.6,
-              "diff": 1.3,
-              "withinTolerance": true
+              "diff": 22.1,
+              "withinTolerance": false
             },
             {
               "label": "measure 3 width",
-              "actual": 412.5,
+              "actual": 407.4,
               "expected": 402.6,
-              "diff": 9.9,
+              "diff": 4.8,
               "withinTolerance": false
             },
             {
               "label": "measure 4 width",
-              "actual": 526.9,
+              "actual": 520.1,
               "expected": 540.1,
-              "diff": 13.2,
+              "diff": 20,
               "withinTolerance": false
             },
             {
               "label": "measure 5 width",
-              "actual": 326.8,
+              "actual": 322.9,
               "expected": 334,
-              "diff": 7.2,
+              "diff": 11.1,
               "withinTolerance": false
             }
           ],
           "totalCompared": 5,
-          "exceededCount": 4,
-          "maxDelta": 13.2,
-          "avgDelta": 8.3
+          "exceededCount": 5,
+          "maxDelta": 22.1,
+          "avgDelta": 12.6
         },
         {
           "testId": "B2",
@@ -9413,7 +10129,7 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "11-chord-symbols",
-          "summary": "4/5 exceed tolerance (max Δ 21.2px)",
+          "summary": "4/5 exceed tolerance (max Δ 31.9px)",
           "deltas": [
             {
               "label": "measure 1 x",
@@ -9424,37 +10140,37 @@
             },
             {
               "label": "measure 2 x",
-              "actual": 972.4,
+              "actual": 967.3,
               "expected": 962.3,
-              "diff": 10.1,
+              "diff": 4.9,
               "withinTolerance": false
             },
             {
               "label": "measure 3 x",
-              "actual": 1499.2,
+              "actual": 1515,
               "expected": 1487.9,
-              "diff": 11.3,
+              "diff": 27.1,
               "withinTolerance": false
             },
             {
               "label": "measure 4 x",
-              "actual": 1911.8,
+              "actual": 1922.4,
               "expected": 1890.6,
-              "diff": 21.2,
+              "diff": 31.9,
               "withinTolerance": false
             },
             {
               "label": "measure 5 x",
-              "actual": 2438.6,
+              "actual": 2442.5,
               "expected": 2430.6,
-              "diff": 8,
+              "diff": 11.9,
               "withinTolerance": false
             }
           ],
           "totalCompared": 5,
           "exceededCount": 4,
-          "maxDelta": 21.2,
-          "avgDelta": 10.1
+          "maxDelta": 31.9,
+          "avgDelta": 15.2
         },
         {
           "testId": "B3",
@@ -9490,7 +10206,7 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "11-chord-symbols",
-          "summary": "11/12 exceed tolerance (max Δ 33.2px)",
+          "summary": "11/12 exceed tolerance (max Δ 30.8px)",
           "deltas": [
             {
               "label": "m1 note[0] x (note-m1b100-B4)",
@@ -9501,85 +10217,85 @@
             },
             {
               "label": "m1 note[1] x (note-m1b300-F4)",
-              "actual": 763.6,
+              "actual": 761.1,
               "expected": 791,
-              "diff": 27.4,
-              "withinTolerance": false
-            },
-            {
-              "label": "m2 note[0] x (note-m2b100-B4)",
-              "actual": 1004.6,
-              "expected": 1010.7,
-              "diff": 6.1,
-              "withinTolerance": false
-            },
-            {
-              "label": "m2 note[1] x (note-m2b200-E4)",
-              "actual": 1119,
-              "expected": 1133.7,
-              "diff": 14.7,
-              "withinTolerance": false
-            },
-            {
-              "label": "m2 note[2] x (note-m2b300-A4)",
-              "actual": 1233.3,
-              "expected": 1255.6,
-              "diff": 22.3,
-              "withinTolerance": false
-            },
-            {
-              "label": "m2 note[3] x (note-m2b400-D5)",
-              "actual": 1347.7,
-              "expected": 1377.6,
               "diff": 29.9,
               "withinTolerance": false
             },
             {
+              "label": "m2 note[0] x (note-m2b100-B4)",
+              "actual": 999.5,
+              "expected": 1010.7,
+              "diff": 11.2,
+              "withinTolerance": false
+            },
+            {
+              "label": "m2 note[1] x (note-m2b200-E4)",
+              "actual": 1112.2,
+              "expected": 1133.7,
+              "diff": 21.5,
+              "withinTolerance": false
+            },
+            {
+              "label": "m2 note[2] x (note-m2b300-A4)",
+              "actual": 1224.8,
+              "expected": 1255.6,
+              "diff": 30.8,
+              "withinTolerance": false
+            },
+            {
+              "label": "m2 note[3] x (note-m2b400-D5)",
+              "actual": 1365.2,
+              "expected": 1377.6,
+              "diff": 12.5,
+              "withinTolerance": false
+            },
+            {
               "label": "m3 note[0] x (note-m3b100-G4)",
-              "actual": 1531.5,
+              "actual": 1547.3,
               "expected": 1536.3,
-              "diff": 4.8,
+              "diff": 11,
               "withinTolerance": false
             },
             {
               "label": "m3 note[1] x (note-m3b300-C5)",
-              "actual": 1703,
+              "actual": 1716.2,
               "expected": 1719.3,
-              "diff": 16.2,
-              "withinTolerance": false
+              "diff": 3,
+              "withinTolerance": true
             },
             {
               "label": "m4 note[0] x (note-m4b100-G4)",
-              "actual": 1944,
+              "actual": 1954.7,
               "expected": 1938.9,
-              "diff": 5.1,
+              "diff": 15.7,
               "withinTolerance": false
             },
             {
               "label": "m4 note[1] x (note-m4b200-G4)",
-              "actual": 2058.4,
+              "actual": 2067.3,
               "expected": 2060.9,
-              "diff": 2.5,
-              "withinTolerance": true
+              "diff": 6.4,
+              "withinTolerance": false
             },
             {
               "label": "m4 note[2] x (note-m4b300-C5)",
-              "actual": 2172.7,
+              "actual": 2180,
               "expected": 2198.3,
-              "diff": 25.6,
+              "diff": 18.4,
               "withinTolerance": false
             },
             {
               "label": "m4 note[3] x (note-m4b400-F4)",
-              "actual": 2287.1,
+              "actual": 2292.6,
               "expected": 2320.3,
-              "diff": 33.2,
+              "diff": 27.7,
               "withinTolerance": false
             }
           ],
           "totalCompared": 12,
           "exceededCount": 11,
-          "maxDelta": 33.2,
+          "maxDelta": 30.8,
           "avgDelta": 17
         },
         {
@@ -9788,9 +10504,9 @@
           "name": "noteCount",
           "stage": "A",
           "category": "extraction",
-          "passed": false,
+          "passed": true,
           "fixtureId": "11-chord-symbols",
-          "summary": "1/2 exceed tolerance (max Δ 2.0px)",
+          "summary": "2 compared, all within tolerance (max Δ 2.0px)",
           "deltas": [
             {
               "label": "total notes",
@@ -9805,11 +10521,11 @@
               "actual": 1,
               "expected": 0,
               "diff": 1,
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 2,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 2,
           "avgDelta": 1.5
         },
@@ -9818,9 +10534,9 @@
           "name": "harmonyLabels",
           "stage": "A",
           "category": "extraction",
-          "passed": false,
+          "passed": true,
           "fixtureId": "11-chord-symbols",
-          "summary": "10/11 exceed tolerance (max Δ 9.0px)",
+          "summary": "11 compared, all within tolerance (max Δ 9.0px)",
           "deltas": [
             {
               "label": "harmony count",
@@ -9832,77 +10548,77 @@
             },
             {
               "label": "harmony root",
-              "actual": "false",
+              "actual": "true",
               "expected": "true",
-              "withinTolerance": false,
-              "detail": "root=undefined"
+              "withinTolerance": true,
+              "detail": "root=B"
             },
             {
               "label": "harmony root",
-              "actual": "false",
+              "actual": "true",
               "expected": "true",
-              "withinTolerance": false,
-              "detail": "root=undefined"
+              "withinTolerance": true,
+              "detail": "root=F"
             },
             {
               "label": "harmony root",
-              "actual": "false",
+              "actual": "true",
               "expected": "true",
-              "withinTolerance": false,
-              "detail": "root=undefined"
+              "withinTolerance": true,
+              "detail": "root=B"
             },
             {
               "label": "harmony root",
-              "actual": "false",
+              "actual": "true",
               "expected": "true",
-              "withinTolerance": false,
-              "detail": "root=undefined"
+              "withinTolerance": true,
+              "detail": "root=E"
             },
             {
               "label": "harmony root",
-              "actual": "false",
+              "actual": "true",
               "expected": "true",
-              "withinTolerance": false,
-              "detail": "root=undefined"
+              "withinTolerance": true,
+              "detail": "root=A"
             },
             {
               "label": "harmony root",
-              "actual": "false",
+              "actual": "true",
               "expected": "true",
-              "withinTolerance": false,
-              "detail": "root=undefined"
+              "withinTolerance": true,
+              "detail": "root=D"
             },
             {
               "label": "harmony root",
-              "actual": "false",
+              "actual": "true",
               "expected": "true",
-              "withinTolerance": false,
-              "detail": "root=undefined"
+              "withinTolerance": true,
+              "detail": "root=G"
             },
             {
               "label": "harmony root",
-              "actual": "false",
+              "actual": "true",
               "expected": "true",
-              "withinTolerance": false,
-              "detail": "root=undefined"
+              "withinTolerance": true,
+              "detail": "root=C"
             },
             {
               "label": "harmony root",
-              "actual": "false",
+              "actual": "true",
               "expected": "true",
-              "withinTolerance": false,
-              "detail": "root=undefined"
+              "withinTolerance": true,
+              "detail": "root=G"
             },
             {
               "label": "harmony root",
-              "actual": "false",
+              "actual": "true",
               "expected": "true",
-              "withinTolerance": false,
-              "detail": "root=undefined"
+              "withinTolerance": true,
+              "detail": "root=G"
             }
           ],
           "totalCompared": 11,
-          "exceededCount": 10,
+          "exceededCount": 0,
           "maxDelta": 9,
           "avgDelta": 9
         },
@@ -10101,12 +10817,12 @@
         }
       ],
       "totalTests": 15,
-      "passed": 8,
-      "failed": 7,
+      "passed": 10,
+      "failed": 5,
       "stageBreakdown": {
         "A": {
           "total": 2,
-          "passed": 0
+          "passed": 2
         },
         "B": {
           "total": 5,
@@ -10128,7 +10844,7 @@
     },
     {
       "fixtureId": "12-barlines",
-      "timestamp": "2026-04-05T16:31:16.959Z",
+      "timestamp": "2026-04-07T05:37:06.884Z",
       "results": [
         {
           "testId": "B1",
@@ -10529,25 +11245,25 @@
           "name": "barlineTypes",
           "stage": "A",
           "category": "extraction",
-          "passed": false,
+          "passed": true,
           "fixtureId": "12-barlines",
-          "summary": "2/2 exceed tolerance (max Δ 0.0px)",
+          "summary": "2 compared, all within tolerance",
           "deltas": [
             {
               "label": "has repeat barline",
-              "actual": "false",
+              "actual": "true",
               "expected": "true",
-              "withinTolerance": false
+              "withinTolerance": true
             },
             {
               "label": "has final barline",
-              "actual": "false",
+              "actual": "true",
               "expected": "true",
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 2,
-          "exceededCount": 2,
+          "exceededCount": 0,
           "maxDelta": 0,
           "avgDelta": 0
         },
@@ -10596,12 +11312,12 @@
         }
       ],
       "totalTests": 12,
-      "passed": 7,
-      "failed": 5,
+      "passed": 8,
+      "failed": 4,
       "stageBreakdown": {
         "A": {
           "total": 2,
-          "passed": 1
+          "passed": 2
         },
         "B": {
           "total": 5,
@@ -10623,7 +11339,7 @@
     },
     {
       "fixtureId": "13-dots",
-      "timestamp": "2026-04-05T16:31:16.973Z",
+      "timestamp": "2026-04-07T05:37:06.899Z",
       "results": [
         {
           "testId": "B1",
@@ -11197,9 +11913,9 @@
           "name": "noteCount",
           "stage": "A",
           "category": "extraction",
-          "passed": false,
+          "passed": true,
           "fixtureId": "13-dots",
-          "summary": "1/2 exceed tolerance (max Δ 8.0px)",
+          "summary": "2 compared, all within tolerance (max Δ 8.0px)",
           "deltas": [
             {
               "label": "total notes",
@@ -11214,11 +11930,11 @@
               "actual": 1,
               "expected": 0,
               "diff": 1,
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 2,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 8,
           "avgDelta": 4.5
         },
@@ -11312,12 +12028,12 @@
         }
       ],
       "totalTests": 13,
-      "passed": 7,
-      "failed": 6,
+      "passed": 8,
+      "failed": 5,
       "stageBreakdown": {
         "A": {
           "total": 2,
-          "passed": 1
+          "passed": 2
         },
         "B": {
           "total": 5,
@@ -11339,7 +12055,7 @@
     },
     {
       "fixtureId": "14-chords",
-      "timestamp": "2026-04-05T16:31:16.984Z",
+      "timestamp": "2026-04-07T05:37:06.913Z",
       "results": [
         {
           "testId": "B1",
@@ -11348,48 +12064,48 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "14-chords",
-          "summary": "5/5 exceed tolerance (max Δ 54.8px)",
+          "summary": "5/5 exceed tolerance (max Δ 89.0px)",
           "deltas": [
             {
               "label": "measure 1 width",
-              "actual": 682,
+              "actual": 696.9,
               "expected": 660.6,
-              "diff": 21.3,
+              "diff": 36.3,
               "withinTolerance": false
             },
             {
               "label": "measure 2 width",
-              "actual": 531.2,
+              "actual": 546.2,
               "expected": 510.1,
-              "diff": 21.2,
+              "diff": 36.1,
               "withinTolerance": false
             },
             {
               "label": "measure 3 width",
-              "actual": 427.3,
+              "actual": 450.8,
               "expected": 391.7,
-              "diff": 35.6,
+              "diff": 59.1,
               "withinTolerance": false
             },
             {
               "label": "measure 4 width",
-              "actual": 485.1,
+              "actual": 450.8,
               "expected": 539.8,
-              "diff": 54.8,
+              "diff": 89,
               "withinTolerance": false
             },
             {
               "label": "measure 5 width",
-              "actual": 303.2,
+              "actual": 284,
               "expected": 325.8,
-              "diff": 22.6,
+              "diff": 41.8,
               "withinTolerance": false
             }
           ],
           "totalCompared": 5,
           "exceededCount": 5,
-          "maxDelta": 54.8,
-          "avgDelta": 31.1
+          "maxDelta": 89,
+          "avgDelta": 52.5
         },
         {
           "testId": "B2",
@@ -11398,7 +12114,7 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "14-chords",
-          "summary": "4/5 exceed tolerance (max Δ 78.1px)",
+          "summary": "4/5 exceed tolerance (max Δ 131.6px)",
           "deltas": [
             {
               "label": "measure 1 x",
@@ -11409,37 +12125,37 @@
             },
             {
               "label": "measure 2 x",
-              "actual": 1018.6,
+              "actual": 1033.5,
               "expected": 997.2,
-              "diff": 21.3,
+              "diff": 36.3,
               "withinTolerance": false
             },
             {
               "label": "measure 3 x",
-              "actual": 1549.8,
+              "actual": 1579.7,
               "expected": 1507.3,
-              "diff": 42.5,
+              "diff": 72.4,
               "withinTolerance": false
             },
             {
               "label": "measure 4 x",
-              "actual": 1977.1,
+              "actual": 2030.6,
               "expected": 1899,
-              "diff": 78.1,
+              "diff": 131.6,
               "withinTolerance": false
             },
             {
               "label": "measure 5 x",
-              "actual": 2462.2,
+              "actual": 2481.4,
               "expected": 2438.8,
-              "diff": 23.4,
+              "diff": 42.6,
               "withinTolerance": false
             }
           ],
           "totalCompared": 5,
           "exceededCount": 4,
-          "maxDelta": 78.1,
-          "avgDelta": 33.1
+          "maxDelta": 131.6,
+          "avgDelta": 56.6
         },
         {
           "testId": "B3",
@@ -11475,7 +12191,7 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "14-chords",
-          "summary": "36/36 exceed tolerance (max Δ 182.2px)",
+          "summary": "34/36 exceed tolerance (max Δ 199.3px)",
           "deltas": [
             {
               "label": "m1 note[0] x (note-m1b100-C5)",
@@ -11486,254 +12202,254 @@
             },
             {
               "label": "m1 note[1] x (note-m1b200-D5)",
-              "actual": 591.2,
+              "actual": 582.7,
               "expected": 535.5,
-              "diff": 55.7,
+              "diff": 47.2,
               "withinTolerance": false
             },
             {
               "label": "m1 note[2] x (note-m1b200-E5)",
-              "actual": 623.5,
+              "actual": 614.9,
               "expected": 653.9,
-              "diff": 30.4,
+              "diff": 38.9,
               "withinTolerance": false
             },
             {
               "label": "m1 note[3] x (note-m1b300-E5)",
-              "actual": 695.1,
+              "actual": 678,
               "expected": 653.9,
-              "diff": 41.3,
+              "diff": 24.2,
               "withinTolerance": false
             },
             {
               "label": "m1 note[4] x (note-m1b300-F5)",
-              "actual": 727.4,
+              "actual": 710.3,
               "expected": 772.2,
-              "diff": 44.8,
+              "diff": 61.9,
               "withinTolerance": false
             },
             {
               "label": "m1 note[5] x (note-m1b400-F5)",
-              "actual": 799,
+              "actual": 773.4,
               "expected": 772.2,
-              "diff": 26.8,
-              "withinTolerance": false
+              "diff": 1.2,
+              "withinTolerance": true
             },
             {
               "label": "m1 note[6] x (note-m1b400-G5)",
-              "actual": 831.3,
+              "actual": 805.6,
               "expected": 890.5,
-              "diff": 59.3,
+              "diff": 84.9,
               "withinTolerance": false
             },
             {
               "label": "m1 note[7] x (note-m1b500-A5)",
-              "actual": 935.2,
+              "actual": 901,
               "expected": 890.5,
-              "diff": 44.6,
+              "diff": 10.4,
               "withinTolerance": false
             },
             {
               "label": "m2 note[0] x (note-m2b100-C5)",
-              "actual": 1050.8,
+              "actual": 1065.8,
               "expected": 1045.6,
-              "diff": 5.2,
+              "diff": 20.2,
               "withinTolerance": false
             },
             {
               "label": "m2 note[1] x (note-m2b200-E5)",
-              "actual": 1154.7,
+              "actual": 1161.1,
               "expected": 1045.6,
-              "diff": 109.1,
+              "diff": 115.5,
               "withinTolerance": false
             },
             {
               "label": "m2 note[2] x (note-m2b200-G5)",
-              "actual": 1154.7,
+              "actual": 1161.1,
               "expected": 1045.6,
-              "diff": 109.1,
+              "diff": 115.5,
               "withinTolerance": false
             },
             {
               "label": "m2 note[3] x (note-m2b200-F4)",
-              "actual": 1154.7,
+              "actual": 1161.1,
               "expected": 1163.9,
-              "diff": 9.2,
-              "withinTolerance": false
+              "diff": 2.8,
+              "withinTolerance": true
             },
             {
               "label": "m2 note[4] x (note-m2b300-C5)",
-              "actual": 1258.6,
+              "actual": 1256.5,
               "expected": 1163.9,
-              "diff": 94.7,
+              "diff": 92.5,
               "withinTolerance": false
             },
             {
               "label": "m2 note[5] x (note-m2b300-G4)",
-              "actual": 1258.6,
+              "actual": 1256.5,
               "expected": 1163.9,
-              "diff": 94.7,
+              "diff": 92.5,
               "withinTolerance": false
             },
             {
               "label": "m2 note[6] x (note-m2b300-A4)",
-              "actual": 1290.9,
+              "actual": 1288.7,
               "expected": 1282.3,
-              "diff": 8.6,
+              "diff": 6.4,
               "withinTolerance": false
             },
             {
               "label": "m2 note[7] x (note-m2b400-B4)",
-              "actual": 1362.5,
+              "actual": 1351.8,
               "expected": 1282.3,
-              "diff": 80.2,
+              "diff": 69.6,
               "withinTolerance": false
             },
             {
               "label": "m2 note[8] x (note-m2b400-D5)",
-              "actual": 1362.5,
+              "actual": 1351.8,
               "expected": 1282.3,
-              "diff": 80.2,
+              "diff": 69.6,
               "withinTolerance": false
             },
             {
               "label": "m2 note[9] x (note-m2b400-C4)",
-              "actual": 1362.5,
+              "actual": 1351.8,
               "expected": 1400.6,
-              "diff": 38.1,
+              "diff": 48.8,
               "withinTolerance": false
             },
             {
               "label": "m2 note[10] x (note-m2b500-E4)",
-              "actual": 1466.4,
+              "actual": 1447.2,
               "expected": 1400.6,
-              "diff": 65.8,
+              "diff": 46.6,
               "withinTolerance": false
             },
             {
               "label": "m2 note[11] x (note-m2b500-G4)",
-              "actual": 1466.4,
+              "actual": 1447.2,
               "expected": 1400.6,
-              "diff": 65.8,
+              "diff": 46.6,
               "withinTolerance": false
             },
             {
               "label": "m3 note[0] x (note-m3b100-C4)",
-              "actual": 1582,
+              "actual": 1612,
               "expected": 1555.6,
-              "diff": 26.4,
+              "diff": 56.3,
               "withinTolerance": false
             },
             {
               "label": "m3 note[1] x (note-m3b300-E4)",
-              "actual": 1737.9,
+              "actual": 1755,
               "expected": 1555.6,
-              "diff": 182.2,
+              "diff": 199.3,
               "withinTolerance": false
             },
             {
               "label": "m3 note[2] x (note-m3b300-B4)",
-              "actual": 1737.9,
+              "actual": 1755,
               "expected": 1555.6,
-              "diff": 182.2,
+              "diff": 199.3,
               "withinTolerance": false
             },
             {
               "label": "m3 note[3] x (note-m3b300-G4)",
-              "actual": 1737.9,
+              "actual": 1755,
               "expected": 1555.6,
-              "diff": 182.2,
+              "diff": 199.3,
               "withinTolerance": false
             },
             {
               "label": "m3 note[4] x (note-m3b300-G4)",
-              "actual": 1770.1,
+              "actual": 1787.2,
               "expected": 1733.2,
-              "diff": 37,
+              "diff": 54.1,
               "withinTolerance": false
             },
             {
               "label": "m3 note[5] x (note-m3b500-B4)",
-              "actual": 1893.7,
+              "actual": 1898,
               "expected": 1733.2,
-              "diff": 160.6,
+              "diff": 164.9,
               "withinTolerance": false
             },
             {
               "label": "m3 note[6] x (note-m3b500-D5)",
-              "actual": 1893.7,
+              "actual": 1898,
               "expected": 1733.2,
-              "diff": 160.6,
+              "diff": 164.9,
               "withinTolerance": false
             },
             {
               "label": "m3 note[7] x (note-m3b500-F5)",
-              "actual": 1893.7,
+              "actual": 1898,
               "expected": 1733.2,
-              "diff": 160.6,
+              "diff": 164.9,
               "withinTolerance": false
             },
             {
               "label": "m4 note[0] x (note-m4b100-C5)",
-              "actual": 2009.4,
+              "actual": 2062.8,
               "expected": 1947.4,
-              "diff": 62,
+              "diff": 115.4,
               "withinTolerance": false
             },
             {
               "label": "m4 note[1] x (note-m4b200-D5)",
-              "actual": 2081,
+              "actual": 2125.9,
               "expected": 1977.1,
-              "diff": 103.9,
+              "diff": 148.8,
               "withinTolerance": false
             },
             {
               "label": "m4 note[2] x (note-m4b200-E5)",
-              "actual": 2113.3,
+              "actual": 2158.2,
               "expected": 2065.7,
-              "diff": 47.6,
+              "diff": 92.5,
               "withinTolerance": false
             },
             {
               "label": "m4 note[3] x (note-m4b300-F5)",
-              "actual": 2217.2,
+              "actual": 2253.5,
               "expected": 2095.5,
-              "diff": 121.7,
+              "diff": 158.1,
               "withinTolerance": false
             },
             {
               "label": "m4 note[4] x (note-m4b300-C5)",
-              "actual": 2217.2,
+              "actual": 2253.5,
               "expected": 2184,
-              "diff": 33.1,
+              "diff": 69.5,
               "withinTolerance": false
             },
             {
               "label": "m4 note[5] x (note-m4b400-D5)",
-              "actual": 2288.8,
+              "actual": 2316.6,
               "expected": 2213.8,
-              "diff": 75,
+              "diff": 102.8,
               "withinTolerance": false
             },
             {
               "label": "m4 note[6] x (note-m4b400-E5)",
-              "actual": 2321.1,
+              "actual": 2348.9,
               "expected": 2213.8,
-              "diff": 107.3,
+              "diff": 135.1,
               "withinTolerance": false
             },
             {
               "label": "m4 note[7] x (note-m4b400-G5)",
-              "actual": 2321.1,
+              "actual": 2348.9,
               "expected": 2332.1,
-              "diff": 11.1,
+              "diff": 16.7,
               "withinTolerance": false
             }
           ],
           "totalCompared": 36,
-          "exceededCount": 36,
-          "maxDelta": 182.2,
-          "avgDelta": 75.9
+          "exceededCount": 34,
+          "maxDelta": 199.3,
+          "avgDelta": 84.8
         },
         {
           "testId": "B7",
@@ -12122,9 +12838,9 @@
           "name": "noteCount",
           "stage": "A",
           "category": "extraction",
-          "passed": false,
+          "passed": true,
           "fixtureId": "14-chords",
-          "summary": "1/2 exceed tolerance (max Δ 26.0px)",
+          "summary": "2 compared, all within tolerance (max Δ 26.0px)",
           "deltas": [
             {
               "label": "total notes",
@@ -12139,11 +12855,11 @@
               "actual": 1,
               "expected": 0,
               "diff": 1,
-              "withinTolerance": false
+              "withinTolerance": true
             }
           ],
           "totalCompared": 2,
-          "exceededCount": 1,
+          "exceededCount": 0,
           "maxDelta": 26,
           "avgDelta": 13.5
         },
@@ -12755,12 +13471,12 @@
         }
       ],
       "totalTests": 15,
-      "passed": 10,
-      "failed": 5,
+      "passed": 11,
+      "failed": 4,
       "stageBreakdown": {
         "A": {
           "total": 3,
-          "passed": 2
+          "passed": 3
         },
         "B": {
           "total": 5,
@@ -12782,7 +13498,7 @@
     },
     {
       "fixtureId": "15-mixed",
-      "timestamp": "2026-04-05T16:31:16.995Z",
+      "timestamp": "2026-04-07T05:37:06.926Z",
       "results": [
         {
           "testId": "B1",
@@ -12791,48 +13507,48 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "15-mixed",
-          "summary": "5/5 exceed tolerance (max Δ 56.8px)",
+          "summary": "5/5 exceed tolerance (max Δ 77.8px)",
           "deltas": [
             {
               "label": "measure 1 width",
-              "actual": 634.2,
+              "actual": 624,
               "expected": 642.4,
-              "diff": 8.3,
+              "diff": 18.5,
               "withinTolerance": false
             },
             {
               "label": "measure 2 width",
-              "actual": 485.1,
+              "actual": 472.7,
               "expected": 502.5,
-              "diff": 17.4,
+              "diff": 29.8,
               "withinTolerance": false
             },
             {
               "label": "measure 3 width",
-              "actual": 619.7,
+              "actual": 640.6,
               "expected": 562.9,
-              "diff": 56.8,
+              "diff": 77.8,
               "withinTolerance": false
             },
             {
               "label": "measure 4 width",
-              "actual": 419.9,
+              "actual": 427.6,
               "expected": 433.7,
-              "diff": 13.8,
+              "diff": 6.1,
               "withinTolerance": false
             },
             {
               "label": "measure 5 width",
-              "actual": 269.9,
+              "actual": 263.9,
               "expected": 286.5,
-              "diff": 16.6,
+              "diff": 22.6,
               "withinTolerance": false
             }
           ],
           "totalCompared": 5,
           "exceededCount": 5,
-          "maxDelta": 56.8,
-          "avgDelta": 22.6
+          "maxDelta": 77.8,
+          "avgDelta": 31
         },
         {
           "testId": "B2",
@@ -12841,7 +13557,7 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "15-mixed",
-          "summary": "4/5 exceed tolerance (max Δ 31.2px)",
+          "summary": "4/5 exceed tolerance (max Δ 48.3px)",
           "deltas": [
             {
               "label": "measure 1 x",
@@ -12852,37 +13568,37 @@
             },
             {
               "label": "measure 2 x",
-              "actual": 970.8,
+              "actual": 960.6,
               "expected": 979,
-              "diff": 8.3,
+              "diff": 18.5,
               "withinTolerance": false
             },
             {
               "label": "measure 3 x",
-              "actual": 1455.9,
+              "actual": 1433.3,
               "expected": 1481.5,
-              "diff": 25.6,
+              "diff": 48.3,
               "withinTolerance": false
             },
             {
               "label": "measure 4 x",
-              "actual": 2075.6,
+              "actual": 2073.9,
               "expected": 2044.4,
-              "diff": 31.2,
+              "diff": 29.5,
               "withinTolerance": false
             },
             {
               "label": "measure 5 x",
-              "actual": 2495.5,
+              "actual": 2501.5,
               "expected": 2478.1,
-              "diff": 17.4,
+              "diff": 23.4,
               "withinTolerance": false
             }
           ],
           "totalCompared": 5,
           "exceededCount": 4,
-          "maxDelta": 31.2,
-          "avgDelta": 16.5
+          "maxDelta": 48.3,
+          "avgDelta": 23.9
         },
         {
           "testId": "B3",
@@ -12948,7 +13664,7 @@
           "category": "horizontal",
           "passed": false,
           "fixtureId": "15-mixed",
-          "summary": "20/23 exceed tolerance (max Δ 63.8px)",
+          "summary": "21/23 exceed tolerance (max Δ 83.7px)",
           "deltas": [
             {
               "label": "m1 note[0] x (note-m1b100-D5)",
@@ -12959,163 +13675,163 @@
             },
             {
               "label": "m1 note[1] x (note-m1b200-F5)",
-              "actual": 681.2,
+              "actual": 678.5,
               "expected": 707.9,
-              "diff": 26.7,
+              "diff": 29.4,
               "withinTolerance": false
             },
             {
               "label": "m1 note[2] x (note-m1b250-A5)",
-              "actual": 740.6,
+              "actual": 736.1,
               "expected": 774.4,
-              "diff": 33.9,
+              "diff": 38.3,
               "withinTolerance": false
             },
             {
               "label": "m1 note[3] x (note-m1b300-B5)",
-              "actual": 799.9,
+              "actual": 793.7,
               "expected": 840.9,
-              "diff": 41,
+              "diff": 47.2,
               "withinTolerance": false
             },
             {
               "label": "m2 note[0] x (note-m2b100-B5)",
-              "actual": 1003,
+              "actual": 992.8,
               "expected": 1027.4,
-              "diff": 24.4,
+              "diff": 34.6,
               "withinTolerance": false
             },
             {
               "label": "m2 note[1] x (note-m2b200-G5)",
-              "actual": 1092.1,
+              "actual": 1079.2,
               "expected": 1127.2,
-              "diff": 35.1,
+              "diff": 48,
               "withinTolerance": false
             },
             {
               "label": "m2 note[2] x (note-m2b250-F5)",
-              "actual": 1151.5,
+              "actual": 1136.8,
               "expected": 1193.7,
-              "diff": 42.3,
+              "diff": 56.9,
               "withinTolerance": false
             },
             {
               "label": "m2 note[3] x (note-m2b300-E5)",
-              "actual": 1210.8,
+              "actual": 1194.4,
               "expected": 1260.3,
-              "diff": 49.4,
+              "diff": 65.8,
               "withinTolerance": false
             },
             {
               "label": "m2 note[4] x (note-m2b350-D5)",
-              "actual": 1270.2,
+              "actual": 1252.1,
               "expected": 1326.8,
-              "diff": 56.6,
+              "diff": 74.8,
               "withinTolerance": false
             },
             {
               "label": "m2 note[5] x (note-m2b400-C5)",
-              "actual": 1329.6,
+              "actual": 1309.7,
               "expected": 1393.4,
-              "diff": 63.8,
+              "diff": 83.7,
               "withinTolerance": false
             },
             {
               "label": "m3 note[0] x (note-m3b100-D5)",
-              "actual": 1488.1,
+              "actual": 1465.5,
               "expected": 1529.9,
-              "diff": 41.8,
+              "diff": 64.4,
               "withinTolerance": false
             },
             {
               "label": "m3 note[1] x (note-m3b167-E5)",
-              "actual": 1558.4,
+              "actual": 1533.7,
               "expected": 1594,
-              "diff": 35.5,
+              "diff": 60.3,
               "withinTolerance": false
             },
             {
               "label": "m3 note[2] x (note-m3b233-F5)",
-              "actual": 1628.7,
+              "actual": 1620,
               "expected": 1646.5,
-              "diff": 17.8,
+              "diff": 26.5,
               "withinTolerance": false
             },
             {
               "label": "m3 note[3] x (note-m3b300-A5)",
-              "actual": 1698.9,
+              "actual": 1688.2,
               "expected": 1699,
-              "diff": 0,
-              "withinTolerance": true
+              "diff": 10.8,
+              "withinTolerance": false
             },
             {
               "label": "m3 note[4] x (note-m3b367-G5)",
-              "actual": 1769.2,
+              "actual": 1756.4,
               "expected": 1751.5,
-              "diff": 17.8,
+              "diff": 4.9,
               "withinTolerance": false
             },
             {
               "label": "m3 note[5] x (note-m3b433-F5)",
-              "actual": 1839.5,
+              "actual": 1824.5,
               "expected": 1803.9,
-              "diff": 35.5,
+              "diff": 20.6,
               "withinTolerance": false
             },
             {
               "label": "m3 note[6] x (note-m3b500-E5)",
-              "actual": 1909.8,
+              "actual": 1892.7,
               "expected": 1856.4,
-              "diff": 53.3,
+              "diff": 36.3,
               "withinTolerance": false
             },
             {
               "label": "m3 note[7] x (note-m3b600-D5)",
-              "actual": 1998.8,
+              "actual": 1979.1,
               "expected": 1956.3,
-              "diff": 42.6,
+              "diff": 22.9,
               "withinTolerance": false
             },
             {
               "label": "m4 note[0] x (note-m4b100-G4)",
-              "actual": 2107.9,
+              "actual": 2106.2,
               "expected": 2092.8,
-              "diff": 15.1,
+              "diff": 13.4,
               "withinTolerance": false
             },
             {
               "label": "m4 note[1] x (note-m4b250-A4)",
-              "actual": 2220.8,
+              "actual": 2215.7,
               "expected": 2219.3,
-              "diff": 1.5,
+              "diff": 3.6,
               "withinTolerance": true
             },
             {
               "label": "m4 note[2] x (note-m4b300-B4)",
-              "actual": 2280.2,
+              "actual": 2291.5,
               "expected": 2290.1,
-              "diff": 10,
-              "withinTolerance": false
+              "diff": 1.4,
+              "withinTolerance": true
             },
             {
               "label": "m4 note[3] x (note-m4b400-D5)",
-              "actual": 2369.3,
+              "actual": 2377.9,
               "expected": 2390,
-              "diff": 20.7,
+              "diff": 12.1,
               "withinTolerance": false
             },
             {
               "label": "m5 note[0] x (note-m5b100-F5)",
-              "actual": 2527.8,
+              "actual": 2533.8,
               "expected": 2528.8,
-              "diff": 1.1,
-              "withinTolerance": true
+              "diff": 4.9,
+              "withinTolerance": false
             }
           ],
           "totalCompared": 23,
-          "exceededCount": 20,
-          "maxDelta": 63.8,
-          "avgDelta": 29.6
+          "exceededCount": 21,
+          "maxDelta": 83.7,
+          "avgDelta": 33.8
         },
         {
           "testId": "B6",
@@ -13562,16 +14278,16 @@
   ],
   "summary": {
     "totalTests": 214,
-    "passed": 117,
-    "failed": 97,
+    "passed": 138,
+    "failed": 76,
     "byStage": {
       "A": {
         "total": 29,
-        "passed": 14
+        "passed": 29
       },
       "B": {
         "total": 85,
-        "passed": 26
+        "passed": 28
       },
       "C": {
         "total": 51,
@@ -13579,73 +14295,73 @@
       },
       "D": {
         "total": 24,
-        "passed": 22
+        "passed": 21
       },
       "E": {
         "total": 25,
-        "passed": 18
+        "passed": 23
       }
     },
     "worstDeltas": [
       {
         "testId": "B7",
-        "fixtureId": "01-noteheads",
-        "maxDelta": 2109.1,
-        "name": "justificationSlack"
-      },
-      {
-        "testId": "C16",
-        "fixtureId": "06-key-signatures",
-        "maxDelta": 1795.8,
-        "name": "keySignatureX"
-      },
-      {
-        "testId": "C17",
         "fixtureId": "07-time-signatures",
-        "maxDelta": 1790.5,
-        "name": "timeSignatureX"
-      },
-      {
-        "testId": "B1",
-        "fixtureId": "03-rests",
-        "maxDelta": 1218.6,
-        "name": "measureWidths"
+        "maxDelta": 1960.7,
+        "name": "justificationSlack"
       },
       {
         "testId": "B2",
         "fixtureId": "03-rests",
-        "maxDelta": 1218.6,
+        "maxDelta": 1663.9,
+        "name": "measureXPositions"
+      },
+      {
+        "testId": "C14",
+        "fixtureId": "12-barlines",
+        "maxDelta": 482.7,
+        "name": "barlinePositions"
+      },
+      {
+        "testId": "C12",
+        "fixtureId": "10-ties",
+        "maxDelta": 282.1,
+        "name": "tieArcEndpoints"
+      },
+      {
+        "testId": "B1",
+        "fixtureId": "03-rests",
+        "maxDelta": 275.4,
+        "name": "measureWidths"
+      },
+      {
+        "testId": "B2",
+        "fixtureId": "07-time-signatures",
+        "maxDelta": 253.9,
         "name": "measureXPositions"
       },
       {
         "testId": "B5",
-        "fixtureId": "01-noteheads",
-        "maxDelta": 712.5,
+        "fixtureId": "07-time-signatures",
+        "maxDelta": 248,
         "name": "noteXPositions"
+      },
+      {
+        "testId": "B6",
+        "fixtureId": "15-mixed",
+        "maxDelta": 223.2,
+        "name": "headerWidths"
       },
       {
         "testId": "B5",
-        "fixtureId": "03-rests",
-        "maxDelta": 596.2,
+        "fixtureId": "14-chords",
+        "maxDelta": 199.3,
         "name": "noteXPositions"
       },
       {
-        "testId": "E18",
-        "fixtureId": "01-noteheads",
-        "maxDelta": 532.8,
-        "name": "staffDistribution"
-      },
-      {
-        "testId": "E18",
-        "fixtureId": "03-rests",
-        "maxDelta": 532.8,
-        "name": "staffDistribution"
-      },
-      {
-        "testId": "E18",
-        "fixtureId": "04-beams",
-        "maxDelta": 532.8,
-        "name": "staffDistribution"
+        "testId": "B2",
+        "fixtureId": "14-chords",
+        "maxDelta": 131.6,
+        "name": "measureXPositions"
       }
     ]
   }

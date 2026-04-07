@@ -43,6 +43,7 @@ import {
 } from './layout/LayoutMeasure'
 import {
   collectSystems, justifySystem, shouldJustifyLastSystem, computeMeasureSqueezable,
+  collectSystemsIncremental,
   SQUEEZABILITY,
   type SystemSpring,
 } from './layout/LayoutSystem'
@@ -101,21 +102,25 @@ export function orchestrateHorizontalLayout(
     firstNotePads.set(m.num, computeFirstNotePad(m, state, hasTimeChange, sp))
   }
 
-  // ── 3. Global min duration (for greedy break estimate) ───────────────────
-  // C++: layoutsystem.cpp:201 — minSysTicks computed across all measures first
-  const globalMinDur = clampMinDur(findGlobalMinDur(allSegments))
-
-  // ── 4. Measure widths (global stretch) for greedy system breaking ────────
-  const globalMeasureWidths:  Map<number, number> = new Map()
-  const globalMeasureSqueeze: Map<number, number> = new Map()
+  // ── 3. Per-measure min/max durations ──────────────────────────────────────
+  // C++: layoutsystem.cpp:123-124 — m->shortestChordRest(), m->maxTicks()
+  const measureMinDurs: Map<number, number> = new Map()
+  const measureMaxDurs: Map<number, number> = new Map()
   for (const [mNum, segs] of allSegments) {
-    const pad   = firstNotePads.get(mNum) ?? 0
-    const segWs = computeSegmentWidths(segs, globalMinDur, sp)
-    globalMeasureWidths.set(mNum, computeMeasureWidth(pad, segWs, sp))
-    globalMeasureSqueeze.set(mNum, computeMeasureSqueezable(segWs, sp))
+    let minD = Infinity, maxD = 0
+    for (const seg of segs) {
+      if (seg.durationQb > 0) {
+        if (seg.durationQb < minD) minD = seg.durationQb
+        if (seg.durationQb > maxD) maxD = seg.durationQb
+      }
+    }
+    if (!isFinite(minD)) minD = 1.0
+    if (maxD <= 0) maxD = 1.0
+    measureMinDurs.set(mNum, minD)
+    measureMaxDurs.set(mNum, maxD)
   }
 
-  // ── 5. System header for greedy break ────────────────────────────────────
+  // ── 4. System header for greedy break ────────────────────────────────────
   const headerWidth = computeHeaderWidth(metadata.fifths, sp)
   const usableWidth = opts.pageWidth - opts.marginLeft - opts.marginRight
 
@@ -125,10 +130,12 @@ export function orchestrateHorizontalLayout(
   const firstSysIndentPx    = FIRST_SYSTEM_INDENT_SP * sp
   const firstSysUsableWidth = usableWidth - firstSysIndentPx
 
-  // ── 6. Greedy system breaking ─────────────────────────────────────────────
-  // C++: LayoutSystem::collectSystem() — layoutsystem.cpp:62
-  // Pass firstSysUsableWidth so system 0 gets fewer measures than later systems.
-  const systemGroups = collectSystems(globalMeasureWidths, headerWidth, usableWidth, firstSysUsableWidth, globalMeasureSqueeze)
+  // ── 5. Incremental greedy system breaking ─────────────────────────────────
+  // C++: layoutsystem.cpp:109-245 — collectSystem() with incremental recomputation
+  const { systemGroups, systemMinDurs, systemMaxDurs } = collectSystemsIncremental(
+    allSegments, firstNotePads, measureMinDurs, measureMaxDurs,
+    headerWidth, usableWidth, sp, firstSysUsableWidth,
+  )
 
   // ── 7. Page geometry ──────────────────────────────────────────────────────
   const sysH          = (4 + opts.systemSpacingSp) * sp
@@ -154,9 +161,10 @@ export function orchestrateHorizontalLayout(
       pageSysIndices = []
     }
 
-    // Per-system min duration (tighter estimate → better spacing)
-    // C++: layoutsystem.cpp:201 — minSysTicks per system
-    const sysMinDur = clampMinDur(findSystemMinDur(mNums, allSegments))
+    // Per-system min/max duration from incremental collection
+    // C++: layoutsystem.cpp:201 — minSysTicks / maxSysTicks per system
+    const sysMinDur = systemMinDurs[sysIdx]
+    const sysMaxDur = systemMaxDurs[sysIdx]
 
     // Re-compute segment widths with per-system min duration
     const sysSegWidths:   Map<number, number[]> = new Map()
@@ -181,7 +189,7 @@ export function orchestrateHorizontalLayout(
         pad = firstNotePads.get(mNum) ?? 0
       }
       sysFirstNotePads.set(mNum, pad)
-      const segWs = computeSegmentWidths(segs, sysMinDur, sp)
+      const segWs = computeSegmentWidths(segs, sysMinDur, sp, sysMaxDur)
       sysSegWidths.set(mNum, segWs)
       sysMeasureWidths.set(mNum, computeMeasureWidth(pad, segWs, sp))
     }
@@ -292,7 +300,7 @@ export function orchestrateHorizontalLayout(
         segments.push({
           beat:     segs[si].beat,
           duration: segs[si].durationQb,
-          stretch:  computeDurationStretch(segs[si].durationQb, sysMinDur),
+          stretch:  computeDurationStretch(segs[si].durationQb, sysMinDur, sysMaxDur),
           x:        segX,
           width:    scaledW,
         })
@@ -367,6 +375,14 @@ function buildMeasureSegments(m: ExtractedMeasure, beatsPerMeasure: number): Mea
     }
   }
 
+  // Track which beats have notes with visible accidentals
+  const beatsWithAccidentals = new Set<number>()
+  for (const n of m.notes) {
+    if (!n.isGrace && n.duration > 0 && n.showAccidental) {
+      beatsWithAccidentals.add(snapBeat(n.beat))
+    }
+  }
+
   let sortedBeats = [...beatSet].sort((a, b) => a - b)
   if (sortedBeats.length === 0) sortedBeats = [1]   // empty measure: whole rest
 
@@ -375,7 +391,7 @@ function buildMeasureSegments(m: ExtractedMeasure, beatsPerMeasure: number): Mea
   return sortedBeats.map((beat, i) => {
     const nextBeat    = i + 1 < sortedBeats.length ? sortedBeats[i + 1] : measureEndBeat
     const durationQb  = nextBeat - beat
-    return { beat, durationQb }
+    return { beat, durationQb, hasAccidental: beatsWithAccidentals.has(beat) }
   })
 }
 

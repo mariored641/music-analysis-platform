@@ -11,6 +11,11 @@
  */
 
 import { Sid } from '../../style/StyleDef'
+import {
+  computeSegmentWidths as computeSegmentWidthsLocal,
+  computeMeasureWidth as computeMeasureWidthLocal,
+  type MeasureSegment,
+} from './LayoutMeasure'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants (from styledef.cpp)
@@ -207,6 +212,195 @@ export function collectSystems(
 export function computeMeasureSqueezable(segmentWidths: number[], sp: number): number {
   const minHorizPx = MIN_HORIZ_DIST_SP * sp
   return segmentWidths.reduce((sum, w) => sum + Math.max(0, w - minHorizPx), 0)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Incremental system collection (C++: layoutsystem.cpp:109-245)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Result of incremental system collection.
+ * Returns per-system min/max durations alongside the system groups.
+ */
+export interface IncrementalSystemResult {
+  /** Array of measure-number arrays, one per system */
+  systemGroups: number[][]
+  /** Per-system final minDur in quarter-beat units */
+  systemMinDurs: number[]
+  /** Per-system final maxDur in quarter-beat units */
+  systemMaxDurs: number[]
+}
+
+/**
+ * Incremental greedy system breaking with min/max duration tracking.
+ *
+ * C++: layoutsystem.cpp:109-245 — collectSystem()
+ *
+ * When a new measure is added to the system, if it changes the system's
+ * minTicks or maxTicks, ALL previous measures are recomputed with the new
+ * values. This is essential because computeDurationStretch depends on
+ * both min and max durations (empFactor, HACK, maxRatio cap).
+ *
+ * @param allSegments      Per-measure segments (beat positions + durations)
+ * @param firstNotePads    Per-measure first-note padding in pixels
+ * @param measureMinDurs   Shortest note per measure (in qb)
+ * @param measureMaxDurs   Longest note per measure (in qb)
+ * @param headerWidth      Width of system header in pixels
+ * @param usableWidth      Target system width (page width - margins) in pixels
+ * @param sp               Spatium in pixels
+ * @param firstSystemWidth Optional smaller width for system 0 (first-system indent)
+ */
+export function collectSystemsIncremental(
+  allSegments:     Map<number, MeasureSegment[]>,
+  firstNotePads:   Map<number, number>,
+  measureMinDurs:  Map<number, number>,
+  measureMaxDurs:  Map<number, number>,
+  headerWidth:     number,
+  usableWidth:     number,
+  sp:              number,
+  firstSystemWidth?: number,
+): IncrementalSystemResult {
+  const systemGroups: number[][] = []
+  const systemMinDurs: number[] = []
+  const systemMaxDurs: number[] = []
+
+  let currentSystem: number[] = []
+  let curSysWidth = headerWidth
+  let minTicks = Infinity
+  let maxTicks = 0
+  let prevMinTicks = Infinity
+  let prevMaxTicks = 0
+  let minSysTicksChanged = false
+  let maxSysTicksChanged = false
+
+  const mNums = [...allSegments.keys()].sort((a, b) => a - b)
+
+  /** Recompute total system width from scratch with current min/max */
+  const recomputeSystemWidth = (): number => {
+    let w = headerWidth
+    for (const mNum of currentSystem) {
+      const segs = allSegments.get(mNum) ?? []
+      const pad  = firstNotePads.get(mNum) ?? 0
+      const segWs = computeSegmentWidthsLocal(segs, minTicks, sp, maxTicks)
+      w += computeMeasureWidthLocal(pad, segWs, sp)
+    }
+    return w
+  }
+
+  for (const mNum of mNums) {
+    const curMinDur = measureMinDurs.get(mNum) ?? Infinity
+    const curMaxDur = measureMaxDurs.get(mNum) ?? 0
+
+    // C++: layoutsystem.cpp:123-138 — track min/max changes
+    if (curMinDur < minTicks) {
+      prevMinTicks = minTicks
+      minTicks = curMinDur
+      minSysTicksChanged = true
+    } else {
+      minSysTicksChanged = false
+    }
+    if (curMaxDur > maxTicks) {
+      prevMaxTicks = maxTicks
+      maxTicks = curMaxDur
+      maxSysTicksChanged = true
+    } else {
+      maxSysTicksChanged = false
+    }
+
+    // C++: layoutsystem.cpp:139-152 — recompute all prior measures if min/max changed
+    if ((minSysTicksChanged || maxSysTicksChanged) && currentSystem.length > 0) {
+      curSysWidth = recomputeSystemWidth()
+    }
+
+    // Compute current measure width with system min/max
+    const segs = allSegments.get(mNum) ?? []
+    const pad  = firstNotePads.get(mNum) ?? 0
+    const segWs = computeSegmentWidthsLocal(segs, minTicks, sp, maxTicks)
+    const ww = computeMeasureWidthLocal(pad, segWs, sp)
+
+    // First system uses firstSystemWidth (if provided)
+    const maxW = (systemGroups.length === 0 && firstSystemWidth !== undefined)
+      ? firstSystemWidth
+      : usableWidth
+
+    if (currentSystem.length === 0) {
+      // First measure always included
+      currentSystem.push(mNum)
+      curSysWidth += ww
+    } else {
+      // C++: layoutsystem.cpp:202-203 — acceptance range check
+      // Note: in C++ the current measure is already appended to the system
+      // when squeezableSpace is computed, so it includes the candidate.
+      const tentativeSqueezable = computeSystemSqueezableIncremental(
+        [...currentSystem, mNum], allSegments, firstNotePads, minTicks, maxTicks, sp,
+      )
+      const acceptanceRange = SQUEEZABILITY * tentativeSqueezable
+
+      const doBreak = (curSysWidth + ww) > maxW + acceptanceRange
+
+      if (doBreak) {
+        // C++: layoutsystem.cpp:228-243 — restore min/max if last measure caused change
+        if (minSysTicksChanged) minTicks = prevMinTicks
+        if (maxSysTicksChanged) maxTicks = prevMaxTicks
+
+        // Recompute with restored values
+        if (minSysTicksChanged || maxSysTicksChanged) {
+          curSysWidth = recomputeSystemWidth()
+        }
+
+        // Finalize current system
+        systemGroups.push(currentSystem)
+        systemMinDurs.push(minTicks)
+        systemMaxDurs.push(maxTicks)
+
+        // Start new system with this measure
+        currentSystem = [mNum]
+        minTicks = curMinDur
+        maxTicks = curMaxDur
+        const newSegWs = computeSegmentWidthsLocal(segs, minTicks, sp, maxTicks)
+        curSysWidth = headerWidth + computeMeasureWidthLocal(pad, newSegWs, sp)
+      } else {
+        currentSystem.push(mNum)
+        curSysWidth += ww
+      }
+    }
+  }
+
+  // Final system
+  if (currentSystem.length > 0) {
+    systemGroups.push(currentSystem)
+    systemMinDurs.push(minTicks)
+    systemMaxDurs.push(maxTicks)
+  }
+
+  return { systemGroups, systemMinDurs, systemMaxDurs }
+}
+
+/** Compute total squeezable space for a list of measures with given min/max dur */
+function computeSystemSqueezableIncremental(
+  mNums: number[],
+  allSegments: Map<number, MeasureSegment[]>,
+  firstNotePads: Map<number, number>,
+  minDur: number,
+  maxDur: number,
+  sp: number,
+): number {
+  const minHorizPx = MIN_HORIZ_DIST_SP * sp
+  // C++: measure.cpp:4307 — final clamp: max(0, min(squeezable, measureWidth - minMeasureWidth))
+  const minMeasureWidthPx = 8.0 * sp   // Sid::minMeasureWidth = Spatium(8.0)
+  let total = 0
+  for (const mNum of mNums) {
+    const segs = allSegments.get(mNum) ?? []
+    const pad  = firstNotePads.get(mNum) ?? 0
+    const segWs = computeSegmentWidthsLocal(segs, minDur, sp, maxDur)
+    // Per-segment squeezable (C++: measure.cpp:4220)
+    let mSqueezable = segWs.reduce((sum, w) => sum + Math.max(0, w - minHorizPx), 0)
+    // C++: measure.cpp:4307 — clamp to measureWidth - minMeasureWidth
+    const mWidth = computeMeasureWidthLocal(pad, segWs, sp)
+    mSqueezable = Math.max(0, Math.min(mSqueezable, mWidth - minMeasureWidthPx))
+    total += mSqueezable
+  }
+  return total
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
