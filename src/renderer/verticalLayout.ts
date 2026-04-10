@@ -1052,7 +1052,7 @@ export function computeVerticalLayout(
           beat:        en.beat,
           staffIndex:  en.staffIndex,
           voice:       en.voice,
-          x:           noteX,
+          x:           noteX + noteheadRx,   // center of notehead (noteheadRx = 0.65sp)
           y:           noteY,
           bbox:        makeDOMRect(bboxLeft, bboxTop, bboxRight - bboxLeft, bboxBottom - bboxTop),
           staffLine,

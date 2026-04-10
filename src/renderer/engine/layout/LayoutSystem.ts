@@ -40,67 +40,75 @@ export const PAGE_PRINTABLE_WIDTH_MM: number = Sid.pagePrintableWidthMm  // 180.
 
 // ─────────────────────────────────────────────────────────────────────────────
 // System spring model (justifySystem)
+// C++: layoutsystem.cpp:496 → Segment::stretchSegmentsToWidth (segment.cpp:2785)
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Spring model segment input.
+ * Per-segment spring for force-equilibrium justification.
  * C++: layoutsystem.cpp:507–519 — Spring struct
  */
-export interface SystemSpring {
-  /** Stretch factor of this segment (from computeDurationStretch) */
-  stretch: number
+export interface SegmentSpring {
+  /** 1 / stretch factor (C++: springConst = 1 / s.stretch()) */
+  springConst: number
   /** Current width of this segment in pixels */
-  currentWidth: number
+  width: number
+  /** Pre-tension = width * springConst */
+  preTension: number
+  /** Which measure this segment belongs to */
+  measureNum: number
+  /** Segment index within the measure */
+  segIndex: number
 }
 
 /**
- * Distribute slack space across segments using the spring model.
+ * Distribute slack space across segments using the C++ spring-rod model.
  *
- * C++: layoutsystem.cpp:496–531 — justifySystem()
+ * C++: Segment::stretchSegmentsToWidth(springs, rest)  — segment.cpp:2785
  *
- *   rest = targetWidth - curWidth
- *   for each chord-rest segment:
- *     springConst = 1 / stretch
- *     preTension  = width * springConst
- *   → distribute rest proportionally to (1 / springConst) = stretch
- *     (segments with higher stretch get more extra space)
+ * Algorithm:
+ *   1. Sort springs by preTension ascending
+ *   2. Do-while loop: accumulate inverseSpringConst + widths, compute force
+ *      - width starts as `rest`, then += each spring's existing width
+ *      - force = width / inverseSpringConst
+ *      - Stop when force < next spring's preTension
+ *   3. Apply: if force > preTension → newWidth = force / springConst
+ *      Otherwise keep original width
  *
- * C++: Segment::stretchSegmentsToWidth(springs, rest)
- *   → each segment's new width = currentWidth + rest * (stretch / totalStretch)
- *
- * MAP note: this is the slack distribution from horizontalLayout.ts placeSystem().
- * The formula used in placeSystem is:
- *   extra = slack * (md.totalBaseNoteWidth / totalNoteContent)
- * which is equivalent to distributing proportionally to "note content" (stretch × count).
- *
- * @param springs     Segments to stretch
- * @param targetWidth Total target width of the system (usable width minus header)
- * @param curWidth    Current total width of all measure content
- * @returns           New widths for each spring segment
+ * @param springs  Per-segment springs with springConst, width, preTension
+ * @param rest     Slack to distribute (targetWidth - curWidth)
  */
 export function justifySystem(
-  springs: SystemSpring[],
-  targetWidth: number,
-  curWidth: number,
-): number[] {
-  const rest = targetWidth - curWidth
-  if (rest <= 0 || springs.length === 0) {
-    return springs.map(s => s.currentWidth)
-  }
+  springs: SegmentSpring[],
+  rest: number,
+): void {
+  if (springs.length === 0 || rest < 1e-9) return
 
-  // C++: springConst = 1 / stretch; preTension = width * springConst
-  // Distribution: each segment gets rest * (stretch / totalStretch)
-  // Equivalent to distributing proportionally to stretch.
-  const totalStretch = springs.reduce((s, sp) => s + sp.stretch, 0)
-  if (totalStretch <= 0) {
-    const even = rest / springs.length
-    return springs.map(s => s.currentWidth + even)
-  }
+  // 1. Sort by preTension ascending (C++: std::sort)
+  const sorted = [...springs].sort((a, b) => a.preTension - b.preTension)
 
-  return springs.map(sp => {
-    const extra = rest * (sp.stretch / totalStretch)
-    return sp.currentWidth + extra
-  })
+  // 2. Force-equilibrium do-while loop (C++: segment.cpp:2796-2802)
+  //    width starts as rest (the slack), then accumulates each spring's existing width
+  let inverseSpringConst = 0
+  let width = rest    // C++: function parameter `width` = rest
+  let force = 0
+  let i = 0
+
+  do {
+    inverseSpringConst += 1.0 / sorted[i].springConst
+    width += sorted[i].width
+    force = width / inverseSpringConst
+    i++
+  } while (i < sorted.length && !(force < sorted[i].preTension))
+  //        C++: !(force < spring.preTension) means loop while force >= preTension
+
+  // 3. Apply force to each spring (C++: segment.cpp:2804-2809)
+  //    Strict > (not >=) for preTension check
+  for (const sp of springs) {
+    if (force > sp.preTension) {
+      sp.width = force / sp.springConst
+    }
+    // else: keep original width (spring didn't yield)
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -124,98 +132,11 @@ export const SQUEEZABILITY = 0.3
  *   = 1.18sp + 0.5sp = 1.68sp
  * Used to compute per-segment squeezable space = minStretchedWidth - minHorizDist.
  */
-const MIN_HORIZ_DIST_SP = 1.68
-
-/**
- * Greedy system breaking.
- *
- * C++: layoutsystem.cpp:62–470 — collectSystem()
- * Algorithm: add measures one by one; when adding the next measure would exceed
- * targetWidth + acceptanceRange, start a new system.
- *
- * C++: layoutsystem.cpp:428–431
- *   if last system AND curSysWidth/targetWidth < lastSystemFillLimit → do NOT justify
- *
- * C++: layoutsystem.cpp:96–100 — squeeze tolerance
- *   acceptanceRange = squeezability * system->squeezableSpace()
- *   doBreak = measures.size() > 1 && (curSysWidth + ww > targetSystemWidth + acceptanceRange)
- *
- * @param measureWidths       Minimum widths of each measure in pixels (1-based index)
- * @param headerWidth         Width of system header (clef + key + time sig) in pixels
- * @param usableWidth         Target system width (page width - margins) in pixels
- * @param firstSystemWidth    Optional smaller width for system 0 (first-system indent)
- * @param measureSqueezable   Optional per-measure squeezable space in pixels (for acceptance range)
- * @returns                   Array of measure-number arrays, one per system
- */
-export function collectSystems(
-  measureWidths:      Map<number, number>,
-  headerWidth:        number,
-  usableWidth:        number,
-  firstSystemWidth?:  number,
-  measureSqueezable?: Map<number, number>,
-): number[][] {
-  const systems: number[][] = []
-  let currentSystem: number[] = []
-  let currentWidth = headerWidth
-  let currentSqueezable = 0   // total squeezable px in current system
-
-  const mNums = [...measureWidths.keys()].sort((a, b) => a - b)
-
-  for (const mNum of mNums) {
-    const mw          = measureWidths.get(mNum) ?? 0
-    const mSqueezable = measureSqueezable?.get(mNum) ?? 0
-    // First system uses firstSystemWidth (if provided); subsequent use usableWidth
-    const maxW = (systems.length === 0 && firstSystemWidth !== undefined)
-      ? firstSystemWidth
-      : usableWidth
-
-    if (currentSystem.length === 0) {
-      // First measure of system: always include
-      currentSystem.push(mNum)
-      currentWidth      += mw
-      currentSqueezable += mSqueezable
-    } else {
-      // C++: acceptanceRange computed including the candidate measure (tentative add)
-      const tentativeSqueezable = currentSqueezable + mSqueezable
-      const acceptanceRange     = SQUEEZABILITY * tentativeSqueezable
-
-      if (currentWidth + mw <= maxW + acceptanceRange) {
-        // Fits (possibly with squeeze): add to current system
-        currentSystem.push(mNum)
-        currentWidth      += mw
-        currentSqueezable += mSqueezable
-      } else {
-        // Doesn't fit even with squeeze: start new system
-        systems.push(currentSystem)
-        currentSystem     = [mNum]
-        currentWidth      = headerWidth + mw
-        currentSqueezable = mSqueezable
-      }
-    }
-  }
-
-  if (currentSystem.length > 0) {
-    systems.push(currentSystem)
-  }
-
-  return systems
-}
-
-/**
- * Compute total squeezable space for a set of segment widths.
- * C++: measure.cpp — squeezableSpace = minStretchedWidth - minHorizontalDist
- *
- * @param segmentWidths  Per-segment widths in pixels (from computeSegmentWidths)
- * @param sp             Spatium in pixels
- * @returns              Total squeezable pixels for this measure
- */
-export function computeMeasureSqueezable(segmentWidths: number[], sp: number): number {
-  const minHorizPx = MIN_HORIZ_DIST_SP * sp
-  return segmentWidths.reduce((sum, w) => sum + Math.max(0, w - minHorizPx), 0)
-}
+const MIN_HORIZ_DIST_SP = 1.68 // = 1.18sp (noteHeadWidth) + 0.5sp (minNoteDistance) — no spacing multiplier
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Incremental system collection (C++: layoutsystem.cpp:109-245)
+// System collection (incremental greedy algorithm)
+// C++: layoutsystem.cpp:109-245
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -291,15 +212,15 @@ export function collectSystemsIncremental(
     const curMinDur = measureMinDurs.get(mNum) ?? Infinity
     const curMaxDur = measureMaxDurs.get(mNum) ?? 0
 
-    // C++: layoutsystem.cpp:123-138 — track min/max changes
-    if (curMinDur < minTicks) {
+    // C++: layoutsystem.cpp:123-138 — track min/max changes (with epsilon for float equality)
+    if (curMinDur < minTicks - 1e-9) {
       prevMinTicks = minTicks
       minTicks = curMinDur
       minSysTicksChanged = true
     } else {
       minSysTicksChanged = false
     }
-    if (curMaxDur > maxTicks) {
+    if (curMaxDur > maxTicks + 1e-9) {
       prevMaxTicks = maxTicks
       maxTicks = curMaxDur
       maxSysTicksChanged = true
@@ -336,7 +257,13 @@ export function collectSystemsIncremental(
       )
       const acceptanceRange = SQUEEZABILITY * tentativeSqueezable
 
-      const doBreak = (curSysWidth + ww) > maxW + acceptanceRange
+      // G-029: epsilon tolerance for float accumulation (0.01px ~ 1/2500 of page width)
+      const doBreak = (curSysWidth + ww) > maxW + acceptanceRange + 0.01
+
+      // DEBUG: system breaking decisions
+      if ((globalThis as any).__DEBUG_SYSTEM_BREAK) {
+        console.log(`  m${mNum}: ww=${ww.toFixed(1)} curSys=${curSysWidth.toFixed(1)} total=${(curSysWidth+ww).toFixed(1)} maxW=${maxW.toFixed(1)} accept=${acceptanceRange.toFixed(1)} min=${minTicks} max=${maxTicks} break=${doBreak}`)
+      }
 
       if (doBreak) {
         // C++: layoutsystem.cpp:228-243 — restore min/max if last measure caused change

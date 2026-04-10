@@ -347,9 +347,9 @@ function renderNote(rn: RenderedNote, sp: number): string {
   else if (rn.noteheadType === 'half')   noteheadGlyph = LELAND_NOTEHEAD_HALF
   else                                   noteheadGlyph = LELAND_NOTEHEAD_BLACK
 
-  // x: notehead left edge — rn.x IS the left edge (chord.cpp: note->pos().x() = left edge)
-  // Bravura: stemDownNW.x=0 (left edge), stemUpSE.x=1.18sp (visual right edge)
-  const nhLeft = rn.x
+  // rn.x is now the CENTER of the notehead (0.65sp from left edge).
+  // For rendering, the notehead glyph starts at its left edge.
+  const nhLeft = rn.x - sp * 0.65  // center − half-width (0.65sp)
   parts.push(
     `<g class="notehead">` +
     `<text x="${n(nhLeft)}" y="${n(rn.y)}" font-family="${LELAND_FONT}" font-size="${n(fs)}" fill="${INK}">${noteheadGlyph}</text>` +

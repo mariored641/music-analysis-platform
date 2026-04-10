@@ -23,8 +23,11 @@ import { Sid } from '../../style/StyleDef'
  * C++: measure.cpp:4174 — static constexpr double spacingMultiplier = 1.2
  * Used as: minNoteSpace = noteHeadWidth + spacingMultiplier * minNoteDistance
  */
-/** Same constant as LayoutChords, re-declared here for self-documentation */
-const SPACING_MULTIPLIER = 1.2
+/**
+ * C++: measure.cpp:4175 — spacingMultiplier = Sid::measureSpacing = 1.5
+ * minNoteSpace = noteHeadWidth + measureSpacing * minNoteDistance
+ */
+const SPACING_MULTIPLIER = Sid.measureSpacing  // 1.5
 
 /**
  * Minimum note-to-note distance in staff-spaces.
@@ -123,6 +126,30 @@ export interface MeasureSegment {
   durationQb: number
   /** Whether any note at this beat has a visible accidental */
   hasAccidental?: boolean
+  /**
+   * Whether this segment contains only rests (no noteheads).
+   * C++: measure.cpp:4174 — for rests, noteHeadWidth = restGlyphWidth(type)
+   * which is smaller than noteheadBlack for short rests (eighth, 16th, etc.).
+   */
+  isRest?: boolean
+}
+
+/**
+ * Rest glyph width in sp for the Leland font, by duration type.
+ * C++: measure.cpp:4174 — uses symBbox(restGlyphId).width() for rests.
+ * Values from Leland SMuFL font bounding boxes.
+ *
+ * @param durationQb  Duration in quarter-beat units
+ */
+function restGlyphWidthSp(durationQb: number): number {
+  // Whole rest (≥ whole note): 1.17sp (restWhole hangs from staff line)
+  // Half rest (≥ half note): 1.17sp (similar to whole rest glyph)
+  // Quarter rest: 0.73sp (restQuarter glyph)
+  // Eighth and shorter: 0.62sp (restEighth, rest16th, rest32nd glyphs)
+  if (durationQb >= 4.0) return 1.17  // restWhole
+  if (durationQb >= 2.0) return 1.17  // restHalf
+  if (durationQb >= 1.0) return 0.73  // restQuarter
+  return 0.75                          // restEighth, rest16th, rest32nd, rest64th (Leland SMuFL)
 }
 
 /**
@@ -135,7 +162,8 @@ export interface MeasureSegment {
  * For MAP:
  *   - usrStretch = 1.0 (no user override)
  *   - stretchCoeff = 1.0 (handled by system justification)
- *   - noteHeadWidth ≈ 1.18sp (= 2 * NOTEHEAD_RX_SP)
+ *   - noteHeadWidth = 1.18sp (Leland noteheadBlack) for notes
+ *   - noteHeadWidth = restGlyphWidthSp(d) for rests (narrower for short durations)
  *
  * @param segments     List of segments in this measure
  * @param minSysDurQb  System-wide minimum duration (denominator for stretch)
@@ -149,22 +177,19 @@ export function computeSegmentWidths(
   sp: number,
   maxSysDurQb: number = minSysDurQb,
 ): number[] {
-  const noteHeadWidthSp = 1.18  // 2 * NOTEHEAD_RX_SP
-  // C++: measure.cpp:4175
-  const minNoteSpaceSp = noteHeadWidthSp + SPACING_MULTIPLIER * MIN_NOTE_DIST_SP
-
-  // C++: accidental adds to shape's left extent → increases minHorizontalDistance
-  // from previous segment. Approximate as additional padding.
-  // Leland accidental width ≈ 0.45sp, plus clearance ≈ 0.25sp → ~0.7sp total
-  const accidentalPaddingSp = 0.7
+  const noteHeadWidthSp = 1.18  // 2 * NOTEHEAD_RX_SP (Leland noteheadBlack)
 
   return segments.map(seg => {
+    // C++: measure.cpp:4174 — glyph width differs for rests vs notes
+    const glyphWidthSp = seg.isRest ? restGlyphWidthSp(seg.durationQb) : noteHeadWidthSp
+    // C++: measure.cpp:4175
+    const minNoteSpaceSp = glyphWidthSp + SPACING_MULTIPLIER * MIN_NOTE_DIST_SP
     const stretch = computeDurationStretch(seg.durationQb, minSysDurQb, maxSysDurQb)
     // C++: measure.cpp:4219 — minStretchedWidth = minNoteSpace * durStretch * usrStretch * stretchCoeff
-    let minWidthSp = minNoteSpaceSp * stretch
-    if (seg.hasAccidental) {
-      minWidthSp += accidentalPaddingSp
-    }
+    const minWidthSp = minNoteSpaceSp * stretch
+    // Note: accidentals extend the LEFT extent of a segment (into the space of the previous segment).
+    // In C++, minHorizontalDistance() on the previous segment accounts for this via shape overlap.
+    // We do NOT add padding here — it is handled via BAR_ACC_DIST_SP for the first note in a measure.
     return minWidthSp * sp
   })
 }
@@ -184,8 +209,14 @@ export function computeMeasureWidth(
   segmentWidths: number[],
   sp: number,
 ): number {
-  const totalNoteArea = segmentWidths.reduce((s, w) => s + w, 0)
-  // C++: trailing space = noteBarDistance (≈ 1.5sp)
-  const trailingSp = NOTE_BAR_DIST_SP * sp
-  return firstNotePadPx + totalNoteArea + trailingSp
+  // C++: measure.cpp:4165 — last segment width = max(minHorizontalDistance(barline), minStretchedWidth)
+  // minHorizontalDistance(barline) = noteHeadWidth + noteBarDistance = 1.18sp + 1.5sp = 2.68sp
+  // No separate trailing — barline distance is absorbed via the clamp on the last segment.
+  const minHorizDistBarlinePx = (1.18 + NOTE_BAR_DIST_SP) * sp  // 2.68sp
+  const clamped = [...segmentWidths]
+  if (clamped.length > 0) {
+    clamped[clamped.length - 1] = Math.max(clamped[clamped.length - 1], minHorizDistBarlinePx)
+  }
+  const totalNoteArea = clamped.reduce((s, w) => s + w, 0)
+  return firstNotePadPx + totalNoteArea
 }

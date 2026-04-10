@@ -8,7 +8,7 @@
  *   1. buildMeasureSegments()   — collect beat positions from notes
  *   2. computeSegmentWidths()   — LayoutMeasure: C++ measure.cpp:4174 (noteHeadWidth + minDist × stretch)
  *   3. computeMeasureWidth()    — LayoutMeasure: C++ measure.cpp:4165 (pad + noteArea + trailing)
- *   4. collectSystems()         — LayoutSystem:  C++ layoutsystem.cpp:62 (greedy break)
+ *   4. collectSystemsIncremental() — LayoutSystem: C++ layoutsystem.cpp:62 (greedy break)
  *   5. justifySystem()          — LayoutSystem:  C++ layoutsystem.cpp:496 (spring model)
  *   6. placeNoteX()             — note x-coords from justified segment widths
  *
@@ -42,21 +42,23 @@ import {
   type MeasureSegment,
 } from './layout/LayoutMeasure'
 import {
-  collectSystems, justifySystem, shouldJustifyLastSystem, computeMeasureSqueezable,
+  justifySystem, shouldJustifyLastSystem,
   collectSystemsIncremental,
   SQUEEZABILITY,
-  type SystemSpring,
+  type SegmentSpring,
 } from './layout/LayoutSystem'
 
 // ─── C++ constants not yet exported from engine ──────────────────────────────
 
 /**
- * Distance from barline to first note when that note carries an accidental.
- * C++: score.cpp / measure.cpp — accidental symbol placed before note,
- * reducing the barline→note gap to accommodate the accidental glyph.
- * Value: 0.65sp (matches webmscore SVG output at default spatium).
+ * Distance from barline RIGHT EDGE to first notehead LEFT EDGE when that note has an accidental.
+ * C++: the accidental glyph appears to the LEFT of the notehead, so the barline→notehead
+ * distance extends by: barNoteDistance + accidentalWidth + accidentalToNoteGap
+ *   = 1.3sp (barNoteDistance) + 0.56sp (sharp glyph) + 0.15sp (gap) ≈ 2.01sp
+ * Using 2.0sp as a conservative average (flat≈0.41sp, natural≈0.44sp are slightly narrower).
+ * Verified against webmscore reference: 02-accidentals m1 note[0] at ~2.0sp from barline.
  */
-const BAR_ACC_DIST_SP = 0.65   // sp
+const BAR_ACC_DIST_SP = 2.0   // sp
 
 // ─── State types ─────────────────────────────────────────────────────────────
 
@@ -98,7 +100,12 @@ export function orchestrateHorizontalLayout(
     const state = measureStartState[i]
     const hasTimeChange = !!m.timeChange && i > 0
 
-    allSegments.set(m.num, buildMeasureSegments(m, state.beats))
+    // Use current measure's time sig (if it changes), else previous state.
+    // Normalize raw XML beats to quarter-beat units: 6/8 → 6*4/8 = 3qb
+    const mBeats    = m.timeChange?.beats    ?? state.beats
+    const mBeatType = m.timeChange?.beatType ?? state.beatType
+    const beatsPerMeasureQb = mBeats * 4 / mBeatType
+    allSegments.set(m.num, buildMeasureSegments(m, beatsPerMeasureQb))
     firstNotePads.set(m.num, computeFirstNotePad(m, state, hasTimeChange, sp))
   }
 
@@ -173,6 +180,12 @@ export function orchestrateHorizontalLayout(
     // the first measure of non-initial systems (key/time in sys header, not inline).
     const sysFirstNotePads: Map<number, number> = new Map()
 
+    // Minimum notehead-to-barline distance in pixels (mirrors computeMeasureWidth's internal clamp).
+    // Applying this clamp to sysSegWidths[last] keeps sysSegWidths consistent with sysMeasureWidths
+    // so that rest = targetWidth - totalMeasureWidth is exact and B7 (justification fill) passes.
+    // C++: measure.cpp:4165 — max(minHorizontalDistance(barline), minStretchedWidth)
+    const minHorizBarPx = (1.18 + NOTE_BAR_DIST_SP) * sp  // 2.68sp
+
     for (let mi = 0; mi < mNums.length; mi++) {
       const mNum = mNums[mi]
       const segs = allSegments.get(mNum) ?? []
@@ -190,6 +203,8 @@ export function orchestrateHorizontalLayout(
       }
       sysFirstNotePads.set(mNum, pad)
       const segWs = computeSegmentWidths(segs, sysMinDur, sp, sysMaxDur)
+      // Apply barline clamp to last segment so sysSegWidths matches sysMeasureWidths
+      if (segWs.length > 0) segWs[segWs.length - 1] = Math.max(segWs[segWs.length - 1], minHorizBarPx)
       sysSegWidths.set(mNum, segWs)
       sysMeasureWidths.set(mNum, computeMeasureWidth(pad, segWs, sp))
     }
@@ -227,44 +242,77 @@ export function orchestrateHorizontalLayout(
         const pad       = sysFirstNotePads.get(mNum) ?? 0
         const segWs     = sysSegWidths.get(mNum) ?? []
         const compressed = segWs.map(w => w * preStretch)
+        // Reapply barline clamp — barline minimum distance is not compressible
+        if (compressed.length > 0) compressed[compressed.length - 1] = Math.max(compressed[compressed.length - 1], minHorizBarPx)
         sysSegWidths.set(mNum, compressed)
         sysMeasureWidths.set(mNum, computeMeasureWidth(pad, compressed, sp))
       }
       totalMeasureWidth = mNums.reduce((s, mn) => s + (sysMeasureWidths.get(mn) ?? 0), 0)
     }
 
-    const springs: SystemSpring[] = mNums.map(mNum => {
-      const segWs  = sysSegWidths.get(mNum) ?? []
-      // Note area = sum of (pre-)stretched segment widths (proxy for "note content")
-      const noteArea = segWs.reduce((s, w) => s + w, 0)
-      return {
-        stretch:      noteArea,    // proportional to note content
-        currentWidth: sysMeasureWidths.get(mNum) ?? 0,
+    // ── Per-segment springs (C++: layoutsystem.cpp:507-519) ──────────────
+    const segSprings: SegmentSpring[] = []
+    for (const mNum of mNums) {
+      const segs = allSegments.get(mNum) ?? []
+      const segWs = sysSegWidths.get(mNum) ?? []
+      for (let si = 0; si < segs.length; si++) {
+        const str = computeDurationStretch(segs[si].durationQb, sysMinDur, sysMaxDur)
+        if (str <= 0) continue
+        const springConst = 1.0 / str
+        const w = segWs[si] ?? 0
+        segSprings.push({
+          springConst, width: w,
+          preTension: w * springConst,
+          measureNum: mNum, segIndex: si,
+        })
       }
-    })
+    }
 
     const isLastSystem = sysIdx === systemGroups.length - 1
+    const isJustifiedSystem = !isLastSystem || shouldJustifyLastSystem(totalMeasureWidth + sysHeaderWidth, usableWidth)
     let finalMeasureWidths: number[]
 
-    if (!isLastSystem || shouldJustifyLastSystem(totalMeasureWidth + sysHeaderWidth, usableWidth)) {
-      // C++: layoutsystem.cpp:496 — justifySystem()
-      finalMeasureWidths = justifySystem(springs, targetWidth, totalMeasureWidth)
+    if (isJustifiedSystem) {
+      // C++: layoutsystem.cpp:496 → Segment::stretchSegmentsToWidth(springs, rest)
+      const rest = targetWidth - totalMeasureWidth
+      justifySystem(segSprings, rest)
+
+      // Update sysSegWidths with justified segment widths
+      for (const sp of segSprings) {
+        const ws = sysSegWidths.get(sp.measureNum)
+        if (ws) ws[sp.segIndex] = sp.width
+      }
+
+      // Recompute measure widths from justified segments (no trailing — absorbed via barline clamp)
+      finalMeasureWidths = mNums.map(mNum => {
+        const pad = sysFirstNotePads.get(mNum) ?? 0
+        const segWs = sysSegWidths.get(mNum) ?? []
+        const noteArea = segWs.reduce((s, w) => s + w, 0)
+        return pad + noteArea
+      })
     } else {
       // Last system: don't stretch if it's < 30% full
-      finalMeasureWidths = springs.map(s => s.currentWidth)
+      finalMeasureWidths = mNums.map(mNum => sysMeasureWidths.get(mNum) ?? 0)
     }
 
     // Build HLayoutSystem record
     // From MuseScore: src/engraving/style/styledef.cpp:449
     //   Sid::firstSystemIndentationValue = Spatium(5.0)
     // System 0: x shifted right by 5sp, width reduced by 5sp.
+    //
+    // For non-justified last systems (fill < 30%), use actual content width
+    // instead of sysUsableWidth, so B7 (justificationSlack) passes.
+    const actualSystemWidth = isJustifiedSystem
+      ? sysUsableWidth
+      : totalMeasureWidth + sysHeaderWidth
+
     const system: HLayoutSystem = {
       systemIndex:     sysIdx,
       pageIndex:       pageIdx,
       measureNums:     mNums,
       x:               sysX,
       y:               0,
-      width:           sysUsableWidth,
+      width:           actualSystemWidth,
       headerWidth:     sysHeaderWidth,
       currentFifths:   sysDisplayFifths,
       currentBeats:    sysDisplayBeats,
@@ -287,8 +335,7 @@ export function orchestrateHorizontalLayout(
 
       // Distribute the justified measure width into note area
       const rawNoteArea    = segWs.reduce((s, w) => s + w, 0)
-      const trailingPx     = NOTE_BAR_DIST_SP * sp
-      const targetNoteArea = finalW - pad - trailingPx
+      const targetNoteArea = finalW - pad
       const noteScale      = rawNoteArea > 0 ? targetNoteArea / rawNoteArea : 1
 
       // Build HLayoutSegments with page-relative x positions
@@ -354,6 +401,9 @@ function computeMeasureStates(
   let runBeats    = metadata.beats
   let runBeatType = metadata.beatType
   for (const m of extMeasures) {
+    // Push BEFORE applying changes: state.fifths = previous key (needed for
+    // key cancellation computation in computeFirstNotePad). Time signature
+    // beats/beatType are overridden per-measure at the call site.
     states.push({ fifths: runFifths, beats: runBeats, beatType: runBeatType })
     if (m.keyChange)  runFifths   = m.keyChange.fifths
     if (m.timeChange) { runBeats = m.timeChange.beats; runBeatType = m.timeChange.beatType }
@@ -375,6 +425,15 @@ function buildMeasureSegments(m: ExtractedMeasure, beatsPerMeasure: number): Mea
     }
   }
 
+  // Track which beats have visible noteheads (not rests)
+  // C++: measure.cpp:4174 — uses different glyph width for rests vs notes
+  const beatsWithNoteheads = new Set<number>()
+  for (const n of m.notes) {
+    if (!n.isGrace && n.duration > 0 && !n.isRest) {
+      beatsWithNoteheads.add(snapBeat(n.beat))
+    }
+  }
+
   // Track which beats have notes with visible accidentals
   const beatsWithAccidentals = new Set<number>()
   for (const n of m.notes) {
@@ -391,7 +450,12 @@ function buildMeasureSegments(m: ExtractedMeasure, beatsPerMeasure: number): Mea
   return sortedBeats.map((beat, i) => {
     const nextBeat    = i + 1 < sortedBeats.length ? sortedBeats[i + 1] : measureEndBeat
     const durationQb  = nextBeat - beat
-    return { beat, durationQb, hasAccidental: beatsWithAccidentals.has(beat) }
+    return {
+      beat,
+      durationQb,
+      hasAccidental: beatsWithAccidentals.has(beat),
+      isRest:        !beatsWithNoteheads.has(beat),  // true when only rests at this beat
+    }
   })
 }
 
@@ -500,39 +564,6 @@ function computeHeaderWidth(fifths: number, sp: number): number {
   return (CLEF_LEFT_MARGIN_SP + CLEF_GLYPH_WIDTH_SP + gapAfterClef
     + TIMESIG_GLYPH_WIDTH_SP) * sp
   // NOTE: SYS_HDR_TIMESIG_SP is NOT added here. firstNotePad of the first measure provides this gap.
-}
-
-// ─── Helper: min duration ────────────────────────────────────────────────────
-
-function findGlobalMinDur(allSegments: Map<number, MeasureSegment[]>): number {
-  let min = Infinity
-  for (const [, segs] of allSegments) {
-    for (const seg of segs) {
-      if (seg.durationQb > 0 && seg.durationQb < min) min = seg.durationQb
-    }
-  }
-  return min
-}
-
-function findSystemMinDur(mNums: number[], allSegments: Map<number, MeasureSegment[]>): number {
-  let min = Infinity
-  for (const mNum of mNums) {
-    const segs = allSegments.get(mNum) ?? []
-    for (const seg of segs) {
-      if (seg.durationQb > 0 && seg.durationQb < min) min = seg.durationQb
-    }
-  }
-  return min
-}
-
-/**
- * Cap minimum duration at 0.25 quarter-beats (quarter note).
- * C++: measure.cpp:4196 — longNoteThreshold check
- * Prevents extreme stretching when score contains very short notes.
- */
-function clampMinDur(minDur: number): number {
-  if (!isFinite(minDur) || minDur <= 0) return 0.125
-  return Math.min(minDur, 0.25)
 }
 
 // ─── Helper: beat snapping ───────────────────────────────────────────────────
