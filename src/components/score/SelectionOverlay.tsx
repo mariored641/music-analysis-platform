@@ -52,8 +52,8 @@ export function SelectionOverlay({ selection, elementMap, containerRef, scrollRe
         const noteBbox = noteEl.getBoundingClientRect()
         if (noteBbox.width === 0) continue
 
-        // Try g.staff (Verovio), fall back to g.measure (native renderer)
-        const staffEl = noteEl.closest('g.staff') ?? noteEl.closest('g.measure')
+        // Try g.staff (Verovio), fall back to .staffline (OSMD), then g.measure/g.vf-measure
+        const staffEl = noteEl.closest('g.staff') ?? noteEl.closest('.staffline') ?? noteEl.closest('g.vf-measure') ?? noteEl.closest('g.measure')
         if (!staffEl) {
           // Harmony/chord symbol — use tspan bounds for tight rect
           const tspans = Array.from(noteEl.querySelectorAll('tspan')).filter(t => t.textContent?.trim())

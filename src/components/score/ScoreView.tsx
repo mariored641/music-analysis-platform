@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { parseMusicXml, parseHarmonies, type HarmonyItem } from '../../services/xmlParser'
 import { saveFile, loadFile } from '../../services/storageService'
 import { renderScore } from '../../renderer/index'
+import { renderWithOSMD, buildOSMDElementMap } from '../../renderer/osmdAdapter'
 import { AnnotationOverlay } from './AnnotationOverlay'
 import { HarmonyOverlay } from './HarmonyOverlay'
 import { FormalStrip } from './FormalStrip'
@@ -17,6 +18,27 @@ import { FreehandCanvas } from './FreehandCanvas'
 import { SelectionOverlay } from './SelectionOverlay'
 import { ContextMenu } from '../menus/ContextMenu'
 import './ScoreView.css'
+
+// Check URL param for renderer switching: ?renderer=osmd
+const useOSMDRenderer = new URLSearchParams(window.location.search).get('renderer') === 'osmd'
+
+// Renderer-agnostic CSS selectors — OSMD uses vf-* prefixed VexFlow classes
+const SEL_MEASURE = useOSMDRenderer ? 'g.vf-measure' : 'g.measure'
+const SEL_NOTE = useOSMDRenderer ? '.note' : 'g.note'
+
+// Decompress MXL (zipped MusicXML) to XML string
+async function extractXmlFromFile(file: File): Promise<string> {
+  const JSZip = (await import('jszip')).default
+  const zip = await JSZip.loadAsync(await file.arrayBuffer())
+  const containerFile = zip.file('META-INF/container.xml')
+  if (!containerFile) throw new Error('Invalid MXL: missing META-INF/container.xml')
+  const containerXml = await containerFile.async('string')
+  const match = containerXml.match(/full-path="([^"]+\.xml)"/i)
+  if (!match) throw new Error('Invalid MXL: cannot find rootfile')
+  const rootFile = zip.file(match[1])
+  if (!rootFile) throw new Error(`Invalid MXL: rootfile "${match[1]}" not found`)
+  return rootFile.async('string')
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -33,7 +55,7 @@ export interface NoteElement {
 function buildElementMap(container: Element): Map<string, NoteElement> {
   const elementMap = new Map<string, NoteElement>()
   const containerRect = container.getBoundingClientRect()
-  const measureEls = Array.from(container.querySelectorAll('g.measure'))
+  const measureEls = Array.from(container.querySelectorAll(SEL_MEASURE))
 
   measureEls.forEach((el, index) => {
     const measureNum = index + 1
@@ -157,7 +179,7 @@ function applySvgColors(container: Element, annotations: Record<string, any>, vi
   Object.values(annotations)
     .filter(a => a.layer === 'svgColor')
     .forEach(ann => {
-      const allMeasures = Array.from(container.querySelectorAll('g.measure'))
+      const allMeasures = Array.from(container.querySelectorAll(SEL_MEASURE))
       const measureEl = allMeasures[ann.measureStart - 1]
       if (!measureEl) return
       const siblings = Array.from(measureEl.querySelectorAll(`g.${ann.svgClass}`))
@@ -194,7 +216,8 @@ function applyNoteColors(
       const vrvId = toVrv.get(id) ?? id
       const el = container.querySelector(`#${CSS.escape(vrvId)}`)
       if (!el) { missed++; return }
-      const notehead = el.querySelector('.notehead') ?? el.querySelector('use')
+      // Native renderer: .notehead > use; OSMD: element itself IS the notehead
+      const notehead = el.querySelector('.notehead') ?? el.querySelector('use') ?? el
       if (!notehead) return
       ;(notehead as SVGElement).style.fill = color
       ;(notehead as SVGElement).style.stroke = color
@@ -208,7 +231,8 @@ function applyNoteColors(
 }
 
 function clearNoteColors(container: Element) {
-  container.querySelectorAll('.notehead, .notehead *').forEach(el => {
+  // Native renderer: .notehead and children; OSMD: g.vf-notehead and its path children
+  container.querySelectorAll('.notehead, .notehead *, g.vf-notehead, g.vf-notehead *').forEach(el => {
     (el as SVGElement).style.fill = ''
     ;(el as SVGElement).style.stroke = ''
   })
@@ -259,11 +283,17 @@ export function ScoreView() {
   // Manually update vrv-svg innerHTML only when svgContent changes.
   // This prevents React re-renders from wiping inline styles (note colors).
   // After injecting, wait for fonts to load and set data-ready for Playwright (Layer 2 tests).
+  // When OSMD is active, it renders directly into the div — skip innerHTML injection.
   useEffect(() => {
     if (!vrvDivRef.current) return
     if (svgContent === prevSvgRef.current) return
     prevSvgRef.current = svgContent
     const div = vrvDivRef.current
+    if (useOSMDRenderer) {
+      // OSMD already rendered into div — just set data-ready
+      div.setAttribute('data-ready', 'true')
+      return
+    }
     div.removeAttribute('data-ready')
     div.innerHTML = svgContent
     // Fonts are declared in App.css with font-display:block — document.fonts.ready
@@ -273,22 +303,43 @@ export function ScoreView() {
     })
   }, [svgContent])
 
-  // Core render function — synchronous native renderer
+  // Core render function — supports native (sync) and OSMD (async) renderers
   const doRender = useCallback((xml: string) => {
     const key = ++renderKeyRef.current
     setRendering(true)
     setScoreError(null)
 
-    try {
-      const result = renderScore(xml)
-      if (key !== renderKeyRef.current) return
-      setSvgContent(result.svg)
-      setRendering(false)
-    } catch (e: any) {
-      if (key !== renderKeyRef.current) return
-      console.error('native render error:', e)
-      setScoreError(`Render error: ${e?.message ?? e}`)
-      setRendering(false)
+    if (useOSMDRenderer) {
+      // OSMD path — async, renders directly into DOM
+      const container = vrvDivRef.current
+      if (!container) { setRendering(false); return }
+      renderWithOSMD(xml, container)
+        .then(() => {
+          if (key !== renderKeyRef.current) return
+          // OSMD rendered into container directly — no svgContent needed
+          // Set a sentinel value so the elementMap effect fires
+          setSvgContent('__osmd__')
+          setRendering(false)
+        })
+        .catch((e: any) => {
+          if (key !== renderKeyRef.current) return
+          console.error('OSMD render error:', e)
+          setScoreError(`OSMD render error: ${e?.message ?? e}`)
+          setRendering(false)
+        })
+    } else {
+      // Native renderer — synchronous
+      try {
+        const result = renderScore(xml)
+        if (key !== renderKeyRef.current) return
+        setSvgContent(result.svg)
+        setRendering(false)
+      } catch (e: any) {
+        if (key !== renderKeyRef.current) return
+        console.error('native render error:', e)
+        setScoreError(`Render error: ${e?.message ?? e}`)
+        setRendering(false)
+      }
     }
 
     return () => { renderKeyRef.current++ }
@@ -310,20 +361,30 @@ export function ScoreView() {
     if (!container) return
 
     requestAnimationFrame(() => {
-      const eMap = buildElementMap(container)
-      setElementMap(eMap)
+      let toVrvMap: Map<string, string>
+      let fromVrvMap: Map<string, string>
 
-      // Identity maps: noteMapId IS the SVG element id in native renderer
-      const toVrvMap = new Map<string, string>()
-      const fromVrvMap = new Map<string, string>()
-      container.querySelectorAll('g.note[id]').forEach(el => {
-        const id = el.id
-        if (!id) return
-        toVrvMap.set(id, id)
-        fromVrvMap.set(id, id)
-        // Stamp data-notemap-id for keyboard navigation (useKeyboard.ts)
-        ;(el as SVGGElement).dataset.notemapId = id
-      })
+      if (useOSMDRenderer && noteMap) {
+        // OSMD path — walk GraphicSheet for note coordinates
+        const result = buildOSMDElementMap(container, noteMap)
+        setElementMap(result.elementMap)
+        toVrvMap = result.toVrv
+        fromVrvMap = result.fromVrv
+      } else {
+        // Native renderer path — g.note id IS the noteMapId
+        const eMap = buildElementMap(container)
+        setElementMap(eMap)
+        toVrvMap = new Map<string, string>()
+        fromVrvMap = new Map<string, string>()
+        container.querySelectorAll('g.note[id]').forEach(el => {
+          const id = el.id
+          if (!id) return
+          toVrvMap.set(id, id)
+          fromVrvMap.set(id, id)
+          ;(el as SVGGElement).dataset.notemapId = id
+        })
+      }
+
       setToVrv(toVrvMap)
       fromVrvRef.current = fromVrvMap
 
@@ -454,16 +515,16 @@ export function ScoreView() {
     const container = scoreRef.current?.querySelector('.vrv-svg')
     if (!container) return
 
-    const allMeasures = Array.from(container.querySelectorAll('g.measure'))
+    const allMeasures = Array.from(container.querySelectorAll(SEL_MEASURE))
     const hitNoteIds: string[] = []
     const hitMeasureNums: number[] = []
 
-    container.querySelectorAll('g.note').forEach(noteEl => {
+    container.querySelectorAll(SEL_NOTE).forEach(noteEl => {
       const bbox = noteEl.getBoundingClientRect()
       if (lassoIntersects(bbox, lassoRect) && noteEl.id) {
         // Translate Verovio ID → noteMap ID (stable, renderer-agnostic)
         hitNoteIds.push(fromVrvRef.current.get(noteEl.id) ?? noteEl.id)
-        const measureEl = noteEl.closest('g.measure')
+        const measureEl = noteEl.closest(SEL_MEASURE)
         const idx = measureEl ? allMeasures.indexOf(measureEl) : -1
         if (idx >= 0) hitMeasureNums.push(idx + 1)
       }
@@ -496,8 +557,8 @@ export function ScoreView() {
     // Harmony/chord symbol click (native renderer: <text class="harmony">)
     const harmEl = (e.target as Element).closest?.('text.harmony') as SVGTextElement | null
     if (harmEl && !e.shiftKey) {
-      const allMeasures = Array.from(document.querySelectorAll('g.measure'))
-      const measureEl = harmEl.closest('g.measure') as Element | null
+      const allMeasures = Array.from(document.querySelectorAll(SEL_MEASURE))
+      const measureEl = harmEl.closest(SEL_MEASURE) as Element | null
       const measureIndex = measureEl ? allMeasures.indexOf(measureEl) : -1
       const measureNum = measureIndex >= 0 ? measureIndex + 1 : 1
       setSelection({ type: 'note', measureStart: measureNum, measureEnd: measureNum, noteIds: [harmEl.id], anchorMeasure: measureNum })
@@ -506,10 +567,10 @@ export function ScoreView() {
     }
 
     // Note click
-    const noteEl = (e.target as Element).closest?.('g.note') as SVGGElement | null
+    const noteEl = (e.target as Element).closest?.(SEL_NOTE) as SVGGElement | null
     if (noteEl && !e.shiftKey) {
-      const allMeasures = Array.from(document.querySelectorAll('g.measure'))
-      const measureEl = noteEl.closest('g.measure') as Element | null
+      const allMeasures = Array.from(document.querySelectorAll(SEL_MEASURE))
+      const measureEl = noteEl.closest(SEL_MEASURE) as Element | null
       const measureIndex = measureEl ? allMeasures.indexOf(measureEl) : -1
       const measureNum = measureIndex >= 0 ? measureIndex + 1 : 1
       // Translate Verovio ID → noteMap ID
@@ -528,8 +589,8 @@ export function ScoreView() {
         const svgColorEl = findNearbyColorableElement(e.clientX, e.clientY, vrvContainer)
         if (svgColorEl) {
           const svgClass = SVG_COLORABLE.find(c => svgColorEl.classList.contains(c)) ?? ''
-          const allMeasures = Array.from(document.querySelectorAll('g.measure'))
-          const measureEl = svgColorEl.closest('g.measure')
+          const allMeasures = Array.from(document.querySelectorAll(SEL_MEASURE))
+          const measureEl = svgColorEl.closest(SEL_MEASURE)
           const measureNum = measureEl ? allMeasures.indexOf(measureEl) + 1 : 1
           const siblings = measureEl ? Array.from(measureEl.querySelectorAll(`g.${svgClass}`)) : []
           const positionIndex = siblings.indexOf(svgColorEl)
@@ -718,11 +779,13 @@ function OpenFileButton() {
   const handleClick = async () => {
     const input = document.createElement('input')
     input.type = 'file'
-    input.accept = '.xml,.musicxml,.XML'
+    input.accept = '.xml,.musicxml,.mxl,.XML'
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0]
       if (!file) return
-      const text = await file.text()
+      const text = file.name.toLowerCase().endsWith('.mxl')
+        ? await extractXmlFromFile(file)
+        : await file.text()
       const noteMap = parseMusicXml(text)
       const existing = await loadFile(file.name)
       if (existing) {

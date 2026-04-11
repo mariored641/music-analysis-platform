@@ -5,27 +5,32 @@ import { usePlaybackStore } from '../store/playbackStore'
 import { useScoreStore } from '../store/scoreStore'
 import type { Selection } from '../store/selectionStore'
 
-// Get noteMap IDs in DOM score order (reads data-notemap-id stamped by buildVrvNoteIdMap)
+// Renderer-agnostic selectors — OSMD uses .note (stamped), native uses g.note
+// Combined selectors match whichever renderer is active
+const SEL_NOTE_WITH_ID = '[data-notemap-id]'
+const SEL_MEASURE_ANY = 'g.measure, g.vf-measure'
+
+// Get noteMap IDs in DOM score order (reads data-notemap-id stamped by buildVrvNoteIdMap / buildOSMDElementMap)
 function getDomOrderedNoteIds(): string[] {
-  return Array.from(document.querySelectorAll('g.note[data-notemap-id]'))
+  return Array.from(document.querySelectorAll(SEL_NOTE_WITH_ID))
     .map(el => (el as HTMLElement).dataset.notemapId!)
     .filter(Boolean)
 }
 
 // Get measure number (1-based) for a noteMap ID via data attribute
 function getMeasureNumForNote(noteMapId: string): number {
-  const noteEl = document.querySelector(`g.note[data-notemap-id="${CSS.escape(noteMapId)}"]`)
+  const noteEl = document.querySelector(`[data-notemap-id="${CSS.escape(noteMapId)}"]`)
   if (!noteEl) return 1
-  const measureEl = noteEl.closest('g.measure')
+  const measureEl = noteEl.closest(SEL_MEASURE_ANY)
   if (!measureEl) return 1
-  const allMeasures = Array.from(document.querySelectorAll('g.measure'))
+  const allMeasures = Array.from(document.querySelectorAll(SEL_MEASURE_ANY))
   const idx = allMeasures.indexOf(measureEl)
   return idx >= 0 ? idx + 1 : 1
 }
 
 // Find the g.system element that contains a given measure number (1-based)
 function getSystemForMeasure(measureNum: number): Element | null {
-  const allMeasures = Array.from(document.querySelectorAll('g.measure'))
+  const allMeasures = Array.from(document.querySelectorAll(SEL_MEASURE_ANY))
   const measureEl = allMeasures[measureNum - 1]
   if (!measureEl) return null
   return measureEl.closest('g.system')
@@ -33,8 +38,8 @@ function getSystemForMeasure(measureNum: number): Element | null {
 
 // Get the first and last measure numbers (1-based) within a g.system element
 function getSystemMeasureRange(systemEl: Element): { first: number; last: number } {
-  const allMeasures = Array.from(document.querySelectorAll('g.measure'))
-  const sysMeasures = Array.from(systemEl.querySelectorAll('g.measure'))
+  const allMeasures = Array.from(document.querySelectorAll(SEL_MEASURE_ANY))
+  const sysMeasures = Array.from(systemEl.querySelectorAll(SEL_MEASURE_ANY))
   const indices = sysMeasures.map(m => allMeasures.indexOf(m)).filter(i => i >= 0)
   if (indices.length === 0) return { first: 1, last: 1 }
   return { first: Math.min(...indices) + 1, last: Math.max(...indices) + 1 }
