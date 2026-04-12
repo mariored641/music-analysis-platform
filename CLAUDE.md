@@ -41,62 +41,50 @@ Three-panel fixed layout:
 
 ---
 
-## Renderer: Verovio (current, working)
+## Renderer: OSMD (current, default)
 
-**Renderer history (do not re-litigate):**
+**Renderer history:**
 1. webmscore — chord symbol root letters missing (Edwin font absent from WASM). Replaced.
-2. OSMD — wrong chord positions for some measures. Replaced.
-3. **Verovio** ← current. npm ESM + WASM. Chord symbols render natively. Fully working.
+2. Verovio — worked well but replaced by OSMD for better chord positioning and VexFlow integration.
+3. **OSMD** ← current default. `?renderer=native` switches to the native renderer (in development).
 
-**How it loads:** npm package, imported in `ScoreView.tsx`:
+**How it loads:** `renderWithOSMD()` in `src/renderer/osmdAdapter.ts`, called from `ScoreView.tsx`:
 ```typescript
-import createVerovioModule from 'verovio/wasm'
-import { VerovioToolkit } from 'verovio/esm'
+import { renderWithOSMD, buildOSMDElementMap, locateNoteheadInOSMD, buildNoteMapIdFromOSMD } from '../../renderer/osmdAdapter'
 ```
 
-**API (confirmed working):**
-```typescript
-const mod = await createVerovioModule()
-const tk = new VerovioToolkit(mod)
-tk.setOptions({ pageWidth: 2100, scale: 40, adjustPageHeight: true, breaks: 'auto', ... })
-tk.loadData(preparedXml)           // preprocessed MusicXML
-const pageCount = tk.getPageCount()
-const svg = tk.renderToSVG(i, false)  // 1-based page index
-```
+**OSMD element mapping:** `buildOSMDElementMap(container, noteMap)` — positional matching (sort noteMap IDs by measure+beat, traverse GraphicSheet, zip 1:1). Stamps `id=osmd-N`, `data-notemap-id`, `.note` class on each notehead SVG.
 
-**Multi-staff fix:** `prepareMusicXML()` in `src/services/xmlSanitizer.ts`
-- Rebuilds each measure: preamble (harmony/attrs) → staff-1 notes → one backup → staff-2 notes
-- Injects `<voice>1</voice>` into all notes
-- Fixes DONNALEE.XML where staff-2 notes appear before any `<backup>` (Verovio rule: staff tag only honored after backup)
+**CSS selectors (OSMD):** `g.vf-measure` (measures), `g.vf-notehead` (note heads) — VexFlow-prefixed classes.
 
-**Verovio reference book:** `docs/verovio-reference-book.md` (1611 lines, 11 chapters)
+**Multi-staff fix:** `prepareMusicXML()` in `src/services/xmlSanitizer.ts` — still used to reorder notes for clean rendering.
 
 ---
 
 ## ScoreView rendering flow
 
 ```
-xmlString → prepareMusicXML() → renderWithVerovio() → svgs[]
-         → dangerouslySetInnerHTML (.vrv-svg div)
-         → requestAnimationFrame → buildElementMap() + buildVrvNoteIdMap()
-         → setElementMap(Map<"measure-N", NoteElement>)
-         → setToVrv(Map<noteMapId, verovioSvgId>)
+xmlString → prepareMusicXML() → renderWithOSMD(xml, container)
+         → buildOSMDElementMap(container, noteMap) → stamps data-notemap-id on noteheads
+         → buildElementMap(container) → setElementMap(Map<"measure-N", NoteElement>)
+         → setToVrv(Map<noteMapId, svgId>)
 ```
 
 **`buildElementMap(container)`**
-- Queries `container.querySelectorAll('g.measure')` — Verovio class for measure groups
+- Queries `container.querySelectorAll('g.vf-measure')` — OSMD/VexFlow class for measure groups
 - `elementMap` key: `"measure-N"` where N = index (0-based)
 - `NoteElement.measureNum` = index + 1 (1-based)
-- DONNALEE.XML: 100 measures, 643 notes, each `g.note` has a unique Verovio ID
+- DONNALEE.XML: 100 measures, 643 notes
 
-**`buildVrvNoteIdMap(container, noteMap)`**
-- Positional matching: sorts Verovio `g.note` elements by x-position within each measure's first `g.staff`, sorts noteMap notes by beat — zips them 1:1
-- Returns `{ toVrv: Map<noteMapId, vrvId>, fromVrv: Map<vrvId, noteMapId> }`
+**`buildOSMDElementMap(container, noteMap)`**
+- Positional matching: sorts noteMap IDs by measure+beat, traverses OSMD GraphicSheet, zips 1:1
+- Stamps `id=osmd-N`, `data-notemap-id`, `.note` class on each notehead SVG element
+- Returns `{ toVrv: Map<noteMapId, svgId>, fromVrv: Map<svgId, noteMapId> }`
 - `toVrv` stored in scoreStore (for overlays + scripts). `fromVrv` kept in `fromVrvRef` in ScoreView only (for click handlers)
 - DONNALEE.XML: builds 643 entries after clean page load
 
 **Click detection:**
-- Note click: `e.target.closest('g.note')` → translate via `fromVrvRef` → noteMap ID stored in `selection.noteIds`
+- Note click: `e.target.closest('g.vf-notehead')` → translate via `fromVrvRef` → noteMap ID stored in `selection.noteIds`
 - Measure click: `findMeasureAtPoint(clientX, clientY, elementMap)` — bbox hit test
 
 ---
@@ -104,7 +92,7 @@ xmlString → prepareMusicXML() → renderWithVerovio() → svgs[]
 ## ID architecture — CRITICAL
 
 **Two separate ID spaces:**
-- **Verovio SVG IDs** — random strings like `f1gw3d3i`, assigned at render time, ephemeral
+- **SVG IDs** — ephemeral IDs assigned at render time (OSMD: `osmd-N` format)
 - **noteMap IDs** — stable format `note-m{measureNum}b{Math.round(beat*100)}-{step}{octave}`, e.g. `note-m4b300-E5`
 
 **Rule:** `annotation.noteIds` and `selection.noteIds` always store **noteMap IDs**.
@@ -114,15 +102,10 @@ xmlString → prepareMusicXML() → renderWithVerovio() → svgs[]
 - Click → `fromVrvRef.current.get(vrvId)` → noteMap ID → stored in selection/annotation
 - Overlay/color → `toVrv.get(noteMapId)` → vrvId → `document.getElementById(vrvId)`
 
-**Verovio `g.note` SVG structure:**
-```
-g.note
-  g.stem > rect
-  g.notehead > use   ← color only this for note head coloring
-  g.accid (optional)
-  g.dots (optional)
-```
-Note: Verovio `g.note` elements have NO `pname`/`oct` attributes — positional matching is the only way.
+**OSMD notehead SVG structure:**
+- OSMD stamps `data-notemap-id` on each notehead element
+- Note coloring targets `g.vf-notehead` and its path children
+- Positional matching is used to link noteMap IDs to SVG elements
 
 ---
 
@@ -142,7 +125,7 @@ Note: Verovio `g.note` elements have NO `pname`/`oct` attributes — positional 
 
 **Tag button tooltips:** `title` attribute on tag chips shows `עברית / English` on hover.
 
-**SelectionOverlay.tsx** — translates noteMap IDs → Verovio IDs via `toVrv` prop for DOM lookup.
+**SelectionOverlay.tsx** — translates noteMap IDs → SVG IDs via `toVrv` prop for DOM lookup.
 
 ---
 
@@ -151,11 +134,11 @@ Note: Verovio `g.note` elements have NO `pname`/`oct` attributes — positional 
 ### `src/components/score/`
 | File | Purpose |
 |------|---------|
-| `ScoreView.tsx` | Main renderer — Verovio, elementMap, buildVrvNoteIdMap, click/drag handling, applyNoteColors |
+| `ScoreView.tsx` | Main renderer — OSMD, elementMap, buildOSMDElementMap, click/drag handling, applyNoteColors |
 | `ScoreView.css` | Score layout styles |
 | `SelectionOverlay.tsx` | SVG overlay — note + measure highlight, lasso rect. Accepts `toVrv` prop |
 | `AnnotationOverlay.tsx` | SVG overlay for annotations (colored rects + labels). Accepts `toVrv` prop |
-| `HarmonyOverlay.tsx` | Legacy file — imported but not rendered (Verovio renders chord symbols natively) |
+| `HarmonyOverlay.tsx` | Legacy file — imported but not rendered (OSMD renders chord symbols natively) |
 | `FormalStrip.tsx` | Horizontal strip above score for form annotations |
 | `FreehandCanvas.tsx` | Canvas layer for freehand drawing |
 
@@ -203,7 +186,7 @@ Note: Verovio `g.note` elements have NO `pname`/`oct` attributes — positional 
 | File | Purpose |
 |------|---------|
 | `xmlParser.ts` | `parseMusicXml()` → NoteMap. `parseHarmonies()` → HarmonyItem[]. Handles `<backup>/<forward>`, staff filtering |
-| `xmlSanitizer.ts` | `prepareMusicXML()` — fixes multi-staff ordering for Verovio |
+| `xmlSanitizer.ts` | `prepareMusicXML()` — fixes multi-staff ordering for rendering |
 | `storageService.ts` | IndexedDB — `saveFile()`, `loadFile()` |
 | `jsonExporter.ts` | Exports `.analysis.json` |
 | `melodyColorScript.ts` | Script 1 — colors notes by melodic role. Uses XML harmonies + user harmony annotations. 3-pass: chord tone → passing (run-based, monotone+stepwise) → neighbor (same MIDI prev/next). Returns `{ annotations, count }`. |
@@ -243,7 +226,7 @@ interface Annotation {
   layer: string        // 'harmony' | 'melody' | 'form' | 'motif' | 'label' | 'noteColor' | 'svgColor' | ...
   measureStart: number
   measureEnd?: number
-  noteIds?: string[]   // ALWAYS noteMap IDs — never Verovio IDs
+  noteIds?: string[]   // ALWAYS noteMap IDs — never SVG IDs
   scriptId?: string    // set when created by a script (e.g. 'melodyColor', 'motifFinder')
   visualOffset?: { x: number; y: number }  // drag-to-reposition offset in SVG pixels
   // layer-specific fields: chordFunction, cadenceType, colorType, formLabel, label, variantType, ...
@@ -254,7 +237,7 @@ interface Annotation {
 ```typescript
 { layer: 'svgColor', color: string, svgClass: string, positionIndex: number, measureStart: number }
 ```
-- `svgClass`: Verovio element class (`dynam` | `artic` | `hairpin` | `tempo` | `fermata` | `trill` | `turn` | `mordent` | `ornament` | `dir`)
+- `svgClass`: SVG element class (`dynam` | `artic` | `hairpin` | `tempo` | `fermata` | `trill` | `turn` | `mordent` | `ornament` | `dir`)
 - `positionIndex`: index among elements of same class within the measure (stable across re-renders)
 - Applied by `applySvgColors()` in ScoreView — stroke-only for hairpins (`fill="none"` → only `stroke` changed), fill for glyphs/text
 
@@ -290,8 +273,8 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 - Error if no motif seeds: `'NO_MOTIF_ANNOTATIONS'`
 
 ### Note color rendering (`ScoreView.tsx`)
-- `applyNoteColors`: translates noteMapId → vrvId via `toVrv`, then targets `g.notehead > use` (or `use` fallback) — colors only the note head, not stem/flag/accidentals
-- `clearNoteColors`: clears only `.notehead` elements
+- `applyNoteColors`: translates noteMapId → svgId via `toVrv`, then targets the notehead element — colors only the note head, not stem/flag/accidentals
+- `clearNoteColors`: clears `.notehead` (native) and `g.vf-notehead` (OSMD) elements
 - Color map: `CHORD_TONE=#3b82f6` (blue), `PASSING_TONE=#a855f7` (purple), `NEIGHBOR_TONE=#22c55e` (green)
 - Same colors defined in `src/constants/layers.ts` → `NOTE_COLORS` export
 - `AnnotationOverlay.tsx` skips noteColor annotations entirely (returns null) — no overlay rect, coloring is DOM-direct only
@@ -309,8 +292,8 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 
 ## What's done ✅
 
-- Verovio rendering (npm ESM, multi-page SVG)
-- elementMap (g.measure → screen-space bboxes)
+- OSMD rendering (default renderer, VexFlow-based)
+- elementMap (g.vf-measure → screen-space bboxes)
 - Multi-staff rendering fixed (prepareMusicXML in xmlSanitizer.ts)
 - Chord symbols render natively (no overlay needed)
 - **Note-level selection** — click g.note → purple highlight + context menu
@@ -341,7 +324,7 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 - **שלב 8: Export** — JSON מעודכן (researchNotes + palette + full freehand strokes), `pdfExporter.ts` (window.print + CSS print), כפתור 🖨 PDF ב-TopBar.
 - **שלב 10: Playback משופר** — cursor נע (PlaybackHighlightShape תוקן), auto-scroll תיבה פעילה, נגינה מהסלקציה, Pause/Resume/Stop controls, Loop section (🔁). `playbackStore`: isPaused/startMeasure/loop. Space = play→pause→resume.
 - **שלב 9: Roman Numeral Analysis** — `romanNumeralScript.ts`. 3 מצבים אוטומטיים: (A) עדכון harmony annotations קיימים בסטור, (A-XML) יצירה מ-`<harmony>` elements ב-XML (lead sheets / jazz), (B) chordify כל הסולמות (קלאסי). מנגנון RN: diatonic degrees, secondary dominants (V7/X), secondary leading tones (viiø7/X), chromatic degrees (bVI, bVII, #IV), harmonic function T/S/D. HarmonyShape מציג chord symbol + RN מוערמים. `detectChordFromPcs()` הופרד מ-`detectChord()`. `parseAllStavesNotes()` נוסף ל-xmlParser. `scriptId` הועבר ל-BaseAnnotation.
-- **OSMD Coordinate Extraction** — `?renderer=osmd` פועל במלואו. `buildOSMDElementMap(container, noteMap)` ב-`osmdAdapter.ts`: positional matching (מיון noteMap IDs לפי measure+beat, traversal מ-GraphicSheet, zip 1:1) → 100 measures + 643 notes על DONNALEE.XML. Stamps `id=osmd-N`, `data-notemap-id`, `.note` class על כל notehead SVG. `clearNoteColors` מטפל ב-`g.vf-notehead` (OSMD) בנוסף ל-`.notehead` (Verovio). OSMD משמש כרנדרר הנוכחי עד שהמרנדר המובנה יהיה מוכן.
+- **OSMD as default renderer** — `buildOSMDElementMap(container, noteMap)` ב-`osmdAdapter.ts`: positional matching → 100 measures + 643 notes על DONNALEE.XML. `?renderer=native` לעבור לרנדרר המובנה (בפיתוח).
 
 ## What's pending ⬜
 
@@ -365,7 +348,7 @@ Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `A
 | 5.6 | Dual-layer testing + WYSIWYG fix | ✅ הושלם — `/app-test` route, `app-integration.spec.ts` (Layer 2), `compare-layers.ts`, font-guard + CSS isolation. 15/15 WYSIWYG match. |
 | 5.7 | Pipeline test framework — numeric comparison vs webmscore | ✅ הושלם — 214 tests, 139/214 pass (65%). A=100% B=31% C=76% D=92% E=92%. Test fixes: A1 tolerance, A7/A8 field names, C16/C17 position refs, E18 gap tolerance. empFactor investigated+reverted (needs C++ incremental system building). |
 | 5.8 | Incremental system building + empFactor/HACK/maxRatio | 🔄 בעבודה — **141/214** (A=29 B=27 C=41 D=21 E=23). ראה `docs/IMPLEMENTATION_PLAN.md`. |
-| 6 | אינטגרציה ב-MAP, הסרת Verovio | ⬜ **Checkpoint C** |
+| 6 | אינטגרציה ב-MAP, החלפת OSMD | ⬜ **Checkpoint C** |
 | 7 | Classical full support (SATB, tuplets, voltas) | ⬜ |
 | 8 | Bravura glyphs | ⬜ |
 
@@ -419,10 +402,10 @@ Always test with DONNALEE.XML (click "♩ Donna Lee" button on empty state).
 - Shift+←: anchor at end → extend left; anchor at start → shrink from right
 
 ### `data-notemap-id` attribute
-`buildVrvNoteIdMap` stamps `data-notemap-id` on every `g.note` SVG element. All keyboard navigation reads this attribute — **never** uses ephemeral Verovio IDs in `getDomOrderedNoteIds` / `getMeasureNumForNote`.
+`buildOSMDElementMap` stamps `data-notemap-id` on every notehead SVG element. All keyboard navigation reads this attribute — **never** uses ephemeral SVG IDs in `getDomOrderedNoteIds` / `getMeasureNumForNote`.
 
 ### Shift+↑/↓ — system navigation
-Detects `g.system` elements in Verovio SVG. Shift+↑ extends measureStart to the first measure of the system row above; Shift+↓ extends measureEnd to the last measure of the system row below.
+Detects system row boundaries in the SVG. Shift+↑ extends measureStart to the first measure of the system row above; Shift+↓ extends measureEnd to the last measure of the system row below.
 
 ### SVG element coloring
 - Click `g.dynam`, `g.artic`, `g.hairpin`, `g.tempo`, `g.fermata`, `g.trill`, `g.turn`, `g.mordent`, `g.ornament`, `g.dir` → color picker popover
@@ -430,7 +413,6 @@ Detects `g.system` elements in Verovio SVG. Shift+↑ extends measureStart to th
 - Notes/harmony checked **first** — clicking a note never opens color picker by mistake
 - **Smart coloring**: elements with `fill="none"` (hairpins, slurs) → only `stroke` changed; glyph/text elements → `fill` changed
 - Stored as `SvgColorAnnotation` identified by `svgClass + positionIndex + measureStart` (stable across re-renders)
-- Verovio class names: `fermata` (not `ferm`), `dir` for text directions
 
 ### Drag annotations
 `AnnotationOverlay` → each annotation shape is draggable (`pointerEvents: 'all'`, `cursor: 'move'`). Drag commits `visualOffset: {x,y}` to `annotationStore.updateAnnotation` on mouseup. Live preview during drag via local `useState`.

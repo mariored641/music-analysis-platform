@@ -36,6 +36,18 @@ const CHROMATIC_DEGREE = [
   'I', 'bII', 'II', 'bIII', 'III', 'IV', '#IV', 'V', 'bVI', 'VI', 'bVII', 'VII',
 ]
 
+// ── Note lookup helper ────────────────────────────────────────────────────────
+
+/** Find staff-1 noteMap IDs at a given 1-based beat in a measure */
+function findNoteIdsAtBeat(noteMap: NoteMap, measureNum: number, beat: number): string[] {
+  const measure = noteMap.measures.get(measureNum)
+  if (!measure) return []
+  const target = Math.round(beat * 100)
+  return measure.notes
+    .filter(n => Math.round(n.beat * 100) === target && n.staff === 1)
+    .map(n => n.id)
+}
+
 // ── Key parsing ────────────────────────────────────────────────────────────────
 
 function parseKeyString(keyStr: string): { pc: number; mode: 'major' | 'minor' } {
@@ -197,6 +209,7 @@ function fromXmlHarmonies(
   xmlString: string,
   keyPc: number,
   mode: 'major' | 'minor',
+  noteMap: NoteMap,
 ): RomanNumeralResult {
   const items = parseHarmonies(xmlString)
   if (items.length === 0) return { mode: 'create', annotations: [], count: 0, error: 'NO_HARMONIES' }
@@ -210,10 +223,16 @@ function fromXmlHarmonies(
     const rn = computeRN(parsed.rootPc, parsed.quality, keyPc, mode)
     const fn = computeFunction(rn)
 
+    // Convert beatFraction (0–1) to 1-based beat for noteMap lookup
+    const beatsPerMeasure = noteMap.measures.get(item.measureNum)?.timeSignature?.beats ?? 4
+    const beat = 1 + item.beatFraction * beatsPerMeasure
+    const noteIds = findNoteIdsAtBeat(noteMap, item.measureNum, beat)
+
     result.push({
       id: `rn-xml-m${item.measureNum}bf${Math.round(item.beatFraction * 1000)}`,
       layer: 'harmony',
       measureStart: item.measureNum,
+      noteIds,
       chordSymbol: item.label,
       scaleDegree: rn,
       function: fn,
@@ -231,6 +250,7 @@ function fromChordify(
   xmlString: string,
   keyPc: number,
   mode: 'major' | 'minor',
+  noteMap: NoteMap,
 ): RomanNumeralResult {
   const allNotes = parseAllStavesNotes(xmlString)
   if (allNotes.length === 0) {
@@ -273,11 +293,13 @@ function fromChordify(
 
       const rn = computeRN(parsed.rootPc, parsed.quality, keyPc, mode)
       const fn = computeFunction(rn)
+      const noteIds = findNoteIdsAtBeat(noteMap, measureNum, beat)
 
       result.push({
         id: `rn-m${measureNum}b${Math.round(beat * 100)}`,
         layer: 'harmony',
         measureStart: measureNum,
+        noteIds,
         chordSymbol: chordName,
         scaleDegree: rn,
         function: fn,
@@ -317,9 +339,9 @@ export function runRomanNumeralScript(
   // → create new annotations from the embedded XML chord symbols
   const xmlHarmonies = parseHarmonies(xmlString)
   if (xmlHarmonies.length > 0) {
-    return fromXmlHarmonies(xmlString, keyPc, mode)
+    return fromXmlHarmonies(xmlString, keyPc, mode, noteMap)
   }
 
   // Mode B: no chord symbols anywhere → chordify all staves (classical piano)
-  return fromChordify(xmlString, keyPc, mode)
+  return fromChordify(xmlString, keyPc, mode, noteMap)
 }
