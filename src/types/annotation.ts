@@ -1,6 +1,6 @@
 export type LayerId = 'harmony' | 'melody' | 'form' | 'motif' | 'labels' | 'texture' | 'freehand' | 'noteColor' | 'svgColor'
 
-export type SelectionType = 'note' | 'notes' | 'measure' | 'measures'
+export type SelectionType = 'note' | 'notes'
 
 // Base for all annotations
 interface BaseAnnotation {

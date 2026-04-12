@@ -1,0 +1,1109 @@
+{
+  "session": "G",
+  "files": [
+    {
+      "file": "StyleDef.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\style/StyleDef.ts",
+      "exists": true,
+      "line_count": 159,
+      "functions": [
+        {
+          "name": "sidInchToMm",
+          "line": 27,
+          "signature": "export function sidInchToMm(inchValue: number): number {",
+          "exported": true
+        },
+        {
+          "name": "sidInchToSp",
+          "line": 37,
+          "signature": "export function sidInchToSp(inchValue: number, spatiumPx: number, screenDpi = 96): number {",
+          "exported": true
+        },
+        {
+          "name": "getPagePrintableWidthSp",
+          "line": 151,
+          "signature": "export function getPagePrintableWidthSp(spatiumPx: number, screenDpi = 96): number {",
+          "exported": true
+        }
+      ],
+      "constants": [
+        {
+          "name": "MUSESCORE_DPI",
+          "value": "360.0",
+          "line": 19,
+          "exported": false
+        },
+        {
+          "name": "INCH_MM",
+          "value": "25.4",
+          "line": 20,
+          "exported": false
+        },
+        {
+          "name": "Sid",
+          "value": "{\n\n  // ── Page geometry (stored as inches in C++: mm / 25.4) ──────────────────\n  // pageWidth:    ",
+          "line": 50,
+          "exported": true
+        }
+      ],
+      "classes": [],
+      "interfaces": [],
+      "type_aliases": [
+        {
+          "name": "SidKey",
+          "line": 141,
+          "exported": true
+        }
+      ],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 19,
+          "values": [
+            "360.0",
+            "72"
+          ],
+          "context": "const MUSESCORE_DPI = 360.0      // 72 * 5"
+        },
+        {
+          "line": 20,
+          "values": [
+            "25.4",
+            "25"
+          ],
+          "context": "const INCH_MM = 25.4             // 1 inch = 25.4 mm"
+        },
+        {
+          "line": 21,
+          "values": [
+            "14.173"
+          ],
+          "context": "const DPMM = MUSESCORE_DPI / INCH_MM  // dots per mm ≈ 14.173"
+        },
+        {
+          "line": 37,
+          "values": [
+            "96"
+          ],
+          "context": "export function sidInchToSp(inchValue: number, spatiumPx: number, screenDpi = 96): number {"
+        },
+        {
+          "line": 63,
+          "values": [
+            "180.0",
+            "180.0",
+            "25.4",
+            "43"
+          ],
+          "context": "pagePrintableWidthMm: 180.0,        // styledef.cpp:43 — 180.0 / INCH → inches → ×25.4 = 180mm"
+        },
+        {
+          "line": 66,
+          "values": [
+            "7.0",
+            "7.0"
+          ],
+          "context": "staffUpperBorder:       7.0,        // styledef.cpp:52  Spatium(7.0)"
+        },
+        {
+          "line": 67,
+          "values": [
+            "7.0",
+            "7.0"
+          ],
+          "context": "staffLowerBorder:       7.0,        // styledef.cpp:53  Spatium(7.0)"
+        },
+        {
+          "line": 68,
+          "values": [
+            "6.5",
+            "6.5"
+          ],
+          "context": "staffDistance:          6.5,        // styledef.cpp:55  Spatium(6.5) — between staves of different parts"
+        },
+        {
+          "line": 69,
+          "values": [
+            "6.5",
+            "6.5"
+          ],
+          "context": "akkoladeDistance:       6.5,        // styledef.cpp:57  Spatium(6.5) — between staves of same part"
+        },
+        {
+          "line": 70,
+          "values": [
+            "6.5",
+            "6.5"
+          ],
+          "context": "maxAkkoladeDistance:    6.5,        // styledef.cpp:70  Spatium(6.5) — max stretch inside curly bracket"
+        },
+        {
+          "line": 72,
+          "values": [
+            "8.5",
+            "8.5"
+          ],
+          "context": "minSystemDistance:      8.5,        // styledef.cpp:58  Spatium(8.5)"
+        },
+        {
+          "line": 73,
+          "values": [
+            "15.0",
+            "15.0"
+          ],
+          "context": "maxSystemDistance:      15.0,       // styledef.cpp:59  Spatium(15.0)"
+        },
+        {
+          "line": 75,
+          "values": [
+            "32.0",
+            "32.0"
+          ],
+          "context": "maxSystemSpread:        32.0,       // styledef.cpp:67  Spatium(32.0)"
+        },
+        {
+          "line": 76,
+          "values": [
+            "20.0",
+            "20.0"
+          ],
+          "context": "maxStaffSpread:         20.0,       // styledef.cpp:69  Spatium(20.0)"
+        },
+        {
+          "line": 77,
+          "values": [
+            "2.5"
+          ],
+          "context": "spreadSystem:           2.5,        // styledef.cpp:63  raw factor — space growth factor between sections"
+        },
+        {
+          "line": 78,
+          "values": [
+            "1.2"
+          ],
+          "context": "spreadSquareBracket:    1.2,        // styledef.cpp:64  raw factor — space factor for square bracket group"
+        },
+        {
+          "line": 79,
+          "values": [
+            "1.1"
+          ],
+          "context": "spreadCurlyBracket:     1.1,        // styledef.cpp:65  raw factor — space factor for curly bracket group"
+        },
+        {
+          "line": 82,
+          "values": [
+            "24.8"
+          ],
+          "context": "/** Default spatium in MuseScore printer pixels (360 DPI). 1sp = 24.8 / 360 inches ≈ 1.75mm */"
+        },
+        {
+          "line": 83,
+          "values": [
+            "24.8"
+          ],
+          "context": "spatiumDefault:         24.8,       // styledef.cpp:624  raw printer dots (360 DPI)"
+        },
+        {
+          "line": 86,
+          "values": [
+            "0.3",
+            "30"
+          ],
+          "context": "lastSystemFillLimit:    0.3,        // styledef.cpp:228  ratio — don't justify last system if < 30% full"
+        },
+        {
+          "line": 88,
+          "values": [
+            "447"
+          ],
+          "context": "enableIndentationOnFirstSystem: true, // styledef.cpp:447"
+        },
+        {
+          "line": 89,
+          "values": [
+            "5.0",
+            "5.0"
+          ],
+          "context": "firstSystemIndentationValue: 5.0,  // styledef.cpp:449  Spatium(5.0)"
+        },
+        {
+          "line": 90,
+          "values": [
+            "7.0",
+            "7.0"
+          ],
+          "context": "systemFrameDistance:    7.0,        // styledef.cpp:128  Spatium(7.0)"
+        },
+        {
+          "line": 91,
+          "values": [
+            "7.0",
+            "7.0"
+          ],
+          "context": "frameSystemDistance:    7.0,        // styledef.cpp:129  Spatium(7.0)"
+        },
+        {
+          "line": 94,
+          "values": [
+            "0.18",
+            "0.18"
+          ],
+          "context": "barWidth:               0.18,       // styledef.cpp:131  Spatium(0.18)"
+        },
+        {
+          "line": 95,
+          "values": [
+            "0.37",
+            "0.37"
+          ],
+          "context": "repeatBarlineDotSeparation: 0.37,   // styledef.cpp:137  Spatium(0.37)"
+        },
+        {
+          "line": 98,
+          "values": [
+            "0.11",
+            "0.11"
+          ],
+          "context": "staffLineWidth:         0.11,       // styledef.cpp:196  Spatium(0.11)"
+        },
+        {
+          "line": 99,
+          "values": [
+            "0.16",
+            "0.16",
+            "0.1875"
+          ],
+          "context": "ledgerLineWidth:        0.16,       // styledef.cpp:197  Spatium(0.16)  comment: was 0.1875"
+        },
+        {
+          "line": 101,
+          "values": [
+            "0.33",
+            "0.33"
+          ],
+          "context": "ledgerLineLength:       0.33,       // styledef.cpp:198  Spatium(0.33)"
+        },
+        {
+          "line": 104,
+          "values": [
+            "0.10",
+            "0.10"
+          ],
+          "context": "stemWidth:              0.10,       // styledef.cpp:175  Spatium(0.10)"
+        },
+        {
+          "line": 106,
+          "values": [
+            "3.5",
+            "3.5"
+          ],
+          "context": "stemLength:             3.5,        // styledef.cpp:177  PropertyValue(3.5) — for quarter and shorter"
+        },
+        {
+          "line": 107,
+          "values": [
+            "2.25",
+            "2.25"
+          ],
+          "context": "stemLengthSmall:        2.25,       // styledef.cpp:178  PropertyValue(2.25) — for grace notes"
+        },
+        {
+          "line": 111,
+          "values": [
+            "1.3",
+            "1.3",
+            "1.2"
+          ],
+          "context": "barNoteDistance:        1.3,        // styledef.cpp:185  Spatium(1.3) — barline to first note (was 1.2)"
+        },
+        {
+          "line": 112,
+          "values": [
+            "1.5",
+            "1.5"
+          ],
+          "context": "noteBarDistance:        1.5,        // styledef.cpp:188  Spatium(1.5) — last note to barline"
+        },
+        {
+          "line": 113,
+          "values": [
+            "1.5"
+          ],
+          "context": "measureSpacing:         1.5,        // styledef.cpp:189  raw multiplier (not Sp) — logarithmic stretch factor"
+        },
+        {
+          "line": 117,
+          "values": [
+            "0.65",
+            "0.65"
+          ],
+          "context": "dotDotDistance:         0.65,       // styledef.cpp:218  Spatium(0.65) — dot to dot (double-dotted)"
+        },
+        {
+          "line": 121,
+          "values": [
+            "0.22",
+            "0.22"
+          ],
+          "context": "accidentalDistance:     0.22,       // styledef.cpp:202  Spatium(0.22) — accidental to accidental"
+        },
+        {
+          "line": 122,
+          "values": [
+            "0.25",
+            "0.25"
+          ],
+          "context": "accidentalNoteDistance: 0.25,       // styledef.cpp:203  Spatium(0.25) — accidental to notehead"
+        },
+        {
+          "line": 125,
+          "values": [
+            "0.48"
+          ],
+          "context": "beamWidth:              0.5,        // styledef.cpp:209  Spatium(0.5)  (comment: was 0.48)"
+        },
+        {
+          "line": 126,
+          "values": [
+            "1.1",
+            "1.1"
+          ],
+          "context": "beamMinLen:             1.1,        // styledef.cpp:211  Spatium(1.1)  — minimum beam length"
+        },
+        {
+          "line": 127,
+          "values": [
+            "212"
+          ],
+          "context": "beamNoSlope:            false,      // styledef.cpp:212  — force flat beams"
+        },
+        {
+          "line": 128,
+          "values": [
+            "210"
+          ],
+          "context": "useWideBeams:           false,      // styledef.cpp:210  — use 4-quarter-space beam spacing instead of 3"
+        },
+        {
+          "line": 131,
+          "values": [
+            "0.7",
+            "0.7"
+          ],
+          "context": "smallNoteMag:           0.7,        // styledef.cpp:399  PropertyValue(0.7) — cue/small note magnification"
+        },
+        {
+          "line": 132,
+          "values": [
+            "0.7",
+            "0.7"
+          ],
+          "context": "graceNoteMag:           0.7,        // styledef.cpp:400  PropertyValue(0.7) — grace note magnification"
+        },
+        {
+          "line": 137,
+          "values": [
+            "0.3",
+            "0.3"
+          ],
+          "context": "keysigAccidentalDistance: 0.3,      // styledef.cpp:206  Spatium(0.3)"
+        },
+        {
+          "line": 151,
+          "values": [
+            "96"
+          ],
+          "context": "export function getPagePrintableWidthSp(spatiumPx: number, screenDpi = 96): number {"
+        }
+      ]
+    },
+    {
+      "file": "index.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\index.ts",
+      "exists": true,
+      "line_count": 53,
+      "functions": [
+        {
+          "name": "renderScore",
+          "line": 38,
+          "signature": "export function renderScore(",
+          "exported": true
+        }
+      ],
+      "constants": [],
+      "classes": [],
+      "interfaces": [],
+      "type_aliases": [],
+      "enums": [],
+      "magic_numbers": []
+    },
+    {
+      "file": "LayoutOrchestrator.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\engine/LayoutOrchestrator.ts",
+      "exists": true,
+      "line_count": 543,
+      "functions": [
+        {
+          "name": "orchestrateHorizontalLayout",
+          "line": 80,
+          "signature": "export function orchestrateHorizontalLayout(",
+          "exported": true
+        },
+        {
+          "name": "computeMeasureStates",
+          "line": 348,
+          "signature": "function computeMeasureStates(",
+          "exported": false
+        },
+        {
+          "name": "buildMeasureSegments",
+          "line": 370,
+          "signature": "function buildMeasureSegments(m: ExtractedMeasure, beatsPerMeasure: number): MeasureSegment[] {",
+          "exported": false
+        },
+        {
+          "name": "computeFirstNotePad",
+          "line": 414,
+          "signature": "function computeFirstNotePad(",
+          "exported": false
+        },
+        {
+          "name": "computeHeaderWidth",
+          "line": 488,
+          "signature": "function computeHeaderWidth(fifths: number, sp: number): number {",
+          "exported": false
+        },
+        {
+          "name": "findGlobalMinDur",
+          "line": 507,
+          "signature": "function findGlobalMinDur(allSegments: Map<number, MeasureSegment[]>): number {",
+          "exported": false
+        },
+        {
+          "name": "findSystemMinDur",
+          "line": 517,
+          "signature": "function findSystemMinDur(mNums: number[], allSegments: Map<number, MeasureSegment[]>): number {",
+          "exported": false
+        },
+        {
+          "name": "clampMinDur",
+          "line": 533,
+          "signature": "function clampMinDur(minDur: number): number {",
+          "exported": false
+        },
+        {
+          "name": "snapBeat",
+          "line": 541,
+          "signature": "function snapBeat(beat: number): number {",
+          "exported": false
+        }
+      ],
+      "constants": [
+        {
+          "name": "BAR_ACC_DIST_SP",
+          "value": "0.65",
+          "line": 59,
+          "exported": false
+        },
+        {
+          "name": "opts",
+          "value": "{ ...DEFAULT_RENDER_OPTIONS, ...renderOptions }",
+          "line": 84,
+          "exported": false
+        },
+        {
+          "name": "systems",
+          "value": "[]",
+          "line": 146,
+          "exported": false
+        },
+        {
+          "name": "pages",
+          "value": "[]",
+          "line": 147,
+          "exported": false
+        },
+        {
+          "name": "preStretch",
+          "value": "1",
+          "line": 225,
+          "exported": false
+        },
+        {
+          "name": "system",
+          "value": "{\n      systemIndex:     sysIdx,\n      pageIndex:       pageIdx,\n      measureNums:     mNums,\n     ",
+          "line": 261,
+          "exported": false
+        },
+        {
+          "name": "segments",
+          "value": "[]",
+          "line": 295,
+          "exported": false
+        },
+        {
+          "name": "states",
+          "value": "[]",
+          "line": 352,
+          "exported": false
+        },
+        {
+          "name": "measureEndBeat",
+          "value": "1",
+          "line": 389,
+          "exported": false
+        },
+        {
+          "name": "KEYSIG_LEFT_MARGIN_SP",
+          "value": "0.5",
+          "line": 432,
+          "exported": false
+        },
+        {
+          "name": "TIMESIG_LEFT_MARGIN_SP",
+          "value": "0.63",
+          "line": 433,
+          "exported": false
+        },
+        {
+          "name": "KEYSIG_NOTE_PAD_SP",
+          "value": "1.75",
+          "line": 434,
+          "exported": false
+        },
+        {
+          "name": "TIMESIG_NOTE_PAD_SP",
+          "value": "1.35",
+          "line": 435,
+          "exported": false
+        },
+        {
+          "name": "sortedBeats",
+          "value": "[...new Set(\n    m.notes.filter(n => !n.isGrace && n.duration > 0).map(n => snapBeat(n.beat))\n  )]",
+          "line": 468,
+          "exported": false
+        }
+      ],
+      "classes": [],
+      "interfaces": [
+        {
+          "name": "MeasureState",
+          "line": 63,
+          "exported": false
+        }
+      ],
+      "type_aliases": [],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 59,
+          "values": [
+            "0.65"
+          ],
+          "context": "const BAR_ACC_DIST_SP = 0.65   // sp"
+        },
+        {
+          "line": 225,
+          "values": [
+            "0.7"
+          ],
+          "context": "const preStretch = 1 - SQUEEZABILITY  // 0.7"
+        },
+        {
+          "line": 433,
+          "values": [
+            "0.63"
+          ],
+          "context": "const TIMESIG_LEFT_MARGIN_SP = 0.63   // Sid::timesigLeftMargin (from barline left → timeSig left)"
+        },
+        {
+          "line": 434,
+          "values": [
+            "1.75"
+          ],
+          "context": "const KEYSIG_NOTE_PAD_SP     = 1.75   // paddingTable[KEYSIG][NOTE]"
+        },
+        {
+          "line": 435,
+          "values": [
+            "1.35"
+          ],
+          "context": "const TIMESIG_NOTE_PAD_SP    = 1.35   // paddingTable[TIMESIG][NOTE]"
+        },
+        {
+          "line": 475,
+          "values": [
+            "0.01"
+          ],
+          "context": "&& Math.abs(snapBeat(n.beat) - firstBeat) < 0.01"
+        },
+        {
+          "line": 534,
+          "values": [
+            "0.125"
+          ],
+          "context": "if (!isFinite(minDur) || minDur <= 0) return 0.125"
+        },
+        {
+          "line": 535,
+          "values": [
+            "0.25"
+          ],
+          "context": "return Math.min(minDur, 0.25)"
+        },
+        {
+          "line": 542,
+          "values": [
+            "1000",
+            "1000"
+          ],
+          "context": "return Math.round(beat * 1000) / 1000"
+        }
+      ]
+    },
+    {
+      "file": "xmlExtractor.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\xmlExtractor.ts",
+      "exists": true,
+      "line_count": 843,
+      "functions": [
+        {
+          "name": "extractScore",
+          "line": 45,
+          "signature": "export function extractScore(xmlString: string): ExtractedScore {",
+          "exported": true
+        },
+        {
+          "name": "extractParts",
+          "line": 60,
+          "signature": "function extractParts(doc: Document) {",
+          "exported": false
+        },
+        {
+          "name": "extractMetadata",
+          "line": 75,
+          "signature": "function extractMetadata(",
+          "exported": false
+        },
+        {
+          "name": "extractMeasures",
+          "line": 119,
+          "signature": "function extractMeasures(doc: Document, meta: ExtractedMetadata): ExtractedMeasure[] {",
+          "exported": false
+        },
+        {
+          "name": "parseHarmony",
+          "line": 536,
+          "signature": "function parseHarmony(",
+          "exported": false
+        },
+        {
+          "name": "parseDirection",
+          "line": 588,
+          "signature": "function parseDirection(",
+          "exported": false
+        },
+        {
+          "name": "stepOctaveAlterToMidi",
+          "line": 698,
+          "signature": "function stepOctaveAlterToMidi(step: string, octave: number, alter: number): number {",
+          "exported": false
+        },
+        {
+          "name": "keySignatureAlterFor",
+          "line": 709,
+          "signature": "function keySignatureAlterFor(step: string, fifths: number): number {",
+          "exported": false
+        },
+        {
+          "name": "alterToAccidentalSign",
+          "line": 718,
+          "signature": "function alterToAccidentalSign(alter: number): AccidentalSign {",
+          "exported": false
+        },
+        {
+          "name": "durationToType",
+          "line": 731,
+          "signature": "function durationToType(durationDivisions: number, divisions: number): string {",
+          "exported": false
+        },
+        {
+          "name": "mapBarStyle",
+          "line": 747,
+          "signature": "function mapBarStyle(style: string): BarlineStyle {",
+          "exported": false
+        },
+        {
+          "name": "mapAccidentalText",
+          "line": 762,
+          "signature": "function mapAccidentalText(text: string): AccidentalSign | undefined {",
+          "exported": false
+        },
+        {
+          "name": "mapArticulation",
+          "line": 777,
+          "signature": "function mapArticulation(tagName: string): ArticulationMark | undefined {",
+          "exported": false
+        },
+        {
+          "name": "mapOrnament",
+          "line": 792,
+          "signature": "function mapOrnament(tagName: string): OrnamentMark | undefined {",
+          "exported": false
+        },
+        {
+          "name": "kindToDisplay",
+          "line": 806,
+          "signature": "function kindToDisplay(kind: string): string {",
+          "exported": false
+        }
+      ],
+      "constants": [
+        {
+          "name": "currentClefs",
+          "value": "{\n    0: { sign: 'G', line: 2, staffIndex: 0 }",
+          "line": 126,
+          "exported": false
+        },
+        {
+          "name": "accidentalState",
+          "value": "{}",
+          "line": 134,
+          "exported": false
+        },
+        {
+          "name": "activeTuplets",
+          "value": "{}",
+          "line": 141,
+          "exported": false
+        },
+        {
+          "name": "measures",
+          "value": "[]",
+          "line": 143,
+          "exported": false
+        },
+        {
+          "name": "clefChange",
+          "value": "{}",
+          "line": 157,
+          "exported": false
+        },
+        {
+          "name": "notes",
+          "value": "[]",
+          "line": 247,
+          "exported": false
+        },
+        {
+          "name": "harmonies",
+          "value": "[]",
+          "line": 248,
+          "exported": false
+        },
+        {
+          "name": "dynamics",
+          "value": "[]",
+          "line": 249,
+          "exported": false
+        },
+        {
+          "name": "directions",
+          "value": "[]",
+          "line": 250,
+          "exported": false
+        },
+        {
+          "name": "beatByVoice",
+          "value": "{}",
+          "line": 254,
+          "exported": false
+        },
+        {
+          "name": "beamStates",
+          "value": "[]",
+          "line": 379,
+          "exported": false
+        },
+        {
+          "name": "articulations",
+          "value": "[]",
+          "line": 440,
+          "exported": false
+        },
+        {
+          "name": "ornaments",
+          "value": "[]",
+          "line": 454,
+          "exported": false
+        },
+        {
+          "name": "note",
+          "value": "{\n        id,\n        measureNum: num,\n        beat: noteBeat,\n        duration,\n        durationDiv",
+          "line": 467,
+          "exported": false
+        },
+        {
+          "name": "measure",
+          "value": "{\n      num,\n      divisions,\n      notes,\n      harmonies,\n      dynamics,\n      directions,\n    }",
+          "line": 507,
+          "exported": false
+        },
+        {
+          "name": "dynamics",
+          "value": "[]",
+          "line": 593,
+          "exported": false
+        },
+        {
+          "name": "directions",
+          "value": "[]",
+          "line": 594,
+          "exported": false
+        },
+        {
+          "name": "STEP_SEMITONES",
+          "value": "{\n  C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11,\n}",
+          "line": 694,
+          "exported": false
+        },
+        {
+          "name": "SHARP_ORDER",
+          "value": "['F', 'C', 'G', 'D', 'A', 'E', 'B']",
+          "line": 706,
+          "exported": false
+        },
+        {
+          "name": "FLAT_ORDER",
+          "value": "['B', 'E', 'A', 'D', 'G', 'C', 'F']",
+          "line": 707,
+          "exported": false
+        },
+        {
+          "name": "map",
+          "value": "{\n    'regular': 'regular',\n    'dotted': 'dotted',\n    'dashed': 'dashed',\n    'heavy': 'final',\n  ",
+          "line": 748,
+          "exported": false
+        },
+        {
+          "name": "map",
+          "value": "{\n    'sharp': 'sharp',\n    'flat': 'flat',\n    'natural': 'natural',\n    'double-sharp': 'double-sh",
+          "line": 763,
+          "exported": false
+        },
+        {
+          "name": "map",
+          "value": "{\n    'staccato': 'staccato',\n    'staccatissimo': 'staccatissimo',\n    'tenuto': 'tenuto',\n    'acc",
+          "line": 778,
+          "exported": false
+        },
+        {
+          "name": "map",
+          "value": "{\n    'trill-mark': 'trill-mark',\n    'turn': 'turn',\n    'inverted-turn': 'inverted-turn',\n    'mor",
+          "line": 793,
+          "exported": false
+        },
+        {
+          "name": "map",
+          "value": "{\n    'major': '',\n    'minor': 'm',\n    'dominant': '7',\n    'major-seventh': 'maj7',\n    'minor-se",
+          "line": 807,
+          "exported": false
+        }
+      ],
+      "classes": [],
+      "interfaces": [],
+      "type_aliases": [
+        {
+          "name": "AccidentalState",
+          "line": 133,
+          "exported": false
+        }
+      ],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 106,
+          "values": [
+            "120"
+          ],
+          "context": "if (soundEl) tempo = parseFloat(soundEl.getAttribute('tempo') || '120')"
+        },
+        {
+          "line": 203,
+          "values": [
+            "120"
+          ],
+          "context": "if (soundEl) tempo = parseFloat(soundEl.getAttribute('tempo') || '120')"
+        },
+        {
+          "line": 287,
+          "values": [
+            "120"
+          ],
+          "context": "if (sSnd && !tempo) tempo = parseFloat(sSnd.getAttribute('tempo') || '120')"
+        },
+        {
+          "line": 695,
+          "values": [
+            "11"
+          ],
+          "context": "C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11,"
+        },
+        {
+          "line": 699,
+          "values": [
+            "12"
+          ],
+          "context": "return (octave + 1) * 12 + (STEP_SEMITONES[step] ?? 0) + alter"
+        },
+        {
+          "line": 738,
+          "values": [
+            "0.25"
+          ],
+          "context": "if (beats >= 0.25) return '16th'"
+        },
+        {
+          "line": 739,
+          "values": [
+            "0.125"
+          ],
+          "context": "if (beats >= 0.125) return '32nd'"
+        },
+        {
+          "line": 824,
+          "values": [
+            "11"
+          ],
+          "context": "'dominant-11th': '11',"
+        },
+        {
+          "line": 827,
+          "values": [
+            "13"
+          ],
+          "context": "'dominant-13th': '13',"
+        }
+      ]
+    },
+    {
+      "file": "extractorTypes.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\extractorTypes.ts",
+      "exists": true,
+      "line_count": 313,
+      "functions": [],
+      "constants": [],
+      "classes": [],
+      "interfaces": [
+        {
+          "name": "ExtractedScore",
+          "line": 14,
+          "exported": true
+        },
+        {
+          "name": "ExtractedMetadata",
+          "line": 21,
+          "exported": true
+        },
+        {
+          "name": "ExtractedPart",
+          "line": 36,
+          "exported": true
+        },
+        {
+          "name": "ExtractedMeasure",
+          "line": 46,
+          "exported": true
+        },
+        {
+          "name": "ExtractedNote",
+          "line": 85,
+          "exported": true
+        },
+        {
+          "name": "BeamState",
+          "line": 173,
+          "exported": true
+        },
+        {
+          "name": "ExtractedHarmony",
+          "line": 204,
+          "exported": true
+        },
+        {
+          "name": "ExtractedDynamic",
+          "line": 225,
+          "exported": true
+        },
+        {
+          "name": "ExtractedDirection",
+          "line": 252,
+          "exported": true
+        },
+        {
+          "name": "ExtractedBarline",
+          "line": 283,
+          "exported": true
+        },
+        {
+          "name": "ExtractedVolta",
+          "line": 293,
+          "exported": true
+        },
+        {
+          "name": "ExtractedClef",
+          "line": 306,
+          "exported": true
+        }
+      ],
+      "type_aliases": [
+        {
+          "name": "AccidentalSign",
+          "line": 164,
+          "exported": true
+        },
+        {
+          "name": "BeamValue",
+          "line": 171,
+          "exported": true
+        },
+        {
+          "name": "ArticulationMark",
+          "line": 179,
+          "exported": true
+        },
+        {
+          "name": "OrnamentMark",
+          "line": 191,
+          "exported": true
+        },
+        {
+          "name": "DirectionType",
+          "line": 238,
+          "exported": true
+        },
+        {
+          "name": "BarlineStyle",
+          "line": 271,
+          "exported": true
+        },
+        {
+          "name": "ClefSign",
+          "line": 304,
+          "exported": true
+        }
+      ],
+      "enums": [],
+      "magic_numbers": []
+    }
+  ],
+  "summary": {
+    "total_functions": 28,
+    "total_constants": 42,
+    "total_classes": 0,
+    "total_interfaces": 13,
+    "total_type_aliases": 9,
+    "total_enums": 0
+  }
+}

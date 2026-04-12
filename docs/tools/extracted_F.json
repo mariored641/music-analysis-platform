@@ -1,0 +1,2059 @@
+{
+  "session": "F",
+  "files": [
+    {
+      "file": "svggenerator.cpp",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\importexport/imagesexport/internal/svggenerator.cpp",
+      "exists": true,
+      "line_count": 1277,
+      "functions": [
+        {
+          "name": "translate_color",
+          "line": 107,
+          "signature": "static void translate_color(const QColor& color, QString* color_string,\n                            QString* opacity_string)"
+        },
+        {
+          "name": "translate_dashPattern",
+          "line": 121,
+          "signature": "static void translate_dashPattern(QVector<qreal> pattern, const qreal& width, QString* pattern_string)"
+        },
+        {
+          "name": "foreach",
+          "line": 126,
+          "signature": "foreach (qreal entry, pattern)"
+        },
+        {
+          "name": "getClass",
+          "line": 134,
+          "signature": "static QString getClass(const mu::engraving::EngravingItem* e)"
+        },
+        {
+          "name": "if",
+          "line": 139,
+          "signature": "if (e == NULL)"
+        },
+        {
+          "name": "SvgPaintEnginePrivate",
+          "line": 151,
+          "signature": "public:\n    SvgPaintEnginePrivate()"
+        },
+        {
+          "name": "svgEngineFeatures",
+          "line": 209,
+          "signature": "static inline QPaintEngine::PaintEngineFeatures svgEngineFeatures()"
+        },
+        {
+          "name": "SvgPaintEngine",
+          "line": 309,
+          "signature": "public:\n    SvgPaintEngine()\n        : QPaintEngine(svgEngineFeatures()),\n        stateStream(&stateString)"
+        },
+        {
+          "name": "drawPolygon",
+          "line": 325,
+          "signature": "void drawPolygon(const QPoint* points, int pointCount, PolygonDrawMode mode)"
+        },
+        {
+          "name": "type",
+          "line": 329,
+          "signature": "QPaintEngine::Type type() const"
+        },
+        {
+          "name": "size",
+          "line": 331,
+          "signature": "QSize size() const"
+        },
+        {
+          "name": "setSize",
+          "line": 332,
+          "signature": "void setSize(const QSize& size)"
+        },
+        {
+          "name": "viewBox",
+          "line": 338,
+          "signature": "QRectF viewBox() const"
+        },
+        {
+          "name": "setViewBox",
+          "line": 339,
+          "signature": "void setViewBox(const QRectF& viewBox)"
+        },
+        {
+          "name": "documentTitle",
+          "line": 345,
+          "signature": "QString documentTitle() const"
+        },
+        {
+          "name": "setDocumentTitle",
+          "line": 346,
+          "signature": "void setDocumentTitle(const QString& title)"
+        },
+        {
+          "name": "documentDescription",
+          "line": 351,
+          "signature": "QString documentDescription() const"
+        },
+        {
+          "name": "setDocumentDescription",
+          "line": 352,
+          "signature": "void setDocumentDescription(const QString& description)"
+        },
+        {
+          "name": "outputDevice",
+          "line": 357,
+          "signature": "QIODevice* outputDevice() const"
+        },
+        {
+          "name": "setOutputDevice",
+          "line": 358,
+          "signature": "void setOutputDevice(QIODevice* device)"
+        },
+        {
+          "name": "resolution",
+          "line": 364,
+          "signature": "int resolution()"
+        },
+        {
+          "name": "setResolution",
+          "line": 365,
+          "signature": "void setResolution(int resolution)"
+        },
+        {
+          "name": "stream",
+          "line": 469,
+          "signature": "inline QTextStream& stream()"
+        },
+        {
+          "name": "qpenToSvg",
+          "line": 477,
+          "signature": "const QString qpenToSvg(const QPen& spen)"
+        },
+        {
+          "name": "switch",
+          "line": 485,
+          "signature": "switch (spen.style())"
+        },
+        {
+          "name": "if",
+          "line": 504,
+          "signature": "if (colorOpacity != SVG_ONE)"
+        },
+        {
+          "name": "if",
+          "line": 509,
+          "signature": "if (spen.style() == Qt::SolidLine)"
+        },
+        {
+          "name": "if",
+          "line": 529,
+          "signature": "if (spen.widthF() > 0 && spen.widthF() != 1)"
+        },
+        {
+          "name": "switch",
+          "line": 537,
+          "signature": "switch (spen.capStyle())"
+        },
+        {
+          "name": "switch",
+          "line": 553,
+          "signature": "switch (spen.joinStyle())"
+        },
+        {
+          "name": "if",
+          "line": 570,
+          "signature": "if (spen.isCosmetic())"
+        },
+        {
+          "name": "qbrushToSvg",
+          "line": 580,
+          "signature": "const QString  qbrushToSvg(const QBrush& sbrush)"
+        },
+        {
+          "name": "switch",
+          "line": 587,
+          "signature": "switch (sbrush.style())"
+        },
+        {
+          "name": "if",
+          "line": 592,
+          "signature": "if (color != SVG_BLACK)"
+        },
+        {
+          "name": "if",
+          "line": 597,
+          "signature": "if (colorOpacity != SVG_ONE)"
+        },
+        {
+          "name": "d_ptr",
+          "line": 735,
+          "signature": ": d_ptr(new SvgGeneratorPrivate)"
+        },
+        {
+          "name": "if",
+          "line": 749,
+          "signature": "if (d->owns_iodevice)"
+        },
+        {
+          "name": "SvgGenerator::title",
+          "line": 761,
+          "signature": "QString SvgGenerator::title() const"
+        },
+        {
+          "name": "SvgGenerator::setTitle",
+          "line": 768,
+          "signature": "void SvgGenerator::setTitle(const QString& title)"
+        },
+        {
+          "name": "SvgGenerator::description",
+          "line": 781,
+          "signature": "QString SvgGenerator::description() const"
+        },
+        {
+          "name": "SvgGenerator::setDescription",
+          "line": 788,
+          "signature": "void SvgGenerator::setDescription(const QString& description)"
+        },
+        {
+          "name": "SvgGenerator::size",
+          "line": 809,
+          "signature": "QSize SvgGenerator::size() const"
+        },
+        {
+          "name": "SvgGenerator::setSize",
+          "line": 815,
+          "signature": "void SvgGenerator::setSize(const QSize& size)"
+        },
+        {
+          "name": "if",
+          "line": 818,
+          "signature": "if (d->engine->isActive())"
+        },
+        {
+          "name": "SvgGenerator::viewBoxF",
+          "line": 839,
+          "signature": "QRectF SvgGenerator::viewBoxF() const"
+        },
+        {
+          "name": "viewBoxF",
+          "line": 848,
+          "signature": "Returns viewBoxF().toRect().\n\n    \\sa viewBoxF()\n*/\nQRect SvgGenerator::viewBox() const"
+        },
+        {
+          "name": "SvgGenerator::setViewBox",
+          "line": 858,
+          "signature": "void SvgGenerator::setViewBox(const QRectF& viewBox)"
+        },
+        {
+          "name": "if",
+          "line": 861,
+          "signature": "if (d->engine->isActive())"
+        },
+        {
+          "name": "SvgGenerator::setViewBox",
+          "line": 868,
+          "signature": "void SvgGenerator::setViewBox(const QRect& viewBox)"
+        },
+        {
+          "name": "SvgGenerator::fileName",
+          "line": 880,
+          "signature": "QString SvgGenerator::fileName() const"
+        },
+        {
+          "name": "SvgGenerator::setFileName",
+          "line": 886,
+          "signature": "void SvgGenerator::setFileName(const QString& fileName)"
+        },
+        {
+          "name": "if",
+          "line": 889,
+          "signature": "if (d->engine->isActive())"
+        },
+        {
+          "name": "if",
+          "line": 894,
+          "signature": "if (d->owns_iodevice)"
+        },
+        {
+          "name": "SvgGenerator::outputDevice",
+          "line": 915,
+          "signature": "QIODevice* SvgGenerator::outputDevice() const"
+        },
+        {
+          "name": "SvgGenerator::setOutputDevice",
+          "line": 921,
+          "signature": "void SvgGenerator::setOutputDevice(QIODevice* outputDevice)"
+        },
+        {
+          "name": "if",
+          "line": 924,
+          "signature": "if (d->engine->isActive())"
+        },
+        {
+          "name": "SvgGenerator::resolution",
+          "line": 943,
+          "signature": "int SvgGenerator::resolution() const"
+        },
+        {
+          "name": "SvgGenerator::setResolution",
+          "line": 949,
+          "signature": "void SvgGenerator::setResolution(int dpi)"
+        },
+        {
+          "name": "SvgGenerator::paintEngine",
+          "line": 959,
+          "signature": "QPaintEngine* SvgGenerator::paintEngine() const"
+        },
+        {
+          "name": "SvgGenerator::metric",
+          "line": 968,
+          "signature": "int SvgGenerator::metric(QPaintDevice::PaintDeviceMetric metric) const"
+        },
+        {
+          "name": "switch",
+          "line": 971,
+          "signature": "switch (metric)"
+        },
+        {
+          "name": "setElement",
+          "line": 1003,
+          "signature": "setElement() function\n    Sets the _element variable in SvgPaintEngine.\n    Called by saveSVG() in mscore/file.cpp.\n*/\nvoid SvgGenerator::setElement(const mu::engraving::EngravingItem* e)"
+        },
+        {
+          "name": "SvgPaintEngine::begin",
+          "line": 1016,
+          "signature": "bool SvgPaintEngine::begin(QPaintDevice*)"
+        },
+        {
+          "name": "if",
+          "line": 1021,
+          "signature": "if (!d->outputDevice)"
+        },
+        {
+          "name": "if",
+          "line": 1025,
+          "signature": "if (!d->outputDevice->isOpen())"
+        },
+        {
+          "name": "if",
+          "line": 1026,
+          "signature": "if (!d->outputDevice->open(QIODevice::WriteOnly | QIODevice::Text))"
+        },
+        {
+          "name": "if",
+          "line": 1040,
+          "signature": "if (d->viewBox.isValid())"
+        },
+        {
+          "name": "if",
+          "line": 1053,
+          "signature": "if (!d->attributes.title.isEmpty())"
+        },
+        {
+          "name": "if",
+          "line": 1056,
+          "signature": "if (!d->attributes.description.isEmpty())"
+        },
+        {
+          "name": "SvgPaintEngine::end",
+          "line": 1069,
+          "signature": "bool SvgPaintEngine::end()"
+        },
+        {
+          "name": "SvgPaintEngine::drawPixmap",
+          "line": 1094,
+          "signature": "void SvgPaintEngine::drawPixmap(const QRectF& r, const QPixmap& pm,\n                                const QRectF& sr)"
+        },
+        {
+          "name": "SvgPaintEngine::drawImage",
+          "line": 1100,
+          "signature": "void SvgPaintEngine::drawImage(const QRectF& r, const QImage& image,\n                               const QRectF& sr, Qt::ImageConversionFlags flags)"
+        },
+        {
+          "name": "if",
+          "line": 1115,
+          "signature": "if (_element && _element->isImage())"
+        },
+        {
+          "name": "if",
+          "line": 1123,
+          "signature": "if (img->getImageType() == mu::engraving::ImageType::RASTER && storeItem)"
+        },
+        {
+          "name": "if",
+          "line": 1127,
+          "signature": "if (type.isValid() && allowedImageTypes.contains(type.name())\n                && imgData.size() < data.size())"
+        },
+        {
+          "name": "SvgPaintEngine::writeImage",
+          "line": 1139,
+          "signature": "void SvgPaintEngine::writeImage(const QRectF& r, const QByteArray& imageData, const QString& mimeFormat)"
+        },
+        {
+          "name": "SvgPaintEngine::updateState",
+          "line": 1152,
+          "signature": "void SvgPaintEngine::updateState(const QPaintEngineState& s)"
+        },
+        {
+          "name": "if",
+          "line": 1170,
+          "signature": "if (!qFuzzyIsNull(s.opacity() - 1))"
+        },
+        {
+          "name": "if",
+          "line": 1186,
+          "signature": "if (m11 == 1 && m22 == 1   // No scaling\n        && t.m12() == t.m21())"
+        },
+        {
+          "name": "SvgPaintEngine::drawPath",
+          "line": 1204,
+          "signature": "void SvgPaintEngine::drawPath(const QPainterPath& p)"
+        },
+        {
+          "name": "if",
+          "line": 1210,
+          "signature": "if (p.fillRule() == Qt::OddEvenFill)"
+        },
+        {
+          "name": "switch",
+          "line": 1220,
+          "signature": "switch (e.type)"
+        },
+        {
+          "name": "while",
+          "line": 1230,
+          "signature": "while (i < p.elementCount())"
+        },
+        {
+          "name": "if",
+          "line": 1232,
+          "signature": "if (ee.type == QPainterPath::CurveToDataElement)"
+        },
+        {
+          "name": "if",
+          "line": 1245,
+          "signature": "if (i <= p.elementCount() - 1)"
+        },
+        {
+          "name": "SvgPaintEngine::drawPolygon",
+          "line": 1252,
+          "signature": "void SvgPaintEngine::drawPolygon(const QPointF* points, int pointCount,\n                                 PolygonDrawMode mode)"
+        },
+        {
+          "name": "if",
+          "line": 1262,
+          "signature": "if (mode == PolylineMode)"
+        },
+        {
+          "name": "if",
+          "line": 1268,
+          "signature": "if (i != pointCount - 1)"
+        }
+      ],
+      "constants": [
+        {
+          "name": "spacing",
+          "value": "qreal(0.02)",
+          "line": 422
+        },
+        {
+          "name": "m11",
+          "value": "qRound(t.m11() * 1000) / 1000.0",
+          "line": 1183
+        },
+        {
+          "name": "m22",
+          "value": "qRound(t.m22() * 1000) / 1000.0",
+          "line": 1184
+        },
+        {
+          "name": "SVG_SPACE",
+          "value": "' '",
+          "line": 241,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_QUOTE",
+          "value": "\"",
+          "line": 242,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_COMMA",
+          "value": "\",\"",
+          "line": 243,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_GT",
+          "value": "\">\"",
+          "line": 244,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_PX",
+          "value": "\"px\"",
+          "line": 245,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_NONE",
+          "value": "\"none\"",
+          "line": 246,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_EVENODD",
+          "value": "\"evenodd\"",
+          "line": 247,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_BUTT",
+          "value": "\"butt\"",
+          "line": 248,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_SQUARE",
+          "value": "\"square\"",
+          "line": 249,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_ROUND",
+          "value": "\"round\"",
+          "line": 250,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_MITER",
+          "value": "\"miter\"",
+          "line": 251,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_BEVEL",
+          "value": "\"bevel\"",
+          "line": 252,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_ONE",
+          "value": "\"1\"",
+          "line": 253,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_BLACK",
+          "value": "\"#000000\"",
+          "line": 254,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_BEGIN",
+          "value": "\"<svg\"",
+          "line": 256,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_END",
+          "value": "\"</svg>\"",
+          "line": 257,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_WIDTH",
+          "value": "\" width=",
+          "line": 259,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_HEIGHT",
+          "value": "\" height=",
+          "line": 260,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_VIEW_BOX",
+          "value": "\" viewBox=",
+          "line": 261,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_X",
+          "value": "\" x=\"",
+          "line": 263,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_Y",
+          "value": "\" y=\"",
+          "line": 264,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_POINTS",
+          "value": "\" points=",
+          "line": 266,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_D",
+          "value": "\" d=",
+          "line": 267,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_MOVE",
+          "value": "'M'",
+          "line": 268,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_LINE",
+          "value": "'L'",
+          "line": 269,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_CURVE",
+          "value": "'C'",
+          "line": 270,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_CLASS",
+          "value": "\" class=",
+          "line": 272,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_ELEMENT_END",
+          "value": "\"/>\"",
+          "line": 274,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_RPAREN_QUOTE",
+          "value": "\")",
+          "line": 275,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_TITLE_BEGIN",
+          "value": "\"<title>\"",
+          "line": 277,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_TITLE_END",
+          "value": "\"</title>\"",
+          "line": 278,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_DESC_BEGIN",
+          "value": "\"<desc>\"",
+          "line": 279,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_DESC_END",
+          "value": "\"</desc>\"",
+          "line": 280,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_IMAGE",
+          "value": "\"<image\"",
+          "line": 282,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_PATH",
+          "value": "\"<path\"",
+          "line": 283,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_POLYLINE",
+          "value": "\"<polyline\"",
+          "line": 284,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_PRESERVE_ASPECT",
+          "value": "\" preserveAspectRatio=",
+          "line": 286,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_FILL",
+          "value": "\" fill=",
+          "line": 288,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_STROKE",
+          "value": "\" stroke=",
+          "line": 289,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_STROKE_WIDTH",
+          "value": "\" stroke-width=",
+          "line": 290,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_STROKE_LINECAP",
+          "value": "\" stroke-linecap=",
+          "line": 291,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_STROKE_LINEJOIN",
+          "value": "\" stroke-linejoin=",
+          "line": 292,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_STROKE_DASHARRAY",
+          "value": "\" stroke-dasharray=",
+          "line": 293,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_STROKE_DASHOFFSET",
+          "value": "\" stroke-dashoffset=",
+          "line": 294,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_STROKE_MITERLIMIT",
+          "value": "\" stroke-miterlimit=",
+          "line": 295,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_OPACITY",
+          "value": "\" opacity=",
+          "line": 297,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_FILL_OPACITY",
+          "value": "\" fill-opacity=",
+          "line": 298,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_STROKE_OPACITY",
+          "value": "\" stroke-opacity=",
+          "line": 299,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_FONT_FAMILY",
+          "value": "\" font-family=",
+          "line": 301,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_FONT_SIZE",
+          "value": "\" font-size=",
+          "line": 302,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_FILL_RULE",
+          "value": "\" fill-rule=",
+          "line": 304,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_VECTOR_EFFECT",
+          "value": "\" vector-effect=",
+          "line": 305,
+          "kind": "define"
+        },
+        {
+          "name": "SVG_MATRIX",
+          "value": "\" transform=",
+          "line": 307,
+          "kind": "define"
+        }
+      ],
+      "arrays": [],
+      "enums": [],
+      "structs": [
+        {
+          "name": "_attributes",
+          "line": 195
+        }
+      ],
+      "magic_numbers": [
+        {
+          "line": 697,
+          "values": [
+            "4.3"
+          ],
+          "context": "\\since 4.3"
+        },
+        {
+          "line": 758,
+          "values": [
+            "4.5"
+          ],
+          "context": "\\since 4.5"
+        },
+        {
+          "line": 778,
+          "values": [
+            "4.5"
+          ],
+          "context": "\\since 4.5"
+        },
+        {
+          "line": 798,
+          "values": [
+            "4.5"
+          ],
+          "context": "\\since 4.5"
+        },
+        {
+          "line": 828,
+          "values": [
+            "4.5"
+          ],
+          "context": "\\since 4.5"
+        },
+        {
+          "line": 846,
+          "values": [
+            "4.5"
+          ],
+          "context": "\\since 4.5"
+        },
+        {
+          "line": 876,
+          "values": [
+            "4.5"
+          ],
+          "context": "\\since 4.5"
+        },
+        {
+          "line": 908,
+          "values": [
+            "4.5"
+          ],
+          "context": "\\since 4.5"
+        },
+        {
+          "line": 936,
+          "values": [
+            "4.5"
+          ],
+          "context": "\\since 4.5"
+        },
+        {
+          "line": 1183,
+          "values": [
+            "1000.0"
+          ],
+          "context": "const qreal m11 = qRound(t.m11() * 1000) / 1000.0;"
+        },
+        {
+          "line": 1184,
+          "values": [
+            "1000.0"
+          ],
+          "context": "const qreal m22 = qRound(t.m22() * 1000) / 1000.0;"
+        }
+      ]
+    },
+    {
+      "file": "svggenerator.h",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\importexport/imagesexport/internal/svggenerator.h",
+      "exists": true,
+      "line_count": 98,
+      "functions": [],
+      "constants": [
+        {
+          "name": "SVGGENERATOR_H",
+          "value": "#include <QtGui/qpaintdevice.h>",
+          "line": 24,
+          "kind": "define"
+        }
+      ],
+      "arrays": [],
+      "enums": [],
+      "structs": [],
+      "magic_numbers": []
+    },
+    {
+      "file": "svgwriter.cpp",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\importexport/imagesexport/internal/svgwriter.cpp",
+      "exists": true,
+      "line_count": 248,
+      "functions": [
+        {
+          "name": "SvgWriter::supportedUnitTypes",
+          "line": 45,
+          "signature": "std::vector<INotationWriter::UnitType> SvgWriter::supportedUnitTypes() const"
+        },
+        {
+          "name": "SvgWriter::write",
+          "line": 50,
+          "signature": "mu::Ret SvgWriter::write(INotationPtr notation, QIODevice& destinationDevice, const Options& options)"
+        },
+        {
+          "name": "IF_ASSERT_FAILED",
+          "line": 52,
+          "signature": "IF_ASSERT_FAILED(notation)"
+        },
+        {
+          "name": "IF_ASSERT_FAILED",
+          "line": 57,
+          "signature": "IF_ASSERT_FAILED(score)"
+        },
+        {
+          "name": "if",
+          "line": 70,
+          "signature": "if (PAGE_NUMBER >= pages.size())"
+        },
+        {
+          "name": "if",
+          "line": 84,
+          "signature": "if (TRIM_MARGIN_SIZE >= 0)"
+        },
+        {
+          "name": "if",
+          "line": 95,
+          "signature": "if (TRIM_MARGIN_SIZE >= 0)"
+        },
+        {
+          "name": "if",
+          "line": 101,
+          "signature": "if (!options[OptionKey::TRANSPARENT_BACKGROUND].toBool())"
+        },
+        {
+          "name": "for",
+          "line": 106,
+          "signature": "for (const mu::engraving::System* system : page->systems())"
+        },
+        {
+          "name": "if",
+          "line": 110,
+          "signature": "if (score->staff(staffIndex)->isLinesInvisible(mu::engraving::Fraction(0, 1)) || !score->staff(staffIndex)->show())"
+        },
+        {
+          "name": "if",
+          "line": 114,
+          "signature": "if (system->staves().empty() || !system->staff(staffIndex)->show())"
+        },
+        {
+          "name": "if",
+          "line": 119,
+          "signature": "if (!firstMeasure)"
+        },
+        {
+          "name": "if",
+          "line": 137,
+          "signature": "if (!measure->isMeasure() || !mu::engraving::toMeasure(measure)->visible(staffIndex))"
+        },
+        {
+          "name": "if",
+          "line": 143,
+          "signature": "if (byMeasure)"
+        },
+        {
+          "name": "if",
+          "line": 145,
+          "signature": "if (measure->isMeasure() && mu::engraving::toMeasure(measure)->visible(staffIndex))"
+        },
+        {
+          "name": "for",
+          "line": 173,
+          "signature": "for (const mu::engraving::RepeatSegment* repeatSegment : score->repeatList())"
+        },
+        {
+          "name": "for",
+          "line": 174,
+          "signature": "for (const mu::engraving::Measure* measure : repeatSegment->measureList())"
+        },
+        {
+          "name": "if",
+          "line": 176,
+          "signature": "if (!segment->isChordRestType())"
+        },
+        {
+          "name": "if",
+          "line": 180,
+          "signature": "if (beatsColors.contains(beatIndex))"
+        },
+        {
+          "name": "for",
+          "line": 181,
+          "signature": "for (EngravingItem* element : segment->elist())"
+        },
+        {
+          "name": "if",
+          "line": 182,
+          "signature": "if (!element)"
+        },
+        {
+          "name": "if",
+          "line": 186,
+          "signature": "if (element->isChord())"
+        },
+        {
+          "name": "for",
+          "line": 187,
+          "signature": "for (Note* note : toChord(element)->notes())"
+        },
+        {
+          "name": "for",
+          "line": 205,
+          "signature": "for (const mu::engraving::EngravingItem* element : elements)"
+        },
+        {
+          "name": "if",
+          "line": 207,
+          "signature": "if (!element->visible())"
+        },
+        {
+          "name": "switch",
+          "line": 212,
+          "signature": "switch (type)"
+        },
+        {
+          "name": "SvgWriter::parseBeatsColors",
+          "line": 238,
+          "signature": "SvgWriter::BeatsColors SvgWriter::parseBeatsColors(const QVariant& obj) const"
+        },
+        {
+          "name": "for",
+          "line": 243,
+          "signature": "for (const QString& beatNumber : map.keys())"
+        }
+      ],
+      "constants": [
+        {
+          "name": "PAGE_NUMBER",
+          "value": "options.value(OptionKey::PAGE_NUMBER, Val(0)).toInt()",
+          "line": 69
+        },
+        {
+          "name": "TRIM_MARGIN_SIZE",
+          "value": "configuration()->trimMarginPixelSize()",
+          "line": 81
+        }
+      ],
+      "arrays": [],
+      "enums": [],
+      "structs": [],
+      "magic_numbers": []
+    },
+    {
+      "file": "svgwriter.h",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\importexport/imagesexport/internal/svgwriter.h",
+      "exists": true,
+      "line_count": 47,
+      "functions": [],
+      "constants": [
+        {
+          "name": "MU_IMPORTEXPORT_SVGWRITER_H",
+          "value": "#include \"abstractimagewriter.h\"",
+          "line": 24,
+          "kind": "define"
+        }
+      ],
+      "arrays": [],
+      "enums": [],
+      "structs": [],
+      "magic_numbers": []
+    },
+    {
+      "file": "painter.cpp",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\framework/draw/painter.cpp",
+      "exists": true,
+      "line_count": 531,
+      "functions": [
+        {
+          "name": "m_provider",
+          "line": 39,
+          "signature": ": m_provider(provider), m_name(name)"
+        },
+        {
+          "name": "m_name",
+          "line": 46,
+          "signature": ": m_name(name)"
+        },
+        {
+          "name": "m_name",
+          "line": 53,
+          "signature": ": m_name(name)"
+        },
+        {
+          "name": "Painter::init",
+          "line": 66,
+          "signature": "void Painter::init()"
+        },
+        {
+          "name": "if",
+          "line": 77,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::provider",
+          "line": 82,
+          "signature": "IPaintProviderPtr Painter::provider() const"
+        },
+        {
+          "name": "Painter::setProvider",
+          "line": 87,
+          "signature": "void Painter::setProvider(const IPaintProviderPtr& p, bool reinit)"
+        },
+        {
+          "name": "if",
+          "line": 90,
+          "signature": "if (reinit)"
+        },
+        {
+          "name": "Painter::endDraw",
+          "line": 95,
+          "signature": "bool Painter::endDraw()"
+        },
+        {
+          "name": "Painter::endTarget",
+          "line": 100,
+          "signature": "bool Painter::endTarget(bool endDraw)"
+        },
+        {
+          "name": "if",
+          "line": 103,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "if",
+          "line": 108,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::isActive",
+          "line": 114,
+          "signature": "bool Painter::isActive() const"
+        },
+        {
+          "name": "Painter::beginObject",
+          "line": 119,
+          "signature": "void Painter::beginObject(const std::string& name, const PointF& pagePos)"
+        },
+        {
+          "name": "if",
+          "line": 122,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::endObject",
+          "line": 127,
+          "signature": "void Painter::endObject()"
+        },
+        {
+          "name": "if",
+          "line": 130,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::setAntialiasing",
+          "line": 135,
+          "signature": "void Painter::setAntialiasing(bool arg)"
+        },
+        {
+          "name": "if",
+          "line": 138,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::setCompositionMode",
+          "line": 143,
+          "signature": "void Painter::setCompositionMode(CompositionMode mode)"
+        },
+        {
+          "name": "if",
+          "line": 146,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::setFont",
+          "line": 151,
+          "signature": "void Painter::setFont(const Font& font)"
+        },
+        {
+          "name": "if",
+          "line": 154,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::font",
+          "line": 159,
+          "signature": "const Font& Painter::font() const"
+        },
+        {
+          "name": "Painter::setPen",
+          "line": 164,
+          "signature": "void Painter::setPen(const Pen& pen)"
+        },
+        {
+          "name": "if",
+          "line": 167,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::setNoPen",
+          "line": 172,
+          "signature": "void Painter::setNoPen()"
+        },
+        {
+          "name": "Painter::pen",
+          "line": 177,
+          "signature": "const Pen& Painter::pen() const"
+        },
+        {
+          "name": "Painter::setBrush",
+          "line": 182,
+          "signature": "void Painter::setBrush(const Brush& brush)"
+        },
+        {
+          "name": "if",
+          "line": 185,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::brush",
+          "line": 190,
+          "signature": "const Brush& Painter::brush() const"
+        },
+        {
+          "name": "Painter::save",
+          "line": 195,
+          "signature": "void Painter::save()"
+        },
+        {
+          "name": "if",
+          "line": 201,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::restore",
+          "line": 206,
+          "signature": "void Painter::restore()"
+        },
+        {
+          "name": "if",
+          "line": 208,
+          "signature": "if (m_states.size() > 0)"
+        },
+        {
+          "name": "if",
+          "line": 213,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::setWorldTransform",
+          "line": 218,
+          "signature": "void Painter::setWorldTransform(const Transform& matrix, bool combine)"
+        },
+        {
+          "name": "if",
+          "line": 221,
+          "signature": "if (combine)"
+        },
+        {
+          "name": "Painter::worldTransform",
+          "line": 230,
+          "signature": "const Transform& Painter::worldTransform() const"
+        },
+        {
+          "name": "Painter::scale",
+          "line": 235,
+          "signature": "void Painter::scale(double sx, double sy)"
+        },
+        {
+          "name": "Painter::rotate",
+          "line": 243,
+          "signature": "void Painter::rotate(double angle)"
+        },
+        {
+          "name": "Painter::translate",
+          "line": 251,
+          "signature": "void Painter::translate(double dx, double dy)"
+        },
+        {
+          "name": "Painter::window",
+          "line": 259,
+          "signature": "RectF Painter::window() const"
+        },
+        {
+          "name": "Painter::setWindow",
+          "line": 264,
+          "signature": "void Painter::setWindow(const RectF& window)"
+        },
+        {
+          "name": "Painter::viewport",
+          "line": 272,
+          "signature": "RectF Painter::viewport() const"
+        },
+        {
+          "name": "Painter::setViewport",
+          "line": 277,
+          "signature": "void Painter::setViewport(const RectF& viewport)"
+        },
+        {
+          "name": "Painter::fillPath",
+          "line": 287,
+          "signature": "void Painter::fillPath(const PainterPath& path, const Brush& brush)"
+        },
+        {
+          "name": "Painter::strokePath",
+          "line": 300,
+          "signature": "void Painter::strokePath(const PainterPath& path, const Pen& pen)"
+        },
+        {
+          "name": "Painter::drawPath",
+          "line": 313,
+          "signature": "void Painter::drawPath(const PainterPath& path)"
+        },
+        {
+          "name": "if",
+          "line": 316,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::drawLines",
+          "line": 321,
+          "signature": "void Painter::drawLines(const LineF* lines, size_t lineCount)"
+        },
+        {
+          "name": "if",
+          "line": 325,
+          "signature": "if (pts[0] == pts[1])"
+        },
+        {
+          "name": "Painter::drawLines",
+          "line": 332,
+          "signature": "void Painter::drawLines(const PointF* pointPairs, size_t lineCount)"
+        },
+        {
+          "name": "Painter::drawRects",
+          "line": 339,
+          "signature": "void Painter::drawRects(const RectF* rects, size_t rectCount)"
+        },
+        {
+          "name": "if",
+          "line": 344,
+          "signature": "if (path.isEmpty())"
+        },
+        {
+          "name": "Painter::drawEllipse",
+          "line": 351,
+          "signature": "void Painter::drawEllipse(const RectF& rect)"
+        },
+        {
+          "name": "if",
+          "line": 356,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::drawPolyline",
+          "line": 361,
+          "signature": "void Painter::drawPolyline(const PointF* points, size_t pointCount)"
+        },
+        {
+          "name": "if",
+          "line": 364,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::drawPolygon",
+          "line": 369,
+          "signature": "void Painter::drawPolygon(const PointF* points, size_t pointCount, FillRule fillRule)"
+        },
+        {
+          "name": "if",
+          "line": 373,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::drawConvexPolygon",
+          "line": 378,
+          "signature": "void Painter::drawConvexPolygon(const PointF* points, size_t pointCount)"
+        },
+        {
+          "name": "if",
+          "line": 381,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::drawArc",
+          "line": 386,
+          "signature": "void Painter::drawArc(const RectF& r, int a, int alen)"
+        },
+        {
+          "name": "Painter::drawRoundedRect",
+          "line": 398,
+          "signature": "void Painter::drawRoundedRect(const RectF& rect, double xRadius, double yRadius)"
+        },
+        {
+          "name": "if",
+          "line": 400,
+          "signature": "if (xRadius <= 0 || yRadius <= 0)"
+        },
+        {
+          "name": "Painter::drawText",
+          "line": 410,
+          "signature": "void Painter::drawText(const PointF& point, const String& text)"
+        },
+        {
+          "name": "if",
+          "line": 413,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::drawText",
+          "line": 418,
+          "signature": "void Painter::drawText(const RectF& rect, int flags, const String& text)"
+        },
+        {
+          "name": "if",
+          "line": 421,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::drawTextWorkaround",
+          "line": 426,
+          "signature": "void Painter::drawTextWorkaround(Font& f, const PointF pos, const String& text)"
+        },
+        {
+          "name": "if",
+          "line": 429,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::drawSymbol",
+          "line": 434,
+          "signature": "void Painter::drawSymbol(const PointF& point, char32_t ucs4Code)"
+        },
+        {
+          "name": "if",
+          "line": 437,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::fillRect",
+          "line": 442,
+          "signature": "void Painter::fillRect(const RectF& rect, const Brush& brush)"
+        },
+        {
+          "name": "Painter::drawPixmap",
+          "line": 455,
+          "signature": "void Painter::drawPixmap(const PointF& point, const Pixmap& pm)"
+        },
+        {
+          "name": "if",
+          "line": 458,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::drawTiledPixmap",
+          "line": 463,
+          "signature": "void Painter::drawTiledPixmap(const RectF& rect, const Pixmap& pm, const PointF& offset)"
+        },
+        {
+          "name": "if",
+          "line": 466,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::drawPixmap",
+          "line": 472,
+          "signature": "void Painter::drawPixmap(const PointF& point, const QPixmap& pm)"
+        },
+        {
+          "name": "if",
+          "line": 475,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::drawTiledPixmap",
+          "line": 480,
+          "signature": "void Painter::drawTiledPixmap(const RectF& rect, const QPixmap& pm, const PointF& offset)"
+        },
+        {
+          "name": "if",
+          "line": 483,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::editableState",
+          "line": 490,
+          "signature": "Painter::State& Painter::editableState()"
+        },
+        {
+          "name": "Painter::state",
+          "line": 495,
+          "signature": "const Painter::State& Painter::state() const"
+        },
+        {
+          "name": "Painter::updateViewTransform",
+          "line": 500,
+          "signature": "void Painter::updateViewTransform()"
+        },
+        {
+          "name": "Painter::updateMatrix",
+          "line": 509,
+          "signature": "void Painter::updateMatrix()"
+        },
+        {
+          "name": "if",
+          "line": 513,
+          "signature": "if (st.isVxF)"
+        },
+        {
+          "name": "if",
+          "line": 518,
+          "signature": "if (extended)"
+        },
+        {
+          "name": "Painter::setClipRect",
+          "line": 523,
+          "signature": "void Painter::setClipRect(const RectF& rect)"
+        },
+        {
+          "name": "Painter::setClipping",
+          "line": 528,
+          "signature": "void Painter::setClipping(bool enable)"
+        }
+      ],
+      "constants": [],
+      "arrays": [],
+      "enums": [],
+      "structs": [],
+      "magic_numbers": [
+        {
+          "line": 393,
+          "values": [
+            "16.0"
+          ],
+          "context": "path.arcMoveTo(rect, a / 16.0);"
+        },
+        {
+          "line": 394,
+          "values": [
+            "16.0",
+            "16.0"
+          ],
+          "context": "path.arcTo(rect, a / 16.0, alen / 16.0);"
+        }
+      ]
+    },
+    {
+      "file": "painter.h",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\framework/draw/painter.h",
+      "exists": true,
+      "line_count": 300,
+      "functions": [
+        {
+          "name": "Painter::setPen",
+          "line": 203,
+          "signature": "inline void Painter::setPen(const Color& color)"
+        },
+        {
+          "name": "Painter::translate",
+          "line": 208,
+          "signature": "inline void Painter::translate(const PointF& offset)"
+        },
+        {
+          "name": "Painter::drawLine",
+          "line": 213,
+          "signature": "inline void Painter::drawLine(const LineF& l)"
+        },
+        {
+          "name": "Painter::drawLine",
+          "line": 218,
+          "signature": "inline void Painter::drawLine(const PointF& p1, const PointF& p2)"
+        },
+        {
+          "name": "Painter::drawLine",
+          "line": 223,
+          "signature": "inline void Painter::drawLine(int x1, int y1, int x2, int y2)"
+        },
+        {
+          "name": "Painter::drawLines",
+          "line": 229,
+          "signature": "inline void Painter::drawLines(const std::vector<LineF>& lines)"
+        },
+        {
+          "name": "Painter::drawRect",
+          "line": 234,
+          "signature": "inline void Painter::drawRect(const RectF& rect)"
+        },
+        {
+          "name": "Painter::drawRect",
+          "line": 239,
+          "signature": "inline void Painter::drawRect(int x, int y, int w, int h)"
+        },
+        {
+          "name": "Painter::drawEllipse",
+          "line": 245,
+          "signature": "inline void Painter::drawEllipse(const PointF& center, double rx, double ry)"
+        },
+        {
+          "name": "Painter::drawPolyline",
+          "line": 250,
+          "signature": "inline void Painter::drawPolyline(const PolygonF& polyline)"
+        },
+        {
+          "name": "Painter::drawPolygon",
+          "line": 255,
+          "signature": "inline void Painter::drawPolygon(const PolygonF& polygon, FillRule fillRule)"
+        },
+        {
+          "name": "Painter::drawConvexPolygon",
+          "line": 260,
+          "signature": "inline void Painter::drawConvexPolygon(const PolygonF& poly)"
+        },
+        {
+          "name": "Painter::drawText",
+          "line": 265,
+          "signature": "inline void Painter::drawText(int x, int y, const String& text)"
+        },
+        {
+          "name": "PainterObjMarker",
+          "line": 272,
+          "signature": "public:\n    PainterObjMarker(Painter* p, const std::string& name, const PointF& objPagePos)\n        : m_painter(p)"
+        }
+      ],
+      "constants": [
+        {
+          "name": "MU_DRAW_PAINTER_H",
+          "value": "#include <list>",
+          "line": 23,
+          "kind": "define"
+        },
+        {
+          "name": "TRACE_OBJ_DRAW",
+          "value": "#define TRACE_OBJ_DRAW_C(painter, objName, objPagePos)",
+          "line": 295,
+          "kind": "define"
+        }
+      ],
+      "arrays": [],
+      "enums": [],
+      "structs": [
+        {
+          "name": "State",
+          "line": 180
+        }
+      ],
+      "magic_numbers": []
+    },
+    {
+      "file": "bufferedpaintprovider.cpp",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\framework/draw/bufferedpaintprovider.cpp",
+      "exists": true,
+      "line_count": 281,
+      "functions": [
+        {
+          "name": "BufferedPaintProvider::beginTarget",
+          "line": 42,
+          "signature": "void BufferedPaintProvider::beginTarget(const std::string& name)"
+        },
+        {
+          "name": "BufferedPaintProvider::beforeEndTargetHook",
+          "line": 50,
+          "signature": "void BufferedPaintProvider::beforeEndTargetHook(Painter*)"
+        },
+        {
+          "name": "BufferedPaintProvider::endTarget",
+          "line": 54,
+          "signature": "bool BufferedPaintProvider::endTarget(bool endDraw)"
+        },
+        {
+          "name": "if",
+          "line": 57,
+          "signature": "if (m_isActive)"
+        },
+        {
+          "name": "BufferedPaintProvider::isActive",
+          "line": 64,
+          "signature": "bool BufferedPaintProvider::isActive() const"
+        },
+        {
+          "name": "BufferedPaintProvider::beginObject",
+          "line": 69,
+          "signature": "void BufferedPaintProvider::beginObject(const std::string& name, const PointF& pagePos)"
+        },
+        {
+          "name": "BufferedPaintProvider::endObject",
+          "line": 79,
+          "signature": "void BufferedPaintProvider::endObject()"
+        },
+        {
+          "name": "if",
+          "line": 85,
+          "signature": "if (!obj.datas.empty() && obj.datas.back().empty())"
+        },
+        {
+          "name": "BufferedPaintProvider::currentData",
+          "line": 100,
+          "signature": "const DrawData::Data& BufferedPaintProvider::currentData() const"
+        },
+        {
+          "name": "BufferedPaintProvider::currentState",
+          "line": 105,
+          "signature": "const DrawData::State& BufferedPaintProvider::currentState() const"
+        },
+        {
+          "name": "BufferedPaintProvider::editableData",
+          "line": 110,
+          "signature": "DrawData::Data& BufferedPaintProvider::editableData()"
+        },
+        {
+          "name": "BufferedPaintProvider::editableState",
+          "line": 115,
+          "signature": "DrawData::State& BufferedPaintProvider::editableState()"
+        },
+        {
+          "name": "if",
+          "line": 118,
+          "signature": "if (data.empty())"
+        },
+        {
+          "name": "BufferedPaintProvider::setAntialiasing",
+          "line": 130,
+          "signature": "void BufferedPaintProvider::setAntialiasing(bool arg)"
+        },
+        {
+          "name": "BufferedPaintProvider::setCompositionMode",
+          "line": 135,
+          "signature": "void BufferedPaintProvider::setCompositionMode(CompositionMode mode)"
+        },
+        {
+          "name": "BufferedPaintProvider::setFont",
+          "line": 140,
+          "signature": "void BufferedPaintProvider::setFont(const Font& f)"
+        },
+        {
+          "name": "BufferedPaintProvider::font",
+          "line": 145,
+          "signature": "const Font& BufferedPaintProvider::font() const"
+        },
+        {
+          "name": "BufferedPaintProvider::setPen",
+          "line": 150,
+          "signature": "void BufferedPaintProvider::setPen(const Pen& pen)"
+        },
+        {
+          "name": "BufferedPaintProvider::setNoPen",
+          "line": 155,
+          "signature": "void BufferedPaintProvider::setNoPen()"
+        },
+        {
+          "name": "BufferedPaintProvider::pen",
+          "line": 160,
+          "signature": "const Pen& BufferedPaintProvider::pen() const"
+        },
+        {
+          "name": "BufferedPaintProvider::setBrush",
+          "line": 165,
+          "signature": "void BufferedPaintProvider::setBrush(const Brush& brush)"
+        },
+        {
+          "name": "BufferedPaintProvider::brush",
+          "line": 170,
+          "signature": "const Brush& BufferedPaintProvider::brush() const"
+        },
+        {
+          "name": "BufferedPaintProvider::save",
+          "line": 175,
+          "signature": "void BufferedPaintProvider::save()"
+        },
+        {
+          "name": "BufferedPaintProvider::restore",
+          "line": 179,
+          "signature": "void BufferedPaintProvider::restore()"
+        },
+        {
+          "name": "BufferedPaintProvider::setTransform",
+          "line": 183,
+          "signature": "void BufferedPaintProvider::setTransform(const Transform& transform)"
+        },
+        {
+          "name": "BufferedPaintProvider::transform",
+          "line": 189,
+          "signature": "const Transform& BufferedPaintProvider::transform() const"
+        },
+        {
+          "name": "BufferedPaintProvider::drawPath",
+          "line": 196,
+          "signature": "void BufferedPaintProvider::drawPath(const PainterPath& path)"
+        },
+        {
+          "name": "if",
+          "line": 200,
+          "signature": "if (st.pen.style() == PenStyle::NoPen)"
+        },
+        {
+          "name": "BufferedPaintProvider::drawPolygon",
+          "line": 208,
+          "signature": "void BufferedPaintProvider::drawPolygon(const PointF* points, size_t pointCount, PolygonMode mode)"
+        },
+        {
+          "name": "BufferedPaintProvider::drawText",
+          "line": 217,
+          "signature": "void BufferedPaintProvider::drawText(const PointF& point, const String& text)"
+        },
+        {
+          "name": "BufferedPaintProvider::drawText",
+          "line": 222,
+          "signature": "void BufferedPaintProvider::drawText(const RectF& rect, int flags, const String& text)"
+        },
+        {
+          "name": "BufferedPaintProvider::drawTextWorkaround",
+          "line": 227,
+          "signature": "void BufferedPaintProvider::drawTextWorkaround(const Font& f, const PointF& pos, const String& text)"
+        },
+        {
+          "name": "BufferedPaintProvider::drawSymbol",
+          "line": 233,
+          "signature": "void BufferedPaintProvider::drawSymbol(const PointF& point, char32_t ucs4Code)"
+        },
+        {
+          "name": "BufferedPaintProvider::drawPixmap",
+          "line": 238,
+          "signature": "void BufferedPaintProvider::drawPixmap(const PointF& p, const Pixmap& pm)"
+        },
+        {
+          "name": "BufferedPaintProvider::drawTiledPixmap",
+          "line": 243,
+          "signature": "void BufferedPaintProvider::drawTiledPixmap(const RectF& rect, const Pixmap& pm, const PointF& offset)"
+        },
+        {
+          "name": "BufferedPaintProvider::drawPixmap",
+          "line": 249,
+          "signature": "void BufferedPaintProvider::drawPixmap(const PointF& p, const QPixmap& pm)"
+        },
+        {
+          "name": "BufferedPaintProvider::drawTiledPixmap",
+          "line": 254,
+          "signature": "void BufferedPaintProvider::drawTiledPixmap(const RectF& rect, const QPixmap& pm, const PointF& offset)"
+        },
+        {
+          "name": "BufferedPaintProvider::setClipRect",
+          "line": 261,
+          "signature": "void BufferedPaintProvider::setClipRect(const RectF& rect)"
+        },
+        {
+          "name": "BufferedPaintProvider::setClipping",
+          "line": 266,
+          "signature": "void BufferedPaintProvider::setClipping(bool enable)"
+        },
+        {
+          "name": "BufferedPaintProvider::drawData",
+          "line": 271,
+          "signature": "const DrawData& BufferedPaintProvider::drawData() const"
+        },
+        {
+          "name": "BufferedPaintProvider::clear",
+          "line": 276,
+          "signature": "void BufferedPaintProvider::clear()"
+        }
+      ],
+      "constants": [],
+      "arrays": [],
+      "enums": [],
+      "structs": [],
+      "magic_numbers": []
+    },
+    {
+      "file": "bufferedpaintprovider.h",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\framework/draw/bufferedpaintprovider.h",
+      "exists": true,
+      "line_count": 109,
+      "functions": [],
+      "constants": [
+        {
+          "name": "MU_DRAW_BUFFEREDPAINTPROVIDER_H",
+          "value": "#include <vector>",
+          "line": 23,
+          "kind": "define"
+        }
+      ],
+      "arrays": [],
+      "enums": [],
+      "structs": [],
+      "magic_numbers": []
+    },
+    {
+      "file": "buffereddrawtypes.h",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\framework/draw/buffereddrawtypes.h",
+      "exists": true,
+      "line_count": 160,
+      "functions": [
+        {
+          "name": "empty",
+          "line": 110,
+          "signature": "bool empty() const"
+        },
+        {
+          "name": "Object",
+          "line": 127,
+          "signature": "Object(const std::string& n, const PointF& p)\n            : name(n), pagePos(p)"
+        },
+        {
+          "name": "empty",
+          "line": 145,
+          "signature": "bool empty() const"
+        },
+        {
+          "name": "if",
+          "line": 148,
+          "signature": "if (dataAdded)"
+        },
+        {
+          "name": "if",
+          "line": 152,
+          "signature": "if (ret && dataRemoved)"
+        }
+      ],
+      "constants": [
+        {
+          "name": "MU_DRAW_BUFFEREDDRAWTYPES_H",
+          "value": "#include <memory>",
+          "line": 23,
+          "kind": "define"
+        }
+      ],
+      "arrays": [],
+      "enums": [
+        {
+          "name": "DrawMode",
+          "entries": [
+            "Stroke",
+            "Fill",
+            "StrokeAndFill"
+          ],
+          "line": 37
+        }
+      ],
+      "structs": [
+        {
+          "name": "Scale",
+          "line": 43
+        },
+        {
+          "name": "DrawPath",
+          "line": 48
+        },
+        {
+          "name": "DrawRect",
+          "line": 55
+        },
+        {
+          "name": "DrawPolygon",
+          "line": 62
+        },
+        {
+          "name": "DrawText",
+          "line": 67
+        },
+        {
+          "name": "DrawRectText",
+          "line": 72
+        },
+        {
+          "name": "DrawPixmap",
+          "line": 78
+        },
+        {
+          "name": "DrawTiledPixmap",
+          "line": 83
+        },
+        {
+          "name": "DrawData",
+          "line": 89
+        },
+        {
+          "name": "State",
+          "line": 91
+        },
+        {
+          "name": "Data",
+          "line": 100
+        },
+        {
+          "name": "Object",
+          "line": 121
+        },
+        {
+          "name": "Diff",
+          "line": 141
+        }
+      ],
+      "magic_numbers": []
+    },
+    {
+      "file": "svgrenderer.cpp",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\framework/draw/svgrenderer.cpp",
+      "exists": true,
+      "line_count": 77,
+      "functions": [
+        {
+          "name": "SvgRenderer::defaultSize",
+          "line": 54,
+          "signature": "mu::SizeF SvgRenderer::defaultSize() const"
+        },
+        {
+          "name": "SvgRenderer::render",
+          "line": 64,
+          "signature": "void SvgRenderer::render(Painter* painter, const RectF& rect)"
+        },
+        {
+          "name": "if",
+          "line": 69,
+          "signature": "if (qPaintProvider)"
+        }
+      ],
+      "constants": [],
+      "arrays": [],
+      "enums": [],
+      "structs": [],
+      "magic_numbers": []
+    },
+    {
+      "file": "svgrenderer.h",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\framework/draw/svgrenderer.h",
+      "exists": true,
+      "line_count": 47,
+      "functions": [],
+      "constants": [
+        {
+          "name": "MU_DRAW_SVGRENDERER_H",
+          "value": "#include \"types/bytearray.h\"",
+          "line": 23,
+          "kind": "define"
+        }
+      ],
+      "arrays": [],
+      "enums": [],
+      "structs": [],
+      "magic_numbers": []
+    }
+  ],
+  "summary": {
+    "total_functions": 270,
+    "total_constants": 65,
+    "total_arrays": 0
+  }
+}

@@ -40,35 +40,38 @@
 .layer-row {
   display: flex;
   align-items: center;
-  gap: 2px;
-}
-
-.layer-toggle {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 6px;
+  gap: 6px;
+  padding: 3px 6px;
   border: 1px solid transparent;
   border-radius: 5px;
-  background: transparent;
-  color: #64748b;
-  font-size: 12px;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.1s, color 0.1s;
+  transition: background 0.1s, border-color 0.1s;
 }
 
-.layer-toggle:hover {
-  background: #1e1e3a;
+.layer-row.browsing {
+  background: rgba(0, 0, 0, 0.15);
+  border-color: color-mix(in srgb, var(--layer-color) 25%, transparent);
+}
+
+.layer-label-btn {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  padding: 2px 0;
+  transition: color 0.1s;
+  user-select: none;
+}
+
+.layer-label-btn:hover {
   color: #94a3b8;
 }
 
-.layer-toggle.active {
-  background: rgba(0, 0, 0, 0.15);
+.layer-label-btn.active {
   color: var(--layer-color);
-  border-color: color-mix(in srgb, var(--layer-color) 25%, transparent);
 }
 
 /* Custom checkbox replacing the dot */
@@ -82,6 +85,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
 }
 
 .layer-checkbox.checked::after {
@@ -92,14 +96,6 @@
   border-bottom: 1.5px solid #fff;
   transform: rotate(-45deg) translateY(-1px);
   display: block;
-}
-
-.layer-label {
-  flex: 1;
-  font-size: 11px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* Expand button */

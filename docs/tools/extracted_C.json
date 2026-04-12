@@ -1,0 +1,5123 @@
+{
+  "session": "C",
+  "files": [
+    {
+      "file": "layoutpage.cpp",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\engraving\\layout/layoutpage.cpp",
+      "exists": true,
+      "line_count": 709,
+      "functions": [
+        {
+          "name": "LayoutPage::getNextPage",
+          "line": 60,
+          "signature": "void LayoutPage::getNextPage(const LayoutOptions& options, LayoutContext& lc)"
+        },
+        {
+          "name": "if",
+          "line": 62,
+          "signature": "if (!lc.page || lc.curPage >= lc.score()->npages())"
+        },
+        {
+          "name": "if",
+          "line": 72,
+          "signature": "if (i < systems.size() && i > 0 && systems[i - 1]->page() == lc.page)"
+        },
+        {
+          "name": "if",
+          "line": 86,
+          "signature": "if (lc.curPage)"
+        },
+        {
+          "name": "if",
+          "line": 88,
+          "signature": "if (MScore::verticalOrientation())"
+        },
+        {
+          "name": "LayoutPage::collectPage",
+          "line": 103,
+          "signature": "void LayoutPage::collectPage(const LayoutOptions& options, LayoutContext& ctx)"
+        },
+        {
+          "name": "if",
+          "line": 121,
+          "signature": "if (pSystems > 0)"
+        },
+        {
+          "name": "if",
+          "line": 142,
+          "signature": "if (ctx.prevSystem)"
+        },
+        {
+          "name": "if",
+          "line": 146,
+          "signature": "if (ctx.curSystem->vbox())"
+        },
+        {
+          "name": "for",
+          "line": 153,
+          "signature": "for (MeasureBase* mb : ctx.curSystem->measures())"
+        },
+        {
+          "name": "if",
+          "line": 154,
+          "signature": "if (mb->isMeasure())"
+        },
+        {
+          "name": "if",
+          "line": 157,
+          "signature": "if (sp)"
+        },
+        {
+          "name": "if",
+          "line": 158,
+          "signature": "if (sp->spacerType() == SpacerType::FIXED)"
+        },
+        {
+          "name": "if",
+          "line": 168,
+          "signature": "if (!fixedDistance)"
+        },
+        {
+          "name": "if",
+          "line": 171,
+          "signature": "if (headerExtension > 0.0)"
+        },
+        {
+          "name": "if",
+          "line": 189,
+          "signature": "if (ctx.rangeDone)"
+        },
+        {
+          "name": "if",
+          "line": 191,
+          "signature": "if (systemIdx > 0)"
+        },
+        {
+          "name": "if",
+          "line": 193,
+          "signature": "if (!nextSystem)"
+        },
+        {
+          "name": "if",
+          "line": 198,
+          "signature": "if (nextSystem)"
+        },
+        {
+          "name": "if",
+          "line": 204,
+          "signature": "if (nextSystem)"
+        },
+        {
+          "name": "if",
+          "line": 214,
+          "signature": "if (!breakPage)"
+        },
+        {
+          "name": "if",
+          "line": 217,
+          "signature": "if (vbox)"
+        },
+        {
+          "name": "if",
+          "line": 219,
+          "signature": "if (footerExtension > 0)"
+        },
+        {
+          "name": "if",
+          "line": 225,
+          "signature": "if (footerExtension > 0)"
+        },
+        {
+          "name": "if",
+          "line": 232,
+          "signature": "if (breakPage)"
+        },
+        {
+          "name": "if",
+          "line": 236,
+          "signature": "if (footerExtension > 0)"
+        },
+        {
+          "name": "if",
+          "line": 244,
+          "signature": "if (collected)"
+        },
+        {
+          "name": "for",
+          "line": 252,
+          "signature": "for (System* s : ctx.page->systems())"
+        },
+        {
+          "name": "for",
+          "line": 254,
+          "signature": "for (MeasureBase* mb : s->measures())"
+        },
+        {
+          "name": "if",
+          "line": 255,
+          "signature": "if (!mb->isMeasure())"
+        },
+        {
+          "name": "if",
+          "line": 259,
+          "signature": "if (stick == Fraction(-1, 1))"
+        },
+        {
+          "name": "if",
+          "line": 266,
+          "signature": "if (!e)"
+        },
+        {
+          "name": "if",
+          "line": 269,
+          "signature": "if (e->isChordRest())"
+        },
+        {
+          "name": "if",
+          "line": 270,
+          "signature": "if (!currentScore->staff(track2staff(static_cast<int>(track)))->show())"
+        },
+        {
+          "name": "if",
+          "line": 274,
+          "signature": "if (LayoutBeams::notTopBeam(cr))"
+        },
+        {
+          "name": "if",
+          "line": 277,
+          "signature": "if (LayoutTuplets::notTopTuplet(cr))"
+        },
+        {
+          "name": "while",
+          "line": 280,
+          "signature": "while (de->tuplet() && de->tuplet()->elements().front() == de)"
+        },
+        {
+          "name": "if",
+          "line": 287,
+          "signature": "if (cr->isChord())"
+        },
+        {
+          "name": "for",
+          "line": 289,
+          "signature": "for (Chord* cc : c->graceNotes())"
+        },
+        {
+          "name": "if",
+          "line": 290,
+          "signature": "if (cc->beam() && cc->beam()->elements().front() == cc)"
+        },
+        {
+          "name": "for",
+          "line": 294,
+          "signature": "for (EngravingItem* element : cc->el())"
+        },
+        {
+          "name": "if",
+          "line": 295,
+          "signature": "if (element->isSlur())"
+        },
+        {
+          "name": "if",
+          "line": 302,
+          "signature": "if (c->tremolo())"
+        },
+        {
+          "name": "if",
+          "line": 306,
+          "signature": "if (t->twoNotes() && c1 && c2 && (c1->staffMove() || c2->staffMove()))"
+        },
+        {
+          "name": "if",
+          "line": 320,
+          "signature": "if (options.isMode(LayoutMode::SYSTEM))"
+        },
+        {
+          "name": "for",
+          "line": 328,
+          "signature": "for (System* system : ctx.page->systems())"
+        },
+        {
+          "name": "if",
+          "line": 331,
+          "signature": "if (system->firstMeasure())"
+        },
+        {
+          "name": "if",
+          "line": 335,
+          "signature": "if (stick == 0 && etick == 0)"
+        },
+        {
+          "name": "for",
+          "line": 339,
+          "signature": "for (auto interval : spanners)"
+        },
+        {
+          "name": "if",
+          "line": 341,
+          "signature": "if (!sp->isSlur())"
+        },
+        {
+          "name": "if",
+          "line": 344,
+          "signature": "if (toSlur(sp)->isCrossStaff())"
+        },
+        {
+          "name": "LayoutPage::layoutPage",
+          "line": 361,
+          "signature": "void LayoutPage::layoutPage(const LayoutContext& ctx, Page* page, double restHeight, double footerPadding)"
+        },
+        {
+          "name": "if",
+          "line": 363,
+          "signature": "if (restHeight < 0.0)"
+        },
+        {
+          "name": "if",
+          "line": 379,
+          "signature": "if (s1->vbox() || s2->vbox() || s1->hasFixedDownDistance())"
+        },
+        {
+          "name": "if",
+          "line": 380,
+          "signature": "if (s2->vbox())"
+        },
+        {
+          "name": "if",
+          "line": 396,
+          "signature": "if (sList.empty() || MScore::noVerticalStretch || score->enableVerticalSpread() || score->layoutMode() == LayoutMode::SYSTEM)"
+        },
+        {
+          "name": "if",
+          "line": 397,
+          "signature": "if (score->layoutMode() == LayoutMode::FLOAT)"
+        },
+        {
+          "name": "for",
+          "line": 399,
+          "signature": "for (System* system : page->systems())"
+        },
+        {
+          "name": "if",
+          "line": 410,
+          "signature": "if (!(s1->vbox() || s2->vbox()))"
+        },
+        {
+          "name": "std::sort",
+          "line": 422,
+          "signature": "std::sort(sList.begin(), sList.end(), [](System* a, System* b)"
+        },
+        {
+          "name": "if",
+          "line": 429,
+          "signature": "if (fill > 0.0)"
+        },
+        {
+          "name": "if",
+          "line": 431,
+          "signature": "if (totalFill > restHeight)"
+        },
+        {
+          "name": "if",
+          "line": 438,
+          "signature": "if ((d - s->height()) > maxDist)"
+        },
+        {
+          "name": "if",
+          "line": 444,
+          "signature": "if (restHeight <= 0)"
+        },
+        {
+          "name": "if",
+          "line": 451,
+          "signature": "if (restHeight > 0.0)"
+        },
+        {
+          "name": "for",
+          "line": 453,
+          "signature": "for (System* s : sList)"
+        },
+        {
+          "name": "if",
+          "line": 455,
+          "signature": "if ((d - s->height()) > maxDist)"
+        },
+        {
+          "name": "if",
+          "line": 469,
+          "signature": "if (!(s1->vbox() || s2->vbox()))"
+        },
+        {
+          "name": "LayoutPage::checkDivider",
+          "line": 478,
+          "signature": "void LayoutPage::checkDivider(const LayoutContext& ctx, bool left, System* s, double yOffset, bool remove)"
+        },
+        {
+          "name": "if",
+          "line": 481,
+          "signature": "if ((ctx.score()->styleB(left ? Sid::dividerLeft : Sid::dividerRight)) && !remove)"
+        },
+        {
+          "name": "if",
+          "line": 482,
+          "signature": "if (!divider)"
+        },
+        {
+          "name": "if",
+          "line": 490,
+          "signature": "if (left)"
+        },
+        {
+          "name": "if",
+          "line": 499,
+          "signature": "if (divider->generated())"
+        },
+        {
+          "name": "LayoutPage::distributeStaves",
+          "line": 508,
+          "signature": "void LayoutPage::distributeStaves(const LayoutContext& ctx, Page* page, double footerPadding)"
+        },
+        {
+          "name": "for",
+          "line": 522,
+          "signature": "for (System* system : page->systems())"
+        },
+        {
+          "name": "if",
+          "line": 523,
+          "signature": "if (system->vbox())"
+        },
+        {
+          "name": "for",
+          "line": 539,
+          "signature": "for (SysStaff* sysStaff : system->staves())"
+        },
+        {
+          "name": "IF_ASSERT_FAILED",
+          "line": 541,
+          "signature": "IF_ASSERT_FAILED(staff)"
+        },
+        {
+          "name": "for",
+          "line": 546,
+          "signature": "for (const BracketItem* bi : staff->brackets())"
+        },
+        {
+          "name": "if",
+          "line": 547,
+          "signature": "if (bi->bracketType() == BracketType::NORMAL)"
+        },
+        {
+          "name": "if",
+          "line": 556,
+          "signature": "if (!sysStaff->show())"
+        },
+        {
+          "name": "if",
+          "line": 564,
+          "signature": "if (newSystem)"
+        },
+        {
+          "name": "if",
+          "line": 568,
+          "signature": "if (addSpaceAroundNormalBracket || transferNormalBracket)"
+        },
+        {
+          "name": "if",
+          "line": 573,
+          "signature": "if (addSpaceAroundCurlyBracket || transferCurlyBracket)"
+        },
+        {
+          "name": "if",
+          "line": 581,
+          "signature": "if (vbox)"
+        },
+        {
+          "name": "if",
+          "line": 601,
+          "signature": "if (nextSpacer)"
+        },
+        {
+          "name": "if",
+          "line": 604,
+          "signature": "if (spaceRemaining <= 0.0)"
+        },
+        {
+          "name": "while",
+          "line": 611,
+          "signature": "while (!RealIsNull(spaceRemaining) && (ngaps > 0) && (++pass < maxPasses))"
+        },
+        {
+          "name": "if",
+          "line": 615,
+          "signature": "if (RealIsNull(smallest) || RealIsNull(nextSmallest))"
+        },
+        {
+          "name": "if",
+          "line": 619,
+          "signature": "if ((nextSmallest - smallest) * vgdl.sumStretchFactor() > spaceRemaining)"
+        },
+        {
+          "name": "for",
+          "line": 625,
+          "signature": "for (VerticalGapData* vgd : vgdl)"
+        },
+        {
+          "name": "if",
+          "line": 626,
+          "signature": "if (!RealIsNull(vgd->spacing() - smallest))"
+        },
+        {
+          "name": "if",
+          "line": 630,
+          "signature": "if (step < 0.0)"
+        },
+        {
+          "name": "if",
+          "line": 634,
+          "signature": "if (!RealIsNull(step))"
+        },
+        {
+          "name": "if",
+          "line": 639,
+          "signature": "if ((spaceRemaining - addedSpace) <= 0.0)"
+        },
+        {
+          "name": "if",
+          "line": 643,
+          "signature": "if ((spaceRemaining - addedSpace) <= 0.0)"
+        },
+        {
+          "name": "for",
+          "line": 644,
+          "signature": "for (VerticalGapData* vgd : modified)"
+        },
+        {
+          "name": "while",
+          "line": 659,
+          "signature": "while (!RealIsNull(spaceRemaining) && !RealIsNull(maxPageFill) && (ngaps > 0) && (++pass < maxPasses))"
+        },
+        {
+          "name": "for",
+          "line": 663,
+          "signature": "for (VerticalGapData* vgd : vgdl)"
+        },
+        {
+          "name": "if",
+          "line": 665,
+          "signature": "if (!RealIsNull(res))"
+        },
+        {
+          "name": "for",
+          "line": 677,
+          "signature": "for (VerticalGapData* vgd : vgdl)"
+        },
+        {
+          "name": "if",
+          "line": 678,
+          "signature": "if (vgd->sysStaff)"
+        },
+        {
+          "name": "if",
+          "line": 682,
+          "signature": "if (prvSystem == vgd->system)"
+        },
+        {
+          "name": "if",
+          "line": 686,
+          "signature": "if (prvSystem)"
+        },
+        {
+          "name": "if",
+          "line": 693,
+          "signature": "if (vgd->sysStaff)"
+        },
+        {
+          "name": "if",
+          "line": 699,
+          "signature": "if (prvSystem)"
+        },
+        {
+          "name": "for",
+          "line": 703,
+          "signature": "for (System* system : systems)"
+        }
+      ],
+      "constants": [
+        {
+          "name": "slb",
+          "value": "ctx.score()->styleMM(Sid::staffLowerBorder)",
+          "line": 107
+        },
+        {
+          "name": "staffLowerBorder",
+          "value": "score->styleMM(Sid::staffLowerBorder)",
+          "line": 596
+        },
+        {
+          "name": "combinedBottomMargin",
+          "value": "page->bm() + footerPadding",
+          "line": 597
+        },
+        {
+          "name": "marginToStaff",
+          "value": "page->bm() + staffLowerBorder",
+          "line": 598
+        }
+      ],
+      "arrays": [],
+      "enums": [],
+      "structs": [],
+      "magic_numbers": []
+    },
+    {
+      "file": "system.cpp",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\engraving\\libmscore/system.cpp",
+      "exists": true,
+      "line_count": 2147,
+      "functions": [
+        {
+          "name": "SysStaff::yBottom",
+          "line": 83,
+          "signature": "double SysStaff::yBottom() const"
+        },
+        {
+          "name": "SysStaff::saveLayout",
+          "line": 92,
+          "signature": "void SysStaff::saveLayout()"
+        },
+        {
+          "name": "SysStaff::restoreLayout",
+          "line": 102,
+          "signature": "void SysStaff::restoreLayout()"
+        },
+        {
+          "name": "EngravingItem",
+          "line": 113,
+          "signature": ": EngravingItem(ElementType::SYSTEM, parent)"
+        },
+        {
+          "name": "for",
+          "line": 123,
+          "signature": "for (SpannerSegment* ss : spannerSegments())"
+        },
+        {
+          "name": "if",
+          "line": 124,
+          "signature": "if (ss->system() == this)"
+        },
+        {
+          "name": "for",
+          "line": 128,
+          "signature": "for (MeasureBase* mb : measures())"
+        },
+        {
+          "name": "if",
+          "line": 129,
+          "signature": "if (mb->system() == this)"
+        },
+        {
+          "name": "System::createAccessible",
+          "line": 140,
+          "signature": "AccessibleItemPtr System::createAccessible()"
+        },
+        {
+          "name": "System::moveToPage",
+          "line": 147,
+          "signature": "void System::moveToPage(Page* parent)"
+        },
+        {
+          "name": "System::clear",
+          "line": 157,
+          "signature": "void System::clear()"
+        },
+        {
+          "name": "for",
+          "line": 159,
+          "signature": "for (MeasureBase* mb : measures())"
+        },
+        {
+          "name": "if",
+          "line": 160,
+          "signature": "if (mb->system() == this)"
+        },
+        {
+          "name": "for",
+          "line": 165,
+          "signature": "for (SpannerSegment* ss : _spannerSegments)"
+        },
+        {
+          "name": "if",
+          "line": 166,
+          "signature": "if (ss->system() == this)"
+        },
+        {
+          "name": "System::appendMeasure",
+          "line": 178,
+          "signature": "void System::appendMeasure(MeasureBase* mb)"
+        },
+        {
+          "name": "System::removeMeasure",
+          "line": 189,
+          "signature": "void System::removeMeasure(MeasureBase* mb)"
+        },
+        {
+          "name": "if",
+          "line": 192,
+          "signature": "if (mb->system() == this)"
+        },
+        {
+          "name": "System::removeLastMeasure",
+          "line": 201,
+          "signature": "void System::removeLastMeasure()"
+        },
+        {
+          "name": "if",
+          "line": 203,
+          "signature": "if (ml.empty())"
+        },
+        {
+          "name": "if",
+          "line": 208,
+          "signature": "if (mb->system() == this)"
+        },
+        {
+          "name": "System::vbox",
+          "line": 218,
+          "signature": "Box* System::vbox() const"
+        },
+        {
+          "name": "if",
+          "line": 220,
+          "signature": "if (!ml.empty())"
+        },
+        {
+          "name": "if",
+          "line": 221,
+          "signature": "if (ml[0]->isVBox() || ml[0]->isTBox())"
+        },
+        {
+          "name": "System::insertStaff",
+          "line": 232,
+          "signature": "SysStaff* System::insertStaff(int idx)"
+        },
+        {
+          "name": "if",
+          "line": 235,
+          "signature": "if (idx)"
+        },
+        {
+          "name": "System::removeStaff",
+          "line": 247,
+          "signature": "void System::removeStaff(int idx)"
+        },
+        {
+          "name": "System::adjustStavesNumber",
+          "line": 256,
+          "signature": "void System::adjustStavesNumber(size_t nstaves)"
+        },
+        {
+          "name": "System::instrumentNamesWidth",
+          "line": 271,
+          "signature": "double System::instrumentNamesWidth()"
+        },
+        {
+          "name": "if",
+          "line": 277,
+          "signature": "if (!staff)"
+        },
+        {
+          "name": "for",
+          "line": 281,
+          "signature": "for (InstrumentName* name : staff->instrumentNames)"
+        },
+        {
+          "name": "System::layoutBrackets",
+          "line": 294,
+          "signature": "double System::layoutBrackets(const LayoutContext& ctx)"
+        },
+        {
+          "name": "for",
+          "line": 316,
+          "signature": "for (auto bi : s->brackets())"
+        },
+        {
+          "name": "if",
+          "line": 317,
+          "signature": "if (bi->column() != i || bi->bracketType() == BracketType::NO_BRACKET)"
+        },
+        {
+          "name": "if",
+          "line": 321,
+          "signature": "if (b != nullptr)"
+        },
+        {
+          "name": "for",
+          "line": 328,
+          "signature": "for (Bracket* b : bl)"
+        },
+        {
+          "name": "if",
+          "line": 334,
+          "signature": "if (!_brackets.empty())"
+        },
+        {
+          "name": "for",
+          "line": 335,
+          "signature": "for (double w : bracketWidth)"
+        },
+        {
+          "name": "System::totalBracketOffset",
+          "line": 351,
+          "signature": "double System::totalBracketOffset(LayoutContext& ctx)"
+        },
+        {
+          "name": "if",
+          "line": 353,
+          "signature": "if (ctx.totalBracketsWidth >= 0)"
+        },
+        {
+          "name": "for",
+          "line": 358,
+          "signature": "for (const Staff* staff : ctx.score()->staves())"
+        },
+        {
+          "name": "for",
+          "line": 359,
+          "signature": "for (auto bi : staff->brackets())"
+        },
+        {
+          "name": "for",
+          "line": 368,
+          "signature": "for (auto bi : staff->brackets())"
+        },
+        {
+          "name": "if",
+          "line": 369,
+          "signature": "if (bi->bracketType() == BracketType::NO_BRACKET)"
+        },
+        {
+          "name": "if",
+          "line": 379,
+          "signature": "if (lastStaff >= nstaves)"
+        },
+        {
+          "name": "if",
+          "line": 384,
+          "signature": "if (ctx.score()->staff(firstStaff)->show())"
+        },
+        {
+          "name": "if",
+          "line": 389,
+          "signature": "if (ctx.score()->staff(lastStaff)->show())"
+        },
+        {
+          "name": "if",
+          "line": 395,
+          "signature": "if (span > 1\n                || (bi->bracketSpan() == span)\n                || (span == 1 && ctx.score()->styleB(Sid::alwaysShowBracketsWhenEmptyStavesAreHidden)))"
+        },
+        {
+          "name": "for",
+          "line": 409,
+          "signature": "for (double w : bracketWidth)"
+        },
+        {
+          "name": "System::layoutSystem",
+          "line": 422,
+          "signature": "void System::layoutSystem(LayoutContext& ctx, double xo1, const bool isFirstSystem, bool firstSystemIndent)"
+        },
+        {
+          "name": "if",
+          "line": 424,
+          "signature": "if (_staves.empty())"
+        },
+        {
+          "name": "if",
+          "line": 435,
+          "signature": "if (ctx.startWithLongNames)"
+        },
+        {
+          "name": "if",
+          "line": 445,
+          "signature": "if (!followStaffSize)"
+        },
+        {
+          "name": "if",
+          "line": 462,
+          "signature": "if (isFirstSystem && firstSystemIndent)"
+        },
+        {
+          "name": "if",
+          "line": 467,
+          "signature": "if (RealIsNull(indent))"
+        },
+        {
+          "name": "if",
+          "line": 468,
+          "signature": "if (score()->styleB(Sid::alignSystemToMargin))"
+        },
+        {
+          "name": "if",
+          "line": 481,
+          "signature": "if (!staff->show() || !s->show())"
+        },
+        {
+          "name": "if",
+          "line": 488,
+          "signature": "if (staffLines <= 1)"
+        },
+        {
+          "name": "for",
+          "line": 510,
+          "signature": "for (SysStaff* s : _staves)"
+        },
+        {
+          "name": "for",
+          "line": 511,
+          "signature": "for (InstrumentName* t : s->instrumentNames)"
+        },
+        {
+          "name": "switch",
+          "line": 514,
+          "signature": "switch (t->align().horizontal)"
+        },
+        {
+          "name": "for",
+          "line": 528,
+          "signature": "for (MeasureBase* mb : measures())"
+        },
+        {
+          "name": "if",
+          "line": 529,
+          "signature": "if (!mb->isMeasure())"
+        },
+        {
+          "name": "if",
+          "line": 533,
+          "signature": "if (m == measures().front() || (m->prev() && m->prev()->isHBox()))"
+        },
+        {
+          "name": "System::setMeasureHeight",
+          "line": 543,
+          "signature": "void System::setMeasureHeight(double height)"
+        },
+        {
+          "name": "for",
+          "line": 546,
+          "signature": "for (MeasureBase* m : ml)"
+        },
+        {
+          "name": "if",
+          "line": 547,
+          "signature": "if (m->isMeasure())"
+        },
+        {
+          "name": "System::layoutBracketsVertical",
+          "line": 566,
+          "signature": "void System::layoutBracketsVertical()"
+        },
+        {
+          "name": "for",
+          "line": 568,
+          "signature": "for (Bracket* b : _brackets)"
+        },
+        {
+          "name": "while",
+          "line": 574,
+          "signature": "while (staffIdx1 <= staffIdx2 && !_staves[staffIdx1]->show())"
+        },
+        {
+          "name": "while",
+          "line": 578,
+          "signature": "while (staffIdx1 <= staffIdx2 && !_staves[staffIdx2]->show())"
+        },
+        {
+          "name": "if",
+          "line": 588,
+          "signature": "if (notHidden)"
+        },
+        {
+          "name": "System::layoutInstrumentNames",
+          "line": 602,
+          "signature": "void System::layoutInstrumentNames()"
+        },
+        {
+          "name": "for",
+          "line": 606,
+          "signature": "for (Part* p : score()->parts())"
+        },
+        {
+          "name": "if",
+          "line": 612,
+          "signature": "if (visible != mu::nidx)"
+        },
+        {
+          "name": "if",
+          "line": 616,
+          "signature": "if (visible != staffIdx)"
+        },
+        {
+          "name": "for",
+          "line": 618,
+          "signature": "for (InstrumentName* t : s->instrumentNames)"
+        },
+        {
+          "name": "for",
+          "line": 627,
+          "signature": "for (InstrumentName* t : s->instrumentNames)"
+        },
+        {
+          "name": "switch",
+          "line": 632,
+          "signature": "switch (t->layoutPos())"
+        },
+        {
+          "name": "if",
+          "line": 639,
+          "signature": "if (s3->show())"
+        },
+        {
+          "name": "System::addBrackets",
+          "line": 679,
+          "signature": "void System::addBrackets(const LayoutContext& ctx, Measure* measure)"
+        },
+        {
+          "name": "if",
+          "line": 681,
+          "signature": "if (_staves.empty())"
+        },
+        {
+          "name": "for",
+          "line": 700,
+          "signature": "for (auto bi : s->brackets())"
+        },
+        {
+          "name": "if",
+          "line": 701,
+          "signature": "if (bi->column() != i || bi->bracketType() == BracketType::NO_BRACKET)"
+        },
+        {
+          "name": "if",
+          "line": 707,
+          "signature": "if (!staff(staffIdx)->show())"
+        },
+        {
+          "name": "System::createBracket",
+          "line": 728,
+          "signature": "Bracket* System::createBracket(const LayoutContext& ctx, BracketItem* bi, size_t column, staff_idx_t staffIdx,\n                               std::vector<Bracket*>& bl,\n                               Measure* measure)"
+        },
+        {
+          "name": "if",
+          "line": 735,
+          "signature": "if (lastStaff >= nstaves)"
+        },
+        {
+          "name": "if",
+          "line": 740,
+          "signature": "if (staff(firstStaff)->show())"
+        },
+        {
+          "name": "if",
+          "line": 745,
+          "signature": "if (staff(lastStaff)->show())"
+        },
+        {
+          "name": "if",
+          "line": 754,
+          "signature": "if (span > 1\n        || (bi->bracketSpan() == span)\n        || (span == 1 && score()->styleB(Sid::alwaysShowBracketsWhenEmptyStavesAreHidden)) && bi->bracketType() != BracketType::SQUARE\n        || (span == 1 && score()->styleB(Sid::alwaysShowSquareBracketsWhenEmptyStavesAreHidden)\n            && bi->bracketType() == BracketType::SQUARE))"
+        },
+        {
+          "name": "if",
+          "line": 765,
+          "signature": "if (bl[k]->track() == track && bl[k]->column() == column && bl[k]->bracketType() == bi->bracketType()\n                && bl[k]->measure() == measure)"
+        },
+        {
+          "name": "if",
+          "line": 771,
+          "signature": "if (b == 0)"
+        },
+        {
+          "name": "if",
+          "line": 780,
+          "signature": "if (bi->selected())"
+        },
+        {
+          "name": "for",
+          "line": 784,
+          "signature": "for (const EngravingItem* element : brackets)"
+        },
+        {
+          "name": "if",
+          "line": 785,
+          "signature": "if (toBracket(element)->bracketItem() == bi)"
+        },
+        {
+          "name": "if",
+          "line": 791,
+          "signature": "if (needSelect)"
+        },
+        {
+          "name": "System::getBracketsColumnsCount",
+          "line": 804,
+          "signature": "size_t System::getBracketsColumnsCount()"
+        },
+        {
+          "name": "for",
+          "line": 807,
+          "signature": "for (const Staff* staff : score()->staves())"
+        },
+        {
+          "name": "for",
+          "line": 808,
+          "signature": "for (auto bi : staff->brackets())"
+        },
+        {
+          "name": "System::setBracketsXPosition",
+          "line": 815,
+          "signature": "void System::setBracketsXPosition(const double xPosition)"
+        },
+        {
+          "name": "for",
+          "line": 817,
+          "signature": "for (Bracket* b1 : _brackets)"
+        },
+        {
+          "name": "if",
+          "line": 821,
+          "signature": "if (bracketType == BracketType::NORMAL || bracketType == BracketType::LINE)"
+        },
+        {
+          "name": "if",
+          "line": 828,
+          "signature": "if (bracketType == BracketType::NORMAL || bracketType == BracketType::LINE)"
+        },
+        {
+          "name": "for",
+          "line": 833,
+          "signature": "for (const Bracket* b2 : _brackets)"
+        },
+        {
+          "name": "if",
+          "line": 836,
+          "signature": "if (b1->column() > b2->column()\n                && (b1FirstStaffInB2 || b1LastStaffInB2))"
+        },
+        {
+          "name": "System::firstVisibleStaffFrom",
+          "line": 850,
+          "signature": "staff_idx_t System::firstVisibleStaffFrom(staff_idx_t startStaffIdx) const"
+        },
+        {
+          "name": "if",
+          "line": 856,
+          "signature": "if (s->show() && ss->show())"
+        },
+        {
+          "name": "System::nextVisibleStaff",
+          "line": 864,
+          "signature": "staff_idx_t System::nextVisibleStaff(staff_idx_t staffIdx) const"
+        },
+        {
+          "name": "System::firstVisibleStaff",
+          "line": 873,
+          "signature": "staff_idx_t System::firstVisibleStaff() const"
+        },
+        {
+          "name": "System::layout2",
+          "line": 884,
+          "signature": "void System::layout2(const LayoutContext& ctx)"
+        },
+        {
+          "name": "if",
+          "line": 887,
+          "signature": "if (vb)"
+        },
+        {
+          "name": "if",
+          "line": 899,
+          "signature": "if (s->show() && ss->show())"
+        },
+        {
+          "name": "if",
+          "line": 911,
+          "signature": "if (score()->enableVerticalSpread())"
+        },
+        {
+          "name": "if",
+          "line": 916,
+          "signature": "if (visibleStaves.empty())"
+        },
+        {
+          "name": "if",
+          "line": 929,
+          "signature": "if (staff->lines(Fraction(0, 1)) == 1)"
+        },
+        {
+          "name": "if",
+          "line": 936,
+          "signature": "if (ni == visibleStaves.end())"
+        },
+        {
+          "name": "if",
+          "line": 946,
+          "signature": "if (staff->part() == staff2->part())"
+        },
+        {
+          "name": "for",
+          "line": 955,
+          "signature": "for (MeasureBase* mb : ml)"
+        },
+        {
+          "name": "if",
+          "line": 956,
+          "signature": "if (!mb->isMeasure())"
+        },
+        {
+          "name": "if",
+          "line": 961,
+          "signature": "if (sp)"
+        },
+        {
+          "name": "if",
+          "line": 962,
+          "signature": "if (sp->spacerType() == SpacerType::FIXED)"
+        },
+        {
+          "name": "if",
+          "line": 971,
+          "signature": "if (sp)"
+        },
+        {
+          "name": "if",
+          "line": 975,
+          "signature": "if (!fixedSpace)"
+        },
+        {
+          "name": "if",
+          "line": 986,
+          "signature": "if (score()->lineMode())"
+        },
+        {
+          "name": "if",
+          "line": 988,
+          "signature": "if (d > previousDist)"
+        },
+        {
+          "name": "for",
+          "line": 1028,
+          "signature": "for (auto interval : spanners)"
+        },
+        {
+          "name": "if",
+          "line": 1030,
+          "signature": "if (sp->tick() < etick && sp->tick2() >= stick)"
+        },
+        {
+          "name": "if",
+          "line": 1031,
+          "signature": "if (sp->isSlur())"
+        },
+        {
+          "name": "if",
+          "line": 1035,
+          "signature": "if (scr && ecr && (scr->vStaffIdx() != idx || ecr->vStaffIdx() != idx))"
+        },
+        {
+          "name": "System::restoreLayout2",
+          "line": 1047,
+          "signature": "void System::restoreLayout2()"
+        },
+        {
+          "name": "if",
+          "line": 1049,
+          "signature": "if (vbox())"
+        },
+        {
+          "name": "for",
+          "line": 1053,
+          "signature": "for (SysStaff* s : _staves)"
+        },
+        {
+          "name": "System::setInstrumentNames",
+          "line": 1065,
+          "signature": "void System::setInstrumentNames(const LayoutContext& ctx, bool longName, Fraction tick)"
+        },
+        {
+          "name": "if",
+          "line": 1071,
+          "signature": "if (vbox())"
+        },
+        {
+          "name": "if",
+          "line": 1074,
+          "signature": "if (!score()->showInstrumentNames()\n        || (style()->styleB(Sid::hideInstrumentNameIfOneInstrument) && score()->visiblePartCount() <= 1))"
+        },
+        {
+          "name": "for",
+          "line": 1076,
+          "signature": "for (SysStaff* staff : _staves)"
+        },
+        {
+          "name": "for",
+          "line": 1077,
+          "signature": "for (InstrumentName* t : staff->instrumentNames)"
+        },
+        {
+          "name": "for",
+          "line": 1085,
+          "signature": "for (SysStaff* staff : _staves)"
+        },
+        {
+          "name": "if",
+          "line": 1087,
+          "signature": "if (!s->isTop() || !s->show())"
+        },
+        {
+          "name": "for",
+          "line": 1088,
+          "signature": "for (InstrumentName* t : staff->instrumentNames)"
+        },
+        {
+          "name": "for",
+          "line": 1099,
+          "signature": "for (const StaffName& sn : names)"
+        },
+        {
+          "name": "if",
+          "line": 1101,
+          "signature": "if (iname == 0)"
+        },
+        {
+          "name": "System::y2staff",
+          "line": 1133,
+          "signature": "int System::y2staff(double y) const"
+        },
+        {
+          "name": "for",
+          "line": 1138,
+          "signature": "for (SysStaff* s : _staves)"
+        },
+        {
+          "name": "if",
+          "line": 1141,
+          "signature": "if (y >= y1 && y < y2)"
+        },
+        {
+          "name": "System::searchStaff",
+          "line": 1160,
+          "signature": "staff_idx_t System::searchStaff(double y, staff_idx_t preferredStaff /* = invalid */, double spacingFactor) const"
+        },
+        {
+          "name": "if",
+          "line": 1166,
+          "signature": "if (!stff->show() || !score()->staff(i)->show())"
+        },
+        {
+          "name": "if",
+          "line": 1173,
+          "signature": "if (ni == nstaves || (staff(ni)->show() && score()->staff(ni)->show()))"
+        },
+        {
+          "name": "if",
+          "line": 1179,
+          "signature": "if (ni != nstaves)"
+        },
+        {
+          "name": "if",
+          "line": 1182,
+          "signature": "if (i == preferredStaff)"
+        },
+        {
+          "name": "if",
+          "line": 1192,
+          "signature": "if (y > sy2)"
+        },
+        {
+          "name": "System::add",
+          "line": 1205,
+          "signature": "void System::add(EngravingItem* el)"
+        },
+        {
+          "name": "if",
+          "line": 1207,
+          "signature": "if (!el)"
+        },
+        {
+          "name": "switch",
+          "line": 1214,
+          "signature": "switch (el->type())"
+        },
+        {
+          "name": "if",
+          "line": 1259,
+          "signature": "if (mu::contains(_spannerSegments, ss))"
+        },
+        {
+          "name": "if",
+          "line": 1270,
+          "signature": "if (sd->dividerType() == SystemDivider::Type::LEFT)"
+        },
+        {
+          "name": "System::remove",
+          "line": 1290,
+          "signature": "void System::remove(EngravingItem* el)"
+        },
+        {
+          "name": "switch",
+          "line": 1292,
+          "signature": "switch (el->type())"
+        },
+        {
+          "name": "if",
+          "line": 1303,
+          "signature": "if (!mu::remove(_brackets, b))"
+        },
+        {
+          "name": "if",
+          "line": 1326,
+          "signature": "case ElementType::GLISSANDO_SEGMENT:\n        if (!mu::remove(_spannerSegments, toSpannerSegment(el)))"
+        },
+        {
+          "name": "if",
+          "line": 1332,
+          "signature": "case ElementType::SYSTEM_DIVIDER:\n        if (el == _systemDividerLeft)"
+        },
+        {
+          "name": "System::change",
+          "line": 1353,
+          "signature": "void System::change(EngravingItem* o, EngravingItem* n)"
+        },
+        {
+          "name": "System::snap",
+          "line": 1363,
+          "signature": "Fraction System::snap(const Fraction& tick, const PointF p) const"
+        },
+        {
+          "name": "for",
+          "line": 1365,
+          "signature": "for (const MeasureBase* m : ml)"
+        },
+        {
+          "name": "if",
+          "line": 1366,
+          "signature": "if (p.x() < m->x() + m->width())"
+        },
+        {
+          "name": "System::snapNote",
+          "line": 1377,
+          "signature": "Fraction System::snapNote(const Fraction& tick, const PointF p, int staff) const"
+        },
+        {
+          "name": "for",
+          "line": 1379,
+          "signature": "for (const MeasureBase* m : ml)"
+        },
+        {
+          "name": "if",
+          "line": 1380,
+          "signature": "if (p.x() < m->x() + m->width())"
+        },
+        {
+          "name": "System::firstMeasure",
+          "line": 1391,
+          "signature": "Measure* System::firstMeasure() const"
+        },
+        {
+          "name": "System::lastMeasure",
+          "line": 1401,
+          "signature": "Measure* System::lastMeasure() const"
+        },
+        {
+          "name": "System::nextMeasure",
+          "line": 1411,
+          "signature": "MeasureBase* System::nextMeasure(const MeasureBase* m) const"
+        },
+        {
+          "name": "if",
+          "line": 1413,
+          "signature": "if (m == ml.back())"
+        },
+        {
+          "name": "if",
+          "line": 1417,
+          "signature": "if (nm->isMeasure() && score()->styleB(Sid::createMultiMeasureRests) && toMeasure(nm)->hasMMRest())"
+        },
+        {
+          "name": "System::scanElements",
+          "line": 1427,
+          "signature": "void System::scanElements(void* data, void (* func)(void*, EngravingItem*), bool all)"
+        },
+        {
+          "name": "if",
+          "line": 1429,
+          "signature": "if (vbox())"
+        },
+        {
+          "name": "for",
+          "line": 1432,
+          "signature": "for (Bracket* b : _brackets)"
+        },
+        {
+          "name": "if",
+          "line": 1436,
+          "signature": "if (_systemDividerLeft)"
+        },
+        {
+          "name": "if",
+          "line": 1439,
+          "signature": "if (_systemDividerRight)"
+        },
+        {
+          "name": "for",
+          "line": 1444,
+          "signature": "for (const SysStaff* st : _staves)"
+        },
+        {
+          "name": "if",
+          "line": 1445,
+          "signature": "if (all || st->show())"
+        },
+        {
+          "name": "for",
+          "line": 1446,
+          "signature": "for (InstrumentName* t : st->instrumentNames)"
+        },
+        {
+          "name": "for",
+          "line": 1452,
+          "signature": "for (SpannerSegment* ss : _spannerSegments)"
+        },
+        {
+          "name": "if",
+          "line": 1454,
+          "signature": "if (staffIdx == mu::nidx)"
+        },
+        {
+          "name": "if",
+          "line": 1460,
+          "signature": "if (spanner->anchor() == Spanner::Anchor::SEGMENT || spanner->anchor() == Spanner::Anchor::CHORD)"
+        },
+        {
+          "name": "if",
+          "line": 1464,
+          "signature": "if (se && se->isChordRest())"
+        },
+        {
+          "name": "if",
+          "line": 1470,
+          "signature": "if (!v1 && ee && ee->isChordRest())"
+        },
+        {
+          "name": "if",
+          "line": 1477,
+          "signature": "if (all || (score()->staff(staffIdx)->show() && _staves[staffIdx]->show() && v) || spanner->isVolta() || spanner->systemFlag())"
+        },
+        {
+          "name": "System::staffYpage",
+          "line": 1488,
+          "signature": "double System::staffYpage(staff_idx_t staffIdx) const"
+        },
+        {
+          "name": "if",
+          "line": 1490,
+          "signature": "if (staffIdx >= _staves.size())"
+        },
+        {
+          "name": "System::staffCanvasYpage",
+          "line": 1502,
+          "signature": "double System::staffCanvasYpage(staff_idx_t staffIdx) const"
+        },
+        {
+          "name": "System::staff",
+          "line": 1507,
+          "signature": "SysStaff* System::staff(size_t staffIdx) const"
+        },
+        {
+          "name": "if",
+          "line": 1509,
+          "signature": "if (staffIdx < _staves.size())"
+        },
+        {
+          "name": "System::write",
+          "line": 1520,
+          "signature": "void System::write(XmlWriter& xml) const"
+        },
+        {
+          "name": "if",
+          "line": 1523,
+          "signature": "if (_systemDividerLeft && _systemDividerLeft->isUserModified())"
+        },
+        {
+          "name": "if",
+          "line": 1526,
+          "signature": "if (_systemDividerRight && _systemDividerRight->isUserModified())"
+        },
+        {
+          "name": "System::read",
+          "line": 1536,
+          "signature": "void System::read(XmlReader& e)"
+        },
+        {
+          "name": "while",
+          "line": 1538,
+          "signature": "while (e.readNextStartElement())"
+        },
+        {
+          "name": "if",
+          "line": 1540,
+          "signature": "if (tag == \"SystemDivider\")"
+        },
+        {
+          "name": "System::nextSegmentElement",
+          "line": 1554,
+          "signature": "EngravingItem* System::nextSegmentElement()"
+        },
+        {
+          "name": "if",
+          "line": 1557,
+          "signature": "if (m)"
+        },
+        {
+          "name": "if",
+          "line": 1559,
+          "signature": "if (firstSeg)"
+        },
+        {
+          "name": "System::prevSegmentElement",
+          "line": 1570,
+          "signature": "EngravingItem* System::prevSegmentElement()"
+        },
+        {
+          "name": "while",
+          "line": 1574,
+          "signature": "while (!re)"
+        },
+        {
+          "name": "if",
+          "line": 1576,
+          "signature": "if (!seg)"
+        },
+        {
+          "name": "if",
+          "line": 1580,
+          "signature": "if (seg->segmentType() == SegmentType::EndBarLine)"
+        },
+        {
+          "name": "System::minDistance",
+          "line": 1597,
+          "signature": "double System::minDistance(System* s2) const"
+        },
+        {
+          "name": "if",
+          "line": 1599,
+          "signature": "if (vbox() && !s2->vbox())"
+        },
+        {
+          "name": "if",
+          "line": 1607,
+          "signature": "if (_staves.empty() || s2->staves().empty())"
+        },
+        {
+          "name": "if",
+          "line": 1617,
+          "signature": "if (score()->staff(firstStaff)->show() && s2->staff(firstStaff)->show())"
+        },
+        {
+          "name": "if",
+          "line": 1622,
+          "signature": "if (score()->staff(lastStaff)->show() && staff(lastStaff)->show())"
+        },
+        {
+          "name": "for",
+          "line": 1632,
+          "signature": "for (MeasureBase* mb1 : ml)"
+        },
+        {
+          "name": "if",
+          "line": 1633,
+          "signature": "if (mb1->isMeasure())"
+        },
+        {
+          "name": "if",
+          "line": 1636,
+          "signature": "if (sp)"
+        },
+        {
+          "name": "if",
+          "line": 1637,
+          "signature": "if (sp->spacerType() == SpacerType::FIXED)"
+        },
+        {
+          "name": "if",
+          "line": 1647,
+          "signature": "if (!fixedDownDistance)"
+        },
+        {
+          "name": "for",
+          "line": 1648,
+          "signature": "for (MeasureBase* mb2 : s2->ml)"
+        },
+        {
+          "name": "if",
+          "line": 1649,
+          "signature": "if (mb2->isMeasure())"
+        },
+        {
+          "name": "if",
+          "line": 1652,
+          "signature": "if (sp)"
+        },
+        {
+          "name": "System::topDistance",
+          "line": 1671,
+          "signature": "double System::topDistance(staff_idx_t staffIdx, const SkylineLine& s) const"
+        },
+        {
+          "name": "if",
+          "line": 1679,
+          "signature": "if (score()->lineMode())"
+        },
+        {
+          "name": "System::bottomDistance",
+          "line": 1689,
+          "signature": "double System::bottomDistance(staff_idx_t staffIdx, const SkylineLine& s) const"
+        },
+        {
+          "name": "if",
+          "line": 1694,
+          "signature": "if (score()->lineMode())"
+        },
+        {
+          "name": "System::firstVisibleSysStaff",
+          "line": 1704,
+          "signature": "staff_idx_t System::firstVisibleSysStaff() const"
+        },
+        {
+          "name": "if",
+          "line": 1708,
+          "signature": "if (_staves[i]->show())"
+        },
+        {
+          "name": "System::lastVisibleSysStaff",
+          "line": 1719,
+          "signature": "staff_idx_t System::lastVisibleSysStaff() const"
+        },
+        {
+          "name": "if",
+          "line": 1723,
+          "signature": "if (_staves[i]->show())"
+        },
+        {
+          "name": "System::minTop",
+          "line": 1735,
+          "signature": "double System::minTop() const"
+        },
+        {
+          "name": "if",
+          "line": 1739,
+          "signature": "if (s)"
+        },
+        {
+          "name": "System::minBottom",
+          "line": 1750,
+          "signature": "double System::minBottom() const"
+        },
+        {
+          "name": "if",
+          "line": 1752,
+          "signature": "if (vbox())"
+        },
+        {
+          "name": "if",
+          "line": 1757,
+          "signature": "if (s)"
+        },
+        {
+          "name": "System::spacerDistance",
+          "line": 1768,
+          "signature": "double System::spacerDistance(bool up) const"
+        },
+        {
+          "name": "if",
+          "line": 1771,
+          "signature": "if (staff == mu::nidx)"
+        },
+        {
+          "name": "for",
+          "line": 1775,
+          "signature": "for (MeasureBase* mb : measures())"
+        },
+        {
+          "name": "if",
+          "line": 1776,
+          "signature": "if (mb->isMeasure())"
+        },
+        {
+          "name": "if",
+          "line": 1779,
+          "signature": "if (sp)"
+        },
+        {
+          "name": "if",
+          "line": 1780,
+          "signature": "if (sp->spacerType() == SpacerType::FIXED)"
+        },
+        {
+          "name": "System::upSpacer",
+          "line": 1798,
+          "signature": "Spacer* System::upSpacer(staff_idx_t staffIdx, Spacer* prevDownSpacer) const"
+        },
+        {
+          "name": "if",
+          "line": 1800,
+          "signature": "if (staffIdx == mu::nidx)"
+        },
+        {
+          "name": "if",
+          "line": 1804,
+          "signature": "if (prevDownSpacer && (prevDownSpacer->spacerType() == SpacerType::FIXED))"
+        },
+        {
+          "name": "for",
+          "line": 1809,
+          "signature": "for (MeasureBase* mb : measures())"
+        },
+        {
+          "name": "if",
+          "line": 1810,
+          "signature": "if (!(mb && mb->isMeasure()))"
+        },
+        {
+          "name": "if",
+          "line": 1814,
+          "signature": "if (sp)"
+        },
+        {
+          "name": "if",
+          "line": 1815,
+          "signature": "if (!spacer || ((spacer->spacerType() == SpacerType::UP) && (sp->gap() > spacer->gap())))"
+        },
+        {
+          "name": "System::downSpacer",
+          "line": 1829,
+          "signature": "Spacer* System::downSpacer(staff_idx_t staffIdx) const"
+        },
+        {
+          "name": "if",
+          "line": 1831,
+          "signature": "if (staffIdx == mu::nidx)"
+        },
+        {
+          "name": "for",
+          "line": 1836,
+          "signature": "for (MeasureBase* mb : measures())"
+        },
+        {
+          "name": "if",
+          "line": 1837,
+          "signature": "if (!(mb && mb->isMeasure()))"
+        },
+        {
+          "name": "if",
+          "line": 1841,
+          "signature": "if (sp)"
+        },
+        {
+          "name": "if",
+          "line": 1842,
+          "signature": "if (sp->spacerType() == SpacerType::FIXED)"
+        },
+        {
+          "name": "if",
+          "line": 1845,
+          "signature": "if (!spacer || (sp->gap() > spacer->gap()))"
+        },
+        {
+          "name": "System::firstNoteRestSegmentX",
+          "line": 1861,
+          "signature": "double System::firstNoteRestSegmentX(bool leading)"
+        },
+        {
+          "name": "for",
+          "line": 1864,
+          "signature": "for (const MeasureBase* mb : measures())"
+        },
+        {
+          "name": "if",
+          "line": 1865,
+          "signature": "if (mb->isMeasure())"
+        },
+        {
+          "name": "if",
+          "line": 1868,
+          "signature": "if (seg->isChordRestType())"
+        },
+        {
+          "name": "if",
+          "line": 1870,
+          "signature": "if (!leading)"
+        },
+        {
+          "name": "while",
+          "line": 1876,
+          "signature": "while (seg && seg->allElementsInvisible())"
+        },
+        {
+          "name": "if",
+          "line": 1879,
+          "signature": "if (seg)"
+        },
+        {
+          "name": "if",
+          "line": 1884,
+          "signature": "if (!staff(i)->show())"
+        },
+        {
+          "name": "if",
+          "line": 1888,
+          "signature": "if (e && e->addToSkyline())"
+        },
+        {
+          "name": "System::lastNoteRestSegmentX",
+          "line": 1911,
+          "signature": "double System::lastNoteRestSegmentX(bool trailing)"
+        },
+        {
+          "name": "if",
+          "line": 1916,
+          "signature": "if ((*measureBaseIter)->isMeasure())"
+        },
+        {
+          "name": "if",
+          "line": 1919,
+          "signature": "if (seg->isChordRestType())"
+        },
+        {
+          "name": "if",
+          "line": 1921,
+          "signature": "if (!trailing)"
+        },
+        {
+          "name": "while",
+          "line": 1927,
+          "signature": "while (seg && seg->allElementsInvisible())"
+        },
+        {
+          "name": "if",
+          "line": 1930,
+          "signature": "if (seg)"
+        },
+        {
+          "name": "System::lastChordRest",
+          "line": 1948,
+          "signature": "ChordRest* System::lastChordRest(track_idx_t track)"
+        },
+        {
+          "name": "if",
+          "line": 1951,
+          "signature": "if ((*measureBaseIter)->isMeasure())"
+        },
+        {
+          "name": "if",
+          "line": 1954,
+          "signature": "if (seg->isChordRestType())"
+        },
+        {
+          "name": "if",
+          "line": 1956,
+          "signature": "if (cr)"
+        },
+        {
+          "name": "System::firstChordRest",
+          "line": 1971,
+          "signature": "ChordRest* System::firstChordRest(track_idx_t track)"
+        },
+        {
+          "name": "for",
+          "line": 1973,
+          "signature": "for (const MeasureBase* mb : measures())"
+        },
+        {
+          "name": "if",
+          "line": 1974,
+          "signature": "if (!mb->isMeasure())"
+        },
+        {
+          "name": "if",
+          "line": 1979,
+          "signature": "if (seg->isChordRestType())"
+        },
+        {
+          "name": "if",
+          "line": 1981,
+          "signature": "if (cr)"
+        },
+        {
+          "name": "System::pageBreak",
+          "line": 1994,
+          "signature": "bool System::pageBreak() const"
+        },
+        {
+          "name": "System::endTick",
+          "line": 2003,
+          "signature": "Fraction System::endTick() const"
+        },
+        {
+          "name": "System::firstSysStaffOfPart",
+          "line": 2012,
+          "signature": "staff_idx_t System::firstSysStaffOfPart(const Part* part) const"
+        },
+        {
+          "name": "for",
+          "line": 2015,
+          "signature": "for (const Part* p : score()->parts())"
+        },
+        {
+          "name": "if",
+          "line": 2016,
+          "signature": "if (p == part)"
+        },
+        {
+          "name": "System::firstVisibleSysStaffOfPart",
+          "line": 2028,
+          "signature": "staff_idx_t System::firstVisibleSysStaffOfPart(const Part* part) const"
+        },
+        {
+          "name": "if",
+          "line": 2032,
+          "signature": "if (staff(idx)->show())"
+        },
+        {
+          "name": "System::lastSysStaffOfPart",
+          "line": 2043,
+          "signature": "staff_idx_t System::lastSysStaffOfPart(const Part* part) const"
+        },
+        {
+          "name": "if",
+          "line": 2046,
+          "signature": "if (firstIdx == mu::nidx)"
+        },
+        {
+          "name": "System::lastVisibleSysStaffOfPart",
+          "line": 2056,
+          "signature": "staff_idx_t System::lastVisibleSysStaffOfPart(const Part* part) const"
+        },
+        {
+          "name": "if",
+          "line": 2059,
+          "signature": "if (firstStaffIdx == mu::nidx)"
+        },
+        {
+          "name": "if",
+          "line": 2063,
+          "signature": "if (staff(idx)->show())"
+        },
+        {
+          "name": "System::minSysTicks",
+          "line": 2075,
+          "signature": "Fraction System::minSysTicks() const"
+        },
+        {
+          "name": "for",
+          "line": 2080,
+          "signature": "for (MeasureBase* mb : measures())"
+        },
+        {
+          "name": "if",
+          "line": 2081,
+          "signature": "if (mb->isMeasure())"
+        },
+        {
+          "name": "System::squeezableSpace",
+          "line": 2096,
+          "signature": "double System::squeezableSpace() const"
+        },
+        {
+          "name": "for",
+          "line": 2099,
+          "signature": "for (auto m : measures())"
+        },
+        {
+          "name": "if",
+          "line": 2100,
+          "signature": "if (m->isMeasure())"
+        },
+        {
+          "name": "System::maxSysTicks",
+          "line": 2107,
+          "signature": "Fraction System::maxSysTicks() const"
+        },
+        {
+          "name": "for",
+          "line": 2110,
+          "signature": "for (auto mb : measures())"
+        },
+        {
+          "name": "if",
+          "line": 2111,
+          "signature": "if (mb->isMeasure())"
+        },
+        {
+          "name": "System::hasCrossStaffOrModifiedBeams",
+          "line": 2118,
+          "signature": "bool System::hasCrossStaffOrModifiedBeams()"
+        },
+        {
+          "name": "for",
+          "line": 2120,
+          "signature": "for (MeasureBase* mb : measures())"
+        },
+        {
+          "name": "if",
+          "line": 2121,
+          "signature": "if (!mb->isMeasure())"
+        },
+        {
+          "name": "for",
+          "line": 2124,
+          "signature": "for (Segment& seg : toMeasure(mb)->segments())"
+        },
+        {
+          "name": "if",
+          "line": 2125,
+          "signature": "if (!seg.isChordRestType())"
+        },
+        {
+          "name": "for",
+          "line": 2128,
+          "signature": "for (EngravingItem* e : seg.elist())"
+        },
+        {
+          "name": "if",
+          "line": 2129,
+          "signature": "if (!e || !e->isChordRest())"
+        },
+        {
+          "name": "if",
+          "line": 2132,
+          "signature": "if (toChordRest(e)->beam() && (toChordRest(e)->beam()->cross() || toChordRest(e)->beam()->userModified()))"
+        },
+        {
+          "name": "if",
+          "line": 2135,
+          "signature": "if (e->isChord() && !toChord(e)->graceNotes().empty())"
+        },
+        {
+          "name": "for",
+          "line": 2136,
+          "signature": "for (Chord* grace : toChord(e)->graceNotes())"
+        },
+        {
+          "name": "if",
+          "line": 2137,
+          "signature": "if (grace->beam() && (grace->beam()->cross() || grace->beam()->userModified()))"
+        }
+      ],
+      "constants": [
+        {
+          "name": "dn",
+          "value": "_staves.size() - nstaves",
+          "line": 261
+        },
+        {
+          "name": "nstaves",
+          "value": "score()->nstaves()",
+          "line": 1163
+        }
+      ],
+      "arrays": [],
+      "enums": [],
+      "structs": [],
+      "magic_numbers": [
+        {
+          "line": 550,
+          "values": [
+            "2.0"
+          ],
+          "context": "m->bbox().setRect(0.0, -_spatium, m->width(), height + 2.0 * _spatium);"
+        }
+      ]
+    },
+    {
+      "file": "verticalgapdata.cpp",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\engraving\\layout/verticalgapdata.cpp",
+      "exists": true,
+      "line_count": 251,
+      "functions": [
+        {
+          "name": "_fixedHeight",
+          "line": 35,
+          "signature": ": _fixedHeight(first), style(style), system(sys), sysStaff(sst), staff(st)"
+        },
+        {
+          "name": "if",
+          "line": 37,
+          "signature": "if (_fixedHeight)"
+        },
+        {
+          "name": "if",
+          "line": 46,
+          "signature": "if (spacer)"
+        },
+        {
+          "name": "if",
+          "line": 49,
+          "signature": "if (_fixedSpacer)"
+        },
+        {
+          "name": "VerticalGapData::updateFactor",
+          "line": 60,
+          "signature": "void VerticalGapData::updateFactor(double factor)"
+        },
+        {
+          "name": "if",
+          "line": 62,
+          "signature": "if (_fixedHeight)"
+        },
+        {
+          "name": "VerticalGapData::addSpaceBetweenSections",
+          "line": 74,
+          "signature": "void VerticalGapData::addSpaceBetweenSections()"
+        },
+        {
+          "name": "if",
+          "line": 77,
+          "signature": "if (!(_fixedHeight | _fixedSpacer))"
+        },
+        {
+          "name": "VerticalGapData::addSpaceAroundVBox",
+          "line": 86,
+          "signature": "void VerticalGapData::addSpaceAroundVBox(bool above)"
+        },
+        {
+          "name": "VerticalGapData::addSpaceAroundNormalBracket",
+          "line": 98,
+          "signature": "void VerticalGapData::addSpaceAroundNormalBracket()"
+        },
+        {
+          "name": "VerticalGapData::addSpaceAroundCurlyBracket",
+          "line": 107,
+          "signature": "void VerticalGapData::addSpaceAroundCurlyBracket()"
+        },
+        {
+          "name": "VerticalGapData::insideCurlyBracket",
+          "line": 116,
+          "signature": "void VerticalGapData::insideCurlyBracket()"
+        },
+        {
+          "name": "VerticalGapData::factor",
+          "line": 125,
+          "signature": "double VerticalGapData::factor() const"
+        },
+        {
+          "name": "VerticalGapData::spacing",
+          "line": 135,
+          "signature": "double VerticalGapData::spacing() const"
+        },
+        {
+          "name": "VerticalGapData::actualAddedSpace",
+          "line": 144,
+          "signature": "double VerticalGapData::actualAddedSpace() const"
+        },
+        {
+          "name": "VerticalGapData::addSpacing",
+          "line": 153,
+          "signature": "double VerticalGapData::addSpacing(double step)"
+        },
+        {
+          "name": "if",
+          "line": 155,
+          "signature": "if (_fixedHeight | _fixedSpacer)"
+        },
+        {
+          "name": "if",
+          "line": 158,
+          "signature": "if (_normalisedSpacing >= _maxActualSpacing)"
+        },
+        {
+          "name": "if",
+          "line": 163,
+          "signature": "if ((newSpacing >= _maxActualSpacing))"
+        },
+        {
+          "name": "VerticalGapData::isFixedHeight",
+          "line": 176,
+          "signature": "bool VerticalGapData::isFixedHeight() const"
+        },
+        {
+          "name": "VerticalGapData::undoLastAddSpacing",
+          "line": 185,
+          "signature": "void VerticalGapData::undoLastAddSpacing()"
+        },
+        {
+          "name": "VerticalGapData::addFillSpacing",
+          "line": 195,
+          "signature": "double VerticalGapData::addFillSpacing(double step, double maxFill)"
+        },
+        {
+          "name": "if",
+          "line": 197,
+          "signature": "if (_fixedSpacer)"
+        },
+        {
+          "name": "VerticalGapDataList::deleteAll",
+          "line": 210,
+          "signature": "void VerticalGapDataList::deleteAll()"
+        },
+        {
+          "name": "for",
+          "line": 212,
+          "signature": "for (auto vsd : *this)"
+        },
+        {
+          "name": "VerticalGapDataList::sumStretchFactor",
+          "line": 221,
+          "signature": "double VerticalGapDataList::sumStretchFactor() const"
+        },
+        {
+          "name": "for",
+          "line": 224,
+          "signature": "for (VerticalGapData* vsd : *this)"
+        },
+        {
+          "name": "if",
+          "line": 225,
+          "signature": "if (!vsd->isFixedHeight())"
+        },
+        {
+          "name": "VerticalGapDataList::smallest",
+          "line": 236,
+          "signature": "double VerticalGapDataList::smallest(double limit) const"
+        },
+        {
+          "name": "for",
+          "line": 239,
+          "signature": "for (VerticalGapData* vgd : *this)"
+        },
+        {
+          "name": "if",
+          "line": 240,
+          "signature": "if (vgd->isFixedHeight())"
+        },
+        {
+          "name": "if",
+          "line": 243,
+          "signature": "if ((std::ceil(limit) == std::ceil(vgd->spacing())))"
+        },
+        {
+          "name": "if",
+          "line": 246,
+          "signature": "if (!vdp || (vgd->spacing() < vdp->spacing()))"
+        }
+      ],
+      "constants": [],
+      "arrays": [],
+      "enums": [],
+      "structs": [],
+      "magic_numbers": []
+    },
+    {
+      "file": "shape.cpp",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\engraving\\libmscore/shape.cpp",
+      "exists": true,
+      "line_count": 380,
+      "functions": [
+        {
+          "name": "Shape::addHorizontalSpacing",
+          "line": 44,
+          "signature": "void Shape::addHorizontalSpacing(EngravingItem* item, double leftEdge, double rightEdge)"
+        },
+        {
+          "name": "if",
+          "line": 47,
+          "signature": "if (leftEdge == rightEdge)"
+        },
+        {
+          "name": "Shape::translate",
+          "line": 57,
+          "signature": "void Shape::translate(const PointF& pt)"
+        },
+        {
+          "name": "for",
+          "line": 59,
+          "signature": "for (RectF& r : *this)"
+        },
+        {
+          "name": "Shape::translateX",
+          "line": 64,
+          "signature": "void Shape::translateX(double xo)"
+        },
+        {
+          "name": "for",
+          "line": 66,
+          "signature": "for (RectF& r : *this)"
+        },
+        {
+          "name": "Shape::translateY",
+          "line": 72,
+          "signature": "void Shape::translateY(double yo)"
+        },
+        {
+          "name": "for",
+          "line": 74,
+          "signature": "for (RectF& r : *this)"
+        },
+        {
+          "name": "Shape::translated",
+          "line": 84,
+          "signature": "Shape Shape::translated(const PointF& pt) const"
+        },
+        {
+          "name": "for",
+          "line": 87,
+          "signature": "for (const ShapeElement& r : *this)"
+        },
+        {
+          "name": "Shape::minHorizontalDistance",
+          "line": 100,
+          "signature": "double Shape::minHorizontalDistance(const Shape& a, Score* score) const"
+        },
+        {
+          "name": "for",
+          "line": 104,
+          "signature": "for (const ShapeElement& r2 : a)"
+        },
+        {
+          "name": "for",
+          "line": 108,
+          "signature": "for (const ShapeElement& r1 : *this)"
+        },
+        {
+          "name": "if",
+          "line": 115,
+          "signature": "if (item1 && item2)"
+        },
+        {
+          "name": "if",
+          "line": 119,
+          "signature": "if ((intersection && kerningType != KerningType::ALLOW_COLLISION)\n                || (r1.width() == 0 || r2.width() == 0) // Temporary hack: shapes of zero-width are assumed to collide with everyghin\n                || (!item1 && item2 && item2->isLyrics()) // Temporary hack: avoids collision with melisma line\n                || kerningType == KerningType::NON_KERNING)"
+        },
+        {
+          "name": "if",
+          "line": 125,
+          "signature": "if (kerningType == KerningType::KERNING_UNTIL_ORIGIN)"
+        },
+        {
+          "name": "Shape::minVerticalDistance",
+          "line": 140,
+          "signature": "double Shape::minVerticalDistance(const Shape& a) const"
+        },
+        {
+          "name": "if",
+          "line": 142,
+          "signature": "if (empty() || a.empty())"
+        },
+        {
+          "name": "for",
+          "line": 147,
+          "signature": "for (const RectF& r2 : a)"
+        },
+        {
+          "name": "if",
+          "line": 148,
+          "signature": "if (r2.height() <= 0.0)"
+        },
+        {
+          "name": "for",
+          "line": 153,
+          "signature": "for (const RectF& r1 : *this)"
+        },
+        {
+          "name": "if",
+          "line": 154,
+          "signature": "if (r1.height() <= 0.0)"
+        },
+        {
+          "name": "if",
+          "line": 159,
+          "signature": "if (mu::engraving::intersects(ax1, ax2, bx1, bx2, 0.0))"
+        },
+        {
+          "name": "Shape::clearsVertically",
+          "line": 173,
+          "signature": "bool Shape::clearsVertically(const Shape& a) const"
+        },
+        {
+          "name": "for",
+          "line": 175,
+          "signature": "for (const RectF r1 : a)"
+        },
+        {
+          "name": "for",
+          "line": 176,
+          "signature": "for (const RectF r2 : *this)"
+        },
+        {
+          "name": "if",
+          "line": 177,
+          "signature": "if (mu::engraving::intersects(r1.left(), r1.right(), r2.left(), r2.right(), 0.0))"
+        },
+        {
+          "name": "if",
+          "line": 178,
+          "signature": "if (std::min(r1.top(), r1.bottom()) <= std::max(r2.top(), r2.bottom()))"
+        },
+        {
+          "name": "Shape::left",
+          "line": 192,
+          "signature": "double Shape::left() const"
+        },
+        {
+          "name": "for",
+          "line": 195,
+          "signature": "for (const ShapeElement& r : *this)"
+        },
+        {
+          "name": "if",
+          "line": 196,
+          "signature": "if (r.height() != 0.0 && !(r.toItem && r.toItem->isTextBase()) && r.left() < dist)"
+        },
+        {
+          "name": "Shape::right",
+          "line": 209,
+          "signature": "double Shape::right() const"
+        },
+        {
+          "name": "for",
+          "line": 212,
+          "signature": "for (const RectF& r : *this)"
+        },
+        {
+          "name": "if",
+          "line": 213,
+          "signature": "if (r.right() > dist)"
+        },
+        {
+          "name": "Shape::top",
+          "line": 229,
+          "signature": "double Shape::top() const"
+        },
+        {
+          "name": "for",
+          "line": 232,
+          "signature": "for (const RectF& r : *this)"
+        },
+        {
+          "name": "if",
+          "line": 233,
+          "signature": "if (r.top() < dist)"
+        },
+        {
+          "name": "Shape::bottom",
+          "line": 244,
+          "signature": "double Shape::bottom() const"
+        },
+        {
+          "name": "for",
+          "line": 247,
+          "signature": "for (const RectF& r : *this)"
+        },
+        {
+          "name": "if",
+          "line": 248,
+          "signature": "if (r.bottom() > dist)"
+        },
+        {
+          "name": "Shape::topDistance",
+          "line": 261,
+          "signature": "double Shape::topDistance(const PointF& p) const"
+        },
+        {
+          "name": "for",
+          "line": 264,
+          "signature": "for (const RectF& r : *this)"
+        },
+        {
+          "name": "if",
+          "line": 265,
+          "signature": "if (p.x() >= r.left() && p.x() < r.right())"
+        },
+        {
+          "name": "Shape::bottomDistance",
+          "line": 278,
+          "signature": "double Shape::bottomDistance(const PointF& p) const"
+        },
+        {
+          "name": "for",
+          "line": 281,
+          "signature": "for (const RectF& r : *this)"
+        },
+        {
+          "name": "if",
+          "line": 282,
+          "signature": "if (p.x() >= r.left() && p.x() < r.right())"
+        },
+        {
+          "name": "Shape::remove",
+          "line": 293,
+          "signature": "void Shape::remove(const RectF& r)"
+        },
+        {
+          "name": "if",
+          "line": 296,
+          "signature": "if (*i == r)"
+        },
+        {
+          "name": "Shape::remove",
+          "line": 305,
+          "signature": "void Shape::remove(const Shape& s)"
+        },
+        {
+          "name": "for",
+          "line": 307,
+          "signature": "for (const RectF& r : s)"
+        },
+        {
+          "name": "Shape::contains",
+          "line": 316,
+          "signature": "bool Shape::contains(const PointF& p) const"
+        },
+        {
+          "name": "for",
+          "line": 318,
+          "signature": "for (const RectF& r : *this)"
+        },
+        {
+          "name": "if",
+          "line": 319,
+          "signature": "if (r.contains(p))"
+        },
+        {
+          "name": "Shape::intersects",
+          "line": 330,
+          "signature": "bool Shape::intersects(const RectF& rr) const"
+        },
+        {
+          "name": "for",
+          "line": 332,
+          "signature": "for (const RectF& r : *this)"
+        },
+        {
+          "name": "if",
+          "line": 333,
+          "signature": "if (r.intersects(rr))"
+        },
+        {
+          "name": "Shape::intersects",
+          "line": 344,
+          "signature": "bool Shape::intersects(const Shape& other) const"
+        },
+        {
+          "name": "for",
+          "line": 346,
+          "signature": "for (const RectF& r : other)"
+        },
+        {
+          "name": "if",
+          "line": 347,
+          "signature": "if (intersects(r))"
+        },
+        {
+          "name": "Shape::paint",
+          "line": 354,
+          "signature": "void Shape::paint(Painter& painter) const"
+        },
+        {
+          "name": "for",
+          "line": 356,
+          "signature": "for (const RectF& r : *this)"
+        },
+        {
+          "name": "Shape::dump",
+          "line": 366,
+          "signature": "void Shape::dump(const char* p) const"
+        },
+        {
+          "name": "for",
+          "line": 369,
+          "signature": "for (const ShapeElement& r : *this)"
+        },
+        {
+          "name": "ShapeElement::dump",
+          "line": 374,
+          "signature": "void ShapeElement::dump() const"
+        }
+      ],
+      "constants": [
+        {
+          "name": "eps",
+          "value": "100 * std::numeric_limits<double>::epsilon()",
+          "line": 46
+        }
+      ],
+      "arrays": [],
+      "enums": [],
+      "structs": [],
+      "magic_numbers": [
+        {
+          "line": 102,
+          "values": [
+            "1000000.0"
+          ],
+          "context": "double dist = -1000000.0;        // min real"
+        },
+        {
+          "line": 146,
+          "values": [
+            "1000000.0"
+          ],
+          "context": "double dist = -1000000.0; // min real"
+        },
+        {
+          "line": 246,
+          "values": [
+            "1000000.0"
+          ],
+          "context": "double dist = -1000000.0;"
+        }
+      ]
+    },
+    {
+      "file": "shape.h",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\engraving\\libmscore/shape.h",
+      "exists": true,
+      "line_count": 125,
+      "functions": [
+        {
+          "name": "ShapeElement",
+          "line": 45,
+          "signature": "ShapeElement(const mu::RectF& f, const EngravingItem* p)\n        : mu::RectF(f), toItem(p)"
+        },
+        {
+          "name": "ShapeElement",
+          "line": 47,
+          "signature": "ShapeElement(const mu::RectF& f)\n        : mu::RectF(f)"
+        },
+        {
+          "name": "Shape",
+          "line": 68,
+          "signature": "Shape()"
+        },
+        {
+          "name": "Shape",
+          "line": 69,
+          "signature": "Shape(const mu::RectF& r, const EngravingItem* p = nullptr)"
+        },
+        {
+          "name": "add",
+          "line": 71,
+          "signature": "void add(const Shape& s)"
+        },
+        {
+          "name": "add",
+          "line": 72,
+          "signature": "void add(const mu::RectF& r, const EngravingItem* p)"
+        },
+        {
+          "name": "add",
+          "line": 73,
+          "signature": "void add(const mu::RectF& r)"
+        },
+        {
+          "name": "size",
+          "line": 94,
+          "signature": "size_t size() const"
+        },
+        {
+          "name": "empty",
+          "line": 95,
+          "signature": "bool empty() const"
+        },
+        {
+          "name": "clear",
+          "line": 96,
+          "signature": "void clear()"
+        },
+        {
+          "name": "intersects",
+          "line": 113,
+          "signature": "inline static bool intersects(double a, double b, double c, double d, double verticalClearance)"
+        },
+        {
+          "name": "if",
+          "line": 118,
+          "signature": "if (a == b || c == d)"
+        }
+      ],
+      "constants": [
+        {
+          "name": "__SHAPE_H__",
+          "value": "#include \"global/allocator.h\"",
+          "line": 24,
+          "kind": "define"
+        }
+      ],
+      "arrays": [],
+      "enums": [
+        {
+          "name": "HorizontalSpacingType",
+          "entries": [
+            "SPACING_GENERAL",
+            "SPACING_LYRICS",
+            "SPACING_HARMONY"
+          ],
+          "line": 62
+        }
+      ],
+      "structs": [],
+      "magic_numbers": []
+    },
+    {
+      "file": "skyline.cpp",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\engraving\\libmscore/skyline.cpp",
+      "exists": true,
+      "line_count": 374,
+      "functions": [
+        {
+          "name": "findSpan",
+          "line": 46,
+          "signature": "int findSpan(const ShapeElement& r)"
+        },
+        {
+          "name": "if",
+          "line": 50,
+          "signature": "if (r.toItem && r.toItem->isArpeggio())"
+        },
+        {
+          "name": "Skyline::add",
+          "line": 60,
+          "signature": "void Skyline::add(const ShapeElement& r)"
+        },
+        {
+          "name": "SkylineLine::insert",
+          "line": 71,
+          "signature": "SkylineLine::SegIter SkylineLine::insert(SegIter i, double x, double y, double w, int span)"
+        },
+        {
+          "name": "if",
+          "line": 76,
+          "signature": "if (i != seg.end() && xr > i->x)"
+        },
+        {
+          "name": "SkylineLine::append",
+          "line": 86,
+          "signature": "void SkylineLine::append(double x, double y, double w, int span)"
+        },
+        {
+          "name": "SkylineLine::find",
+          "line": 95,
+          "signature": "SkylineLine::SegIter SkylineLine::find(double x)"
+        },
+        {
+          "name": "if",
+          "line": 98,
+          "signature": "if (it == seg.begin())"
+        },
+        {
+          "name": "SkylineLine::find",
+          "line": 104,
+          "signature": "SkylineLine::SegConstIter SkylineLine::find(double x) const"
+        },
+        {
+          "name": "SkylineLine::add",
+          "line": 113,
+          "signature": "void SkylineLine::add(const Shape& s)"
+        },
+        {
+          "name": "for",
+          "line": 115,
+          "signature": "for (const auto& r : s)"
+        },
+        {
+          "name": "SkylineLine::add",
+          "line": 120,
+          "signature": "void SkylineLine::add(const ShapeElement& r)"
+        },
+        {
+          "name": "if",
+          "line": 123,
+          "signature": "if (north)"
+        },
+        {
+          "name": "Skyline::add",
+          "line": 130,
+          "signature": "void Skyline::add(const Shape& s)"
+        },
+        {
+          "name": "for",
+          "line": 132,
+          "signature": "for (const auto& r : s)"
+        },
+        {
+          "name": "SkylineLine::add",
+          "line": 137,
+          "signature": "void SkylineLine::add(double x, double y, double w, int span)"
+        },
+        {
+          "name": "if",
+          "line": 140,
+          "signature": "if (x < 0.0)"
+        },
+        {
+          "name": "if",
+          "line": 143,
+          "signature": "if (w <= 0.0)"
+        },
+        {
+          "name": "if",
+          "line": 154,
+          "signature": "if ((x + w) <= cx)"
+        },
+        {
+          "name": "if",
+          "line": 157,
+          "signature": "if (x > (cx + i->w))"
+        },
+        {
+          "name": "if",
+          "line": 161,
+          "signature": "if ((north && (cy <= y)) || (!north && (cy >= y)))"
+        },
+        {
+          "name": "if",
+          "line": 165,
+          "signature": "if ((x >= cx) && ((x + w) < (cx + i->w)))"
+        },
+        {
+          "name": "if",
+          "line": 170,
+          "signature": "if (w1 > 0.0000001)"
+        },
+        {
+          "name": "if",
+          "line": 180,
+          "signature": "if (w3 > 0.0000001)"
+        },
+        {
+          "name": "if",
+          "line": 198,
+          "signature": "if (w2 > 0.0000001)"
+        },
+        {
+          "name": "if",
+          "line": 208,
+          "signature": "if (x >= cx)"
+        },
+        {
+          "name": "if",
+          "line": 209,
+          "signature": "if (x > cx)"
+        },
+        {
+          "name": "Skyline::clear",
+          "line": 225,
+          "signature": "void Skyline::clear()"
+        },
+        {
+          "name": "Skyline::minDistance",
+          "line": 237,
+          "signature": "double Skyline::minDistance(const Skyline& s) const"
+        },
+        {
+          "name": "SkylineLine::minDistance",
+          "line": 242,
+          "signature": "double SkylineLine::minDistance(const SkylineLine& sl) const"
+        },
+        {
+          "name": "if",
+          "line": 250,
+          "signature": "if (i->staffSpan > 0)"
+        },
+        {
+          "name": "while",
+          "line": 253,
+          "signature": "while (k != sl.end() && (x2 + k->w) < x1)"
+        },
+        {
+          "name": "if",
+          "line": 257,
+          "signature": "if (k == sl.end())"
+        },
+        {
+          "name": "if",
+          "line": 261,
+          "signature": "if ((x1 + i->w > x2) && (x1 < x2 + k->w) && k->staffSpan >= 0)"
+        },
+        {
+          "name": "if",
+          "line": 265,
+          "signature": "if (x2 + k->w < x1 + i->w)"
+        },
+        {
+          "name": "if",
+          "line": 268,
+          "signature": "if (k == sl.end())"
+        },
+        {
+          "name": "if",
+          "line": 275,
+          "signature": "if (k == sl.end())"
+        },
+        {
+          "name": "Skyline::paint",
+          "line": 283,
+          "signature": "void Skyline::paint(Painter& painter, double lineWidth) const"
+        },
+        {
+          "name": "SkylineLine::paint",
+          "line": 296,
+          "signature": "void SkylineLine::paint(Painter& painter) const"
+        },
+        {
+          "name": "for",
+          "line": 303,
+          "signature": "for (const SkylineSegment& s : *this)"
+        },
+        {
+          "name": "if",
+          "line": 305,
+          "signature": "if (valid(s))"
+        },
+        {
+          "name": "if",
+          "line": 306,
+          "signature": "if (pvalid && !RealIsEqual(y, s.y))"
+        },
+        {
+          "name": "if",
+          "line": 310,
+          "signature": "if (!RealIsEqual(x1, x2))"
+        },
+        {
+          "name": "SkylineLine::valid",
+          "line": 321,
+          "signature": "bool SkylineLine::valid() const"
+        },
+        {
+          "name": "SkylineLine::valid",
+          "line": 326,
+          "signature": "bool SkylineLine::valid(const SkylineSegment& s) const"
+        },
+        {
+          "name": "Skyline::dump",
+          "line": 335,
+          "signature": "void Skyline::dump(const char* p, bool n) const"
+        },
+        {
+          "name": "if",
+          "line": 338,
+          "signature": "if (n)"
+        },
+        {
+          "name": "SkylineLine::dump",
+          "line": 345,
+          "signature": "void SkylineLine::dump() const"
+        },
+        {
+          "name": "for",
+          "line": 348,
+          "signature": "for (const SkylineSegment& s : *this)"
+        },
+        {
+          "name": "SkylineLine::max",
+          "line": 358,
+          "signature": "double SkylineLine::max() const"
+        },
+        {
+          "name": "if",
+          "line": 361,
+          "signature": "if (north)"
+        },
+        {
+          "name": "for",
+          "line": 363,
+          "signature": "for (const SkylineSegment& s : *this)"
+        },
+        {
+          "name": "for",
+          "line": 368,
+          "signature": "for (const SkylineSegment& s : *this)"
+        }
+      ],
+      "constants": [
+        {
+          "name": "MAXIMUM_Y",
+          "value": "1000000.0",
+          "line": 35
+        },
+        {
+          "name": "MINIMUM_Y",
+          "value": "-1000000.0",
+          "line": 36
+        },
+        {
+          "name": "xr",
+          "value": "x + w",
+          "line": 73
+        },
+        {
+          "name": "SKL_DEBUG",
+          "value": "#ifdef SKL_DEBUG",
+          "line": 38,
+          "kind": "define"
+        }
+      ],
+      "arrays": [],
+      "enums": [],
+      "structs": [],
+      "magic_numbers": [
+        {
+          "line": 36,
+          "values": [
+            "1000000.0"
+          ],
+          "context": "static const double MINIMUM_Y = -1000000.0;"
+        },
+        {
+          "line": 170,
+          "values": [
+            "0.0000001"
+          ],
+          "context": "if (w1 > 0.0000001) {"
+        },
+        {
+          "line": 180,
+          "values": [
+            "0.0000001"
+          ],
+          "context": "if (w3 > 0.0000001) {"
+        },
+        {
+          "line": 198,
+          "values": [
+            "0.0000001"
+          ],
+          "context": "if (w2 > 0.0000001) {"
+        }
+      ]
+    },
+    {
+      "file": "skyline.h",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\engraving\\libmscore/skyline.h",
+      "exists": true,
+      "line_count": 121,
+      "functions": [
+        {
+          "name": "SkylineSegment",
+          "line": 48,
+          "signature": "SkylineSegment(double _x, double _y, double _w, int _staffSpan = 0)\n        : x(_x), y(_y), w(_w), staffSpan(_staffSpan)"
+        },
+        {
+          "name": "SkylineLine",
+          "line": 68,
+          "signature": "public:\n    SkylineLine(bool n)\n        : north(n)"
+        },
+        {
+          "name": "add",
+          "line": 74,
+          "signature": "void add(const RectF& r)"
+        },
+        {
+          "name": "clear",
+          "line": 76,
+          "signature": "void clear()"
+        },
+        {
+          "name": "isNorth",
+          "line": 83,
+          "signature": "bool isNorth() const"
+        },
+        {
+          "name": "begin",
+          "line": 85,
+          "signature": "SegIter begin()"
+        },
+        {
+          "name": "begin",
+          "line": 86,
+          "signature": "SegConstIter begin() const"
+        },
+        {
+          "name": "end",
+          "line": 87,
+          "signature": "SegIter end()"
+        },
+        {
+          "name": "end",
+          "line": 88,
+          "signature": "SegConstIter end() const"
+        },
+        {
+          "name": "Skyline",
+          "line": 100,
+          "signature": "public:\n    Skyline()\n        : _north(true), _south(false)"
+        },
+        {
+          "name": "add",
+          "line": 107,
+          "signature": "void add(const RectF& r)"
+        },
+        {
+          "name": "north",
+          "line": 111,
+          "signature": "SkylineLine& north()"
+        },
+        {
+          "name": "south",
+          "line": 112,
+          "signature": "SkylineLine& south()"
+        },
+        {
+          "name": "north",
+          "line": 113,
+          "signature": "const SkylineLine& north() const"
+        },
+        {
+          "name": "south",
+          "line": 114,
+          "signature": "const SkylineLine& south() const"
+        }
+      ],
+      "constants": [
+        {
+          "name": "__SKYLINE_H__",
+          "value": "#include <vector>",
+          "line": 24,
+          "kind": "define"
+        }
+      ],
+      "arrays": [],
+      "enums": [],
+      "structs": [
+        {
+          "name": "SkylineSegment",
+          "line": 42
+        }
+      ],
+      "magic_numbers": []
+    },
+    {
+      "file": "engravingitem.cpp",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\engraving\\libmscore/engravingitem.cpp",
+      "exists": true,
+      "line_count": 2714,
+      "functions": [
+        {
+          "name": "EngravingItemList::at",
+          "line": 78,
+          "signature": "EngravingItem* EngravingItemList::at(size_t i) const"
+        },
+        {
+          "name": "EngravingObject",
+          "line": 84,
+          "signature": ": EngravingObject(type, se)"
+        },
+        {
+          "name": "EngravingObject",
+          "line": 96,
+          "signature": ": EngravingObject(e)"
+        },
+        {
+          "name": "EngravingItem::setupAccessible",
+          "line": 123,
+          "signature": "void EngravingItem::setupAccessible()"
+        },
+        {
+          "name": "if",
+          "line": 125,
+          "signature": "if (m_accessible)"
+        },
+        {
+          "name": "if",
+          "line": 133,
+          "signature": "if (score() && !score()->isPaletteScore())"
+        },
+        {
+          "name": "if",
+          "line": 134,
+          "signature": "if (std::find(accessibleDisabled.begin(), accessibleDisabled.end(), type()) == accessibleDisabled.end())"
+        },
+        {
+          "name": "EngravingItem::accessibleEnabled",
+          "line": 143,
+          "signature": "bool EngravingItem::accessibleEnabled() const"
+        },
+        {
+          "name": "EngravingItem::setAccessibleEnabled",
+          "line": 148,
+          "signature": "void EngravingItem::setAccessibleEnabled(bool enabled)"
+        },
+        {
+          "name": "EngravingItem::parentItem",
+          "line": 153,
+          "signature": "EngravingItem* EngravingItem::parentItem(bool explicitParent) const"
+        },
+        {
+          "name": "if",
+          "line": 156,
+          "signature": "if (p && p->isEngravingItem())"
+        },
+        {
+          "name": "EngravingItem::childrenItems",
+          "line": 163,
+          "signature": "EngravingItemList EngravingItem::childrenItems() const"
+        },
+        {
+          "name": "for",
+          "line": 166,
+          "signature": "for (EngravingObject* ch : children())"
+        },
+        {
+          "name": "if",
+          "line": 167,
+          "signature": "if (ch->isEngravingItem())"
+        },
+        {
+          "name": "EngravingItem::createAccessible",
+          "line": 175,
+          "signature": "AccessibleItemPtr EngravingItem::createAccessible()"
+        },
+        {
+          "name": "EngravingItem::notifyAboutNameChanged",
+          "line": 180,
+          "signature": "void EngravingItem::notifyAboutNameChanged()"
+        },
+        {
+          "name": "if",
+          "line": 182,
+          "signature": "if (!selected())"
+        },
+        {
+          "name": "if",
+          "line": 186,
+          "signature": "if (m_accessible)"
+        },
+        {
+          "name": "EngravingItem::spatiumChanged",
+          "line": 198,
+          "signature": "void EngravingItem::spatiumChanged(double oldValue, double newValue)"
+        },
+        {
+          "name": "if",
+          "line": 200,
+          "signature": "if (offsetIsSpatiumDependent())"
+        },
+        {
+          "name": "EngravingItem::localSpatiumChanged",
+          "line": 210,
+          "signature": "void EngravingItem::localSpatiumChanged(double oldValue, double newValue)"
+        },
+        {
+          "name": "if",
+          "line": 212,
+          "signature": "if (offsetIsSpatiumDependent())"
+        },
+        {
+          "name": "EngravingItem::spatium",
+          "line": 221,
+          "signature": "double EngravingItem::spatium() const"
+        },
+        {
+          "name": "if",
+          "line": 223,
+          "signature": "if (systemFlag() || (explicitParent() && parentItem()->systemFlag()))"
+        },
+        {
+          "name": "EngravingItem::isInteractionAvailable",
+          "line": 230,
+          "signature": "bool EngravingItem::isInteractionAvailable() const"
+        },
+        {
+          "name": "if",
+          "line": 232,
+          "signature": "if (!visible() && (score()->printing() || !score()->showInvisible()))"
+        },
+        {
+          "name": "EngravingItem::offsetIsSpatiumDependent",
+          "line": 243,
+          "signature": "bool EngravingItem::offsetIsSpatiumDependent() const"
+        },
+        {
+          "name": "EngravingItem::magS",
+          "line": 252,
+          "signature": "double EngravingItem::magS() const"
+        },
+        {
+          "name": "EngravingItem::subtypeUserName",
+          "line": 261,
+          "signature": "TranslatableString EngravingItem::subtypeUserName() const"
+        },
+        {
+          "name": "EngravingItem::translatedSubtypeUserName",
+          "line": 266,
+          "signature": "String EngravingItem::translatedSubtypeUserName() const"
+        },
+        {
+          "name": "EngravingItem::linkedClone",
+          "line": 275,
+          "signature": "EngravingItem* EngravingItem::linkedClone()"
+        },
+        {
+          "name": "EngravingItem::deleteLater",
+          "line": 287,
+          "signature": "void EngravingItem::deleteLater()"
+        },
+        {
+          "name": "if",
+          "line": 289,
+          "signature": "if (selected())"
+        },
+        {
+          "name": "EngravingItem::scanElements",
+          "line": 303,
+          "signature": "void EngravingItem::scanElements(void* data, void (* func)(void*, EngravingItem*), bool all)"
+        },
+        {
+          "name": "if",
+          "line": 305,
+          "signature": "if (scanChildren().size() == 0)"
+        },
+        {
+          "name": "if",
+          "line": 306,
+          "signature": "if (all || visible() || score()->showInvisible())"
+        },
+        {
+          "name": "EngravingItem::reset",
+          "line": 318,
+          "signature": "void EngravingItem::reset()"
+        },
+        {
+          "name": "EngravingItem::change",
+          "line": 332,
+          "signature": "void EngravingItem::change(EngravingItem* o, EngravingItem* n)"
+        },
+        {
+          "name": "EngravingItem::staff",
+          "line": 342,
+          "signature": "Staff* EngravingItem::staff() const"
+        },
+        {
+          "name": "if",
+          "line": 344,
+          "signature": "if (!hasStaff() || score()->staves().empty())"
+        },
+        {
+          "name": "EngravingItem::hasStaff",
+          "line": 351,
+          "signature": "bool EngravingItem::hasStaff() const"
+        },
+        {
+          "name": "EngravingItem::staffType",
+          "line": 360,
+          "signature": "const StaffType* EngravingItem::staffType() const"
+        },
+        {
+          "name": "EngravingItem::onTabStaff",
+          "line": 370,
+          "signature": "bool EngravingItem::onTabStaff() const"
+        },
+        {
+          "name": "EngravingItem::hasGrips",
+          "line": 376,
+          "signature": "bool EngravingItem::hasGrips() const"
+        },
+        {
+          "name": "EngravingItem::track",
+          "line": 381,
+          "signature": "track_idx_t EngravingItem::track() const"
+        },
+        {
+          "name": "EngravingItem::setTrack",
+          "line": 386,
+          "signature": "void EngravingItem::setTrack(track_idx_t val)"
+        },
+        {
+          "name": "EngravingItem::z",
+          "line": 395,
+          "signature": "int EngravingItem::z() const"
+        },
+        {
+          "name": "if",
+          "line": 397,
+          "signature": "if (_z == -1)"
+        },
+        {
+          "name": "EngravingItem::setZ",
+          "line": 403,
+          "signature": "void EngravingItem::setZ(int val)"
+        },
+        {
+          "name": "EngravingItem::staffIdx",
+          "line": 408,
+          "signature": "staff_idx_t EngravingItem::staffIdx() const"
+        },
+        {
+          "name": "EngravingItem::setStaffIdx",
+          "line": 413,
+          "signature": "void EngravingItem::setStaffIdx(staff_idx_t val)"
+        },
+        {
+          "name": "EngravingItem::staffIdxOrNextVisible",
+          "line": 419,
+          "signature": "staff_idx_t EngravingItem::staffIdxOrNextVisible() const"
+        },
+        {
+          "name": "if",
+          "line": 423,
+          "signature": "if (!staff())"
+        },
+        {
+          "name": "if",
+          "line": 428,
+          "signature": "if (!systemFlag())"
+        },
+        {
+          "name": "if",
+          "line": 432,
+          "signature": "if (parent() && parent()->isSegment())"
+        },
+        {
+          "name": "if",
+          "line": 440,
+          "signature": "if (!m || !m->system() || !m->system()->staff(si))"
+        },
+        {
+          "name": "if",
+          "line": 444,
+          "signature": "if (isTopSystemObject())"
+        },
+        {
+          "name": "if",
+          "line": 448,
+          "signature": "if (si <= firstVis)"
+        },
+        {
+          "name": "if",
+          "line": 453,
+          "signature": "if (!m->system()->staff(si)->show())"
+        },
+        {
+          "name": "if",
+          "line": 457,
+          "signature": "if (idxOrig == si)"
+        },
+        {
+          "name": "if",
+          "line": 460,
+          "signature": "if (i + 1 < soStaves.size() && idxNew >= score()->staffIdx(soStaves[i + 1]->part()))"
+        },
+        {
+          "name": "EngravingItem::isTopSystemObject",
+          "line": 481,
+          "signature": "bool EngravingItem::isTopSystemObject() const"
+        },
+        {
+          "name": "if",
+          "line": 483,
+          "signature": "if (!systemFlag())"
+        },
+        {
+          "name": "if",
+          "line": 486,
+          "signature": "if (isSpannerSegment() && systemFlag() && track() != 0)"
+        },
+        {
+          "name": "if",
+          "line": 489,
+          "signature": "if (!_links)"
+        },
+        {
+          "name": "EngravingItem::vStaffIdx",
+          "line": 498,
+          "signature": "staff_idx_t EngravingItem::vStaffIdx() const"
+        },
+        {
+          "name": "EngravingItem::voice",
+          "line": 503,
+          "signature": "voice_idx_t EngravingItem::voice() const"
+        },
+        {
+          "name": "EngravingItem::setVoice",
+          "line": 508,
+          "signature": "void EngravingItem::setVoice(voice_idx_t v)"
+        },
+        {
+          "name": "EngravingItem::tick",
+          "line": 517,
+          "signature": "Fraction EngravingItem::tick() const"
+        },
+        {
+          "name": "while",
+          "line": 520,
+          "signature": "while (e->explicitParent())"
+        },
+        {
+          "name": "if",
+          "line": 521,
+          "signature": "if (e->explicitParent()->isSegment())"
+        },
+        {
+          "name": "EngravingItem::rtick",
+          "line": 535,
+          "signature": "Fraction EngravingItem::rtick() const"
+        },
+        {
+          "name": "while",
+          "line": 538,
+          "signature": "while (e->explicitParent())"
+        },
+        {
+          "name": "if",
+          "line": 539,
+          "signature": "if (e->explicitParent()->isSegment())"
+        },
+        {
+          "name": "EngravingItem::playTick",
+          "line": 551,
+          "signature": "Fraction EngravingItem::playTick() const"
+        },
+        {
+          "name": "EngravingItem::beat",
+          "line": 561,
+          "signature": "Fraction EngravingItem::beat() const"
+        },
+        {
+          "name": "EngravingItem::part",
+          "line": 578,
+          "signature": "Part* EngravingItem::part() const"
+        },
+        {
+          "name": "EngravingItem::color",
+          "line": 584,
+          "signature": "draw::Color EngravingItem::color() const"
+        },
+        {
+          "name": "EngravingItem::curColor",
+          "line": 593,
+          "signature": "mu::draw::Color EngravingItem::curColor() const"
+        },
+        {
+          "name": "EngravingItem::curColor",
+          "line": 602,
+          "signature": "mu::draw::Color EngravingItem::curColor(bool isVisible) const"
+        },
+        {
+          "name": "EngravingItem::curColor",
+          "line": 607,
+          "signature": "mu::draw::Color EngravingItem::curColor(bool isVisible, Color normalColor) const"
+        },
+        {
+          "name": "if",
+          "line": 610,
+          "signature": "if (score() && score()->printing())"
+        },
+        {
+          "name": "if",
+          "line": 614,
+          "signature": "if (flag(ElementFlag::DROP_TARGET))"
+        },
+        {
+          "name": "if",
+          "line": 619,
+          "signature": "if (isNote())"
+        },
+        {
+          "name": "if",
+          "line": 623,
+          "signature": "if (selected() || marked)"
+        },
+        {
+          "name": "if",
+          "line": 627,
+          "signature": "if (!isVisible)"
+        },
+        {
+          "name": "if",
+          "line": 631,
+          "signature": "if (m_colorsInversionEnabled && engravingConfiguration()->scoreInversionEnabled())"
+        },
+        {
+          "name": "EngravingItem::pagePos",
+          "line": 643,
+          "signature": "PointF EngravingItem::pagePos() const"
+        },
+        {
+          "name": "if",
+          "line": 646,
+          "signature": "if (explicitParent() == nullptr)"
+        },
+        {
+          "name": "if",
+          "line": 651,
+          "signature": "if (systemFlag())"
+        },
+        {
+          "name": "if",
+          "line": 655,
+          "signature": "if (idx == mu::nidx)"
+        },
+        {
+          "name": "if",
+          "line": 659,
+          "signature": "if (_flags & ElementFlag::ON_STAFF)"
+        },
+        {
+          "name": "if",
+          "line": 662,
+          "signature": "if (explicitParent()->isSegment())"
+        },
+        {
+          "name": "if",
+          "line": 673,
+          "signature": "if (measure)"
+        },
+        {
+          "name": "if",
+          "line": 677,
+          "signature": "if (system)"
+        },
+        {
+          "name": "if",
+          "line": 678,
+          "signature": "if (system->staves().size() <= idx)"
+        },
+        {
+          "name": "if",
+          "line": 685,
+          "signature": "if (explicitParent()->explicitParent())"
+        },
+        {
+          "name": "EngravingItem::canvasPos",
+          "line": 696,
+          "signature": "PointF EngravingItem::canvasPos() const"
+        },
+        {
+          "name": "if",
+          "line": 699,
+          "signature": "if (explicitParent() == nullptr)"
+        },
+        {
+          "name": "if",
+          "line": 705,
+          "signature": "if (systemFlag())"
+        },
+        {
+          "name": "if",
+          "line": 709,
+          "signature": "if (idx == mu::nidx)"
+        },
+        {
+          "name": "if",
+          "line": 713,
+          "signature": "if (_flags & ElementFlag::ON_STAFF)"
+        },
+        {
+          "name": "if",
+          "line": 716,
+          "signature": "if (explicitParent()->isSegment())"
+        },
+        {
+          "name": "if",
+          "line": 722,
+          "signature": "else if (explicitParent()->isSystem())"
+        },
+        {
+          "name": "if",
+          "line": 731,
+          "signature": "if (measure)"
+        },
+        {
+          "name": "if",
+          "line": 737,
+          "signature": "if (system)"
+        },
+        {
+          "name": "if",
+          "line": 739,
+          "signature": "if (page)"
+        },
+        {
+          "name": "if",
+          "line": 744,
+          "signature": "if (system)"
+        },
+        {
+          "name": "EngravingItem::pageX",
+          "line": 758,
+          "signature": "double EngravingItem::pageX() const"
+        },
+        {
+          "name": "EngravingItem::canvasX",
+          "line": 771,
+          "signature": "double EngravingItem::canvasX() const"
+        },
+        {
+          "name": "EngravingItem::contains",
+          "line": 786,
+          "signature": "bool EngravingItem::contains(const mu::PointF& p) const"
+        },
+        {
+          "name": "EngravingItem::intersects",
+          "line": 797,
+          "signature": "bool EngravingItem::intersects(const RectF& rr) const"
+        },
+        {
+          "name": "EngravingItem::writeProperties",
+          "line": 806,
+          "signature": "void EngravingItem::writeProperties(XmlWriter& xml) const"
+        },
+        {
+          "name": "if",
+          "line": 809,
+          "signature": "if (!autoplaceEnabled)"
+        },
+        {
+          "name": "if",
+          "line": 818,
+          "signature": "if (_links && (_links->size() > 1) && !xml.context()->clipboardmode())"
+        },
+        {
+          "name": "IF_ASSERT_FAILED",
+          "line": 820,
+          "signature": "IF_ASSERT_FAILED(ctx)"
+        },
+        {
+          "name": "if",
+          "line": 824,
+          "signature": "if (MScore::debugMode)"
+        },
+        {
+          "name": "if",
+          "line": 831,
+          "signature": "if (!s)"
+        },
+        {
+          "name": "if",
+          "line": 833,
+          "signature": "if (!s)"
+        },
+        {
+          "name": "if",
+          "line": 838,
+          "signature": "if (me == this)"
+        },
+        {
+          "name": "if",
+          "line": 843,
+          "signature": "if (s->links())"
+        },
+        {
+          "name": "if",
+          "line": 848,
+          "signature": "if (!me->score()->isMaster())"
+        },
+        {
+          "name": "if",
+          "line": 849,
+          "signature": "if (me->score() == score())"
+        },
+        {
+          "name": "if",
+          "line": 860,
+          "signature": "if (loc != mainLoc)"
+        },
+        {
+          "name": "if",
+          "line": 869,
+          "signature": "if ((xml.context()->writeTrack() || track() != xml.context()->curTrack())\n        && (track() != mu::nidx) && !isBeam())"
+        },
+        {
+          "name": "if",
+          "line": 876,
+          "signature": "if (xml.context()->writePosition())"
+        },
+        {
+          "name": "if",
+          "line": 879,
+          "signature": "if (_tag != 0x1)"
+        },
+        {
+          "name": "if",
+          "line": 881,
+          "signature": "if (_tag == ((unsigned)1 << i))"
+        },
+        {
+          "name": "if",
+          "line": 888,
+          "signature": "if (propertyFlags(pid) == PropertyFlags::NOSTYLE)"
+        },
+        {
+          "name": "EngravingItem::readProperties",
+          "line": 898,
+          "signature": "bool EngravingItem::readProperties(XmlReader& e)"
+        },
+        {
+          "name": "if",
+          "line": 902,
+          "signature": "if (readProperty(tag, e, Pid::SIZE_SPATIUM_DEPENDENT))"
+        },
+        {
+          "name": "IF_ASSERT_FAILED",
+          "line": 916,
+          "signature": "IF_ASSERT_FAILED(ctx)"
+        },
+        {
+          "name": "if",
+          "line": 921,
+          "signature": "if (!s)"
+        },
+        {
+          "name": "if",
+          "line": 923,
+          "signature": "if (!s)"
+        },
+        {
+          "name": "if",
+          "line": 929,
+          "signature": "if (tag == \"linkedMain\")"
+        },
+        {
+          "name": "if",
+          "line": 940,
+          "signature": "if (ls)"
+        },
+        {
+          "name": "while",
+          "line": 946,
+          "signature": "while (e.readNextStartElement())"
+        },
+        {
+          "name": "if",
+          "line": 949,
+          "signature": "if (ntag == \"score\")"
+        },
+        {
+          "name": "if",
+          "line": 951,
+          "signature": "if (val == \"same\")"
+        },
+        {
+          "name": "if",
+          "line": 964,
+          "signature": "if (!locationRead)"
+        },
+        {
+          "name": "if",
+          "line": 968,
+          "signature": "if (link)"
+        },
+        {
+          "name": "if",
+          "line": 970,
+          "signature": "if (linked->type() == type())"
+        },
+        {
+          "name": "if",
+          "line": 977,
+          "signature": "if (!_links)"
+        },
+        {
+          "name": "if",
+          "line": 982,
+          "signature": "if (score()->mscVersion() >= 301)"
+        },
+        {
+          "name": "if",
+          "line": 988,
+          "signature": "if (!_links)"
+        },
+        {
+          "name": "if",
+          "line": 989,
+          "signature": "if (!score()->isMaster())"
+        },
+        {
+          "name": "for",
+          "line": 997,
+          "signature": "for (EngravingObject* eee : *_links)"
+        },
+        {
+          "name": "if",
+          "line": 999,
+          "signature": "if (ee->type() != type())"
+        },
+        {
+          "name": "if",
+          "line": 1012,
+          "signature": "if (val >= 0)"
+        },
+        {
+          "name": "if",
+          "line": 1022,
+          "signature": "if (score()->layerTags()[i] == val)"
+        },
+        {
+          "name": "EngravingItem::write",
+          "line": 1040,
+          "signature": "void EngravingItem::write(XmlWriter& xml) const"
+        },
+        {
+          "name": "EngravingItem::read",
+          "line": 1051,
+          "signature": "void EngravingItem::read(XmlReader& e)"
+        },
+        {
+          "name": "while",
+          "line": 1053,
+          "signature": "while (e.readNextStartElement())"
+        },
+        {
+          "name": "if",
+          "line": 1054,
+          "signature": "if (!readProperties(e))"
+        },
+        {
+          "name": "ElementList::remove",
+          "line": 1065,
+          "signature": "bool ElementList::remove(EngravingItem* el)"
+        },
+        {
+          "name": "if",
+          "line": 1068,
+          "signature": "if (i == end())"
+        },
+        {
+          "name": "ElementList::replace",
+          "line": 1079,
+          "signature": "void ElementList::replace(EngravingItem* o, EngravingItem* n)"
+        },
+        {
+          "name": "if",
+          "line": 1082,
+          "signature": "if (i == end())"
+        },
+        {
+          "name": "ElementList::write",
+          "line": 1093,
+          "signature": "void ElementList::write(XmlWriter& xml) const"
+        },
+        {
+          "name": "for",
+          "line": 1095,
+          "signature": "for (const EngravingItem* e : *this)"
+        },
+        {
+          "name": "EngravingItem",
+          "line": 1105,
+          "signature": ": EngravingItem(type, s)"
+        },
+        {
+          "name": "EngravingItem",
+          "line": 1110,
+          "signature": ": EngravingItem(c)"
+        },
+        {
+          "name": "for",
+          "line": 1113,
+          "signature": "for (EngravingItem* e : c.elements)"
+        },
+        {
+          "name": "Compound::draw",
+          "line": 1122,
+          "signature": "void Compound::draw(mu::draw::Painter* painter) const"
+        },
+        {
+          "name": "for",
+          "line": 1124,
+          "signature": "for (EngravingItem* e : elements)"
+        },
+        {
+          "name": "Compound::addElement",
+          "line": 1140,
+          "signature": "void Compound::addElement(EngravingItem* e, double x, double y)"
+        },
+        {
+          "name": "Compound::layout",
+          "line": 1151,
+          "signature": "void Compound::layout()"
+        },
+        {
+          "name": "Compound::setSelected",
+          "line": 1165,
+          "signature": "void Compound::setSelected(bool f)"
+        },
+        {
+          "name": "Compound::setVisible",
+          "line": 1177,
+          "signature": "void Compound::setVisible(bool f)"
+        },
+        {
+          "name": "Compound::clear",
+          "line": 1189,
+          "signature": "void Compound::clear()"
+        },
+        {
+          "name": "for",
+          "line": 1191,
+          "signature": "for (EngravingItem* e : elements)"
+        },
+        {
+          "name": "if",
+          "line": 1192,
+          "signature": "if (e->selected())"
+        },
+        {
+          "name": "EngravingItem::dump",
+          "line": 1204,
+          "signature": "void EngravingItem::dump() const"
+        },
+        {
+          "name": "EngravingItem::mimeData",
+          "line": 1220,
+          "signature": "ByteArray EngravingItem::mimeData(const PointF& dragOffset) const"
+        },
+        {
+          "name": "if",
+          "line": 1227,
+          "signature": "if (isNote())"
+        },
+        {
+          "name": "if",
+          "line": 1230,
+          "signature": "if (!dragOffset.isNull())"
+        },
+        {
+          "name": "EngravingItem::readType",
+          "line": 1244,
+          "signature": "ElementType EngravingItem::readType(XmlReader& e, PointF* dragOffset,\n                                    Fraction* duration)"
+        },
+        {
+          "name": "while",
+          "line": 1247,
+          "signature": "while (e.readNextStartElement())"
+        },
+        {
+          "name": "if",
+          "line": 1248,
+          "signature": "if (e.name() == \"EngravingItem\")"
+        },
+        {
+          "name": "while",
+          "line": 1249,
+          "signature": "while (e.readNextStartElement())"
+        },
+        {
+          "name": "if",
+          "line": 1251,
+          "signature": "if (tag == \"dragOffset\")"
+        },
+        {
+          "name": "if",
+          "line": 1257,
+          "signature": "if (type == ElementType::INVALID)"
+        },
+        {
+          "name": "EngravingItem::readMimeData",
+          "line": 1274,
+          "signature": "EngravingItem* EngravingItem::readMimeData(Score* score, const ByteArray& data, PointF* dragOffset, Fraction* duration)"
+        },
+        {
+          "name": "if",
+          "line": 1280,
+          "signature": "if (type == ElementType::INVALID)"
+        },
+        {
+          "name": "if",
+          "line": 1286,
+          "signature": "if (el)"
+        },
+        {
+          "name": "EngravingItem::add",
+          "line": 1297,
+          "signature": "void EngravingItem::add(EngravingItem* e)"
+        },
+        {
+          "name": "EngravingItem::remove",
+          "line": 1306,
+          "signature": "void EngravingItem::remove(EngravingItem* e)"
+        },
+        {
+          "name": "elementLessThan",
+          "line": 1315,
+          "signature": "bool elementLessThan(const EngravingItem* const e1, const EngravingItem* const e2)"
+        },
+        {
+          "name": "if",
+          "line": 1317,
+          "signature": "if (e1->z() == e2->z())"
+        },
+        {
+          "name": "if",
+          "line": 1318,
+          "signature": "if (e1->selected() && !e2->selected())"
+        },
+        {
+          "name": "if",
+          "line": 1321,
+          "signature": "if (!e1->selected() && e2->selected())"
+        },
+        {
+          "name": "if",
+          "line": 1324,
+          "signature": "if (e1->visible() && !e2->visible())"
+        },
+        {
+          "name": "if",
+          "line": 1327,
+          "signature": "if (!e1->visible() && e2->visible())"
+        },
+        {
+          "name": "collectElements",
+          "line": 1341,
+          "signature": "void collectElements(void* data, EngravingItem* e)"
+        },
+        {
+          "name": "EngravingItem::autoplace",
+          "line": 1351,
+          "signature": "bool EngravingItem::autoplace() const"
+        },
+        {
+          "name": "if",
+          "line": 1353,
+          "signature": "if (!score() || !score()->styleB(Sid::autoplaceEnabled))"
+        },
+        {
+          "name": "EngravingItem::getProperty",
+          "line": 1363,
+          "signature": "PropertyValue EngravingItem::getProperty(Pid propertyId) const"
+        },
+        {
+          "name": "switch",
+          "line": 1365,
+          "signature": "switch (propertyId)"
+        },
+        {
+          "name": "if",
+          "line": 1396,
+          "signature": "default:\n        if (explicitParent())"
+        },
+        {
+          "name": "EngravingItem::setProperty",
+          "line": 1409,
+          "signature": "bool EngravingItem::setProperty(Pid propertyId, const PropertyValue& v)"
+        },
+        {
+          "name": "switch",
+          "line": 1411,
+          "signature": "switch (propertyId)"
+        },
+        {
+          "name": "if",
+          "line": 1451,
+          "signature": "default:\n        if (explicitParent())"
+        },
+        {
+          "name": "EngravingItem::undoChangeProperty",
+          "line": 1467,
+          "signature": "void EngravingItem::undoChangeProperty(Pid pid, const PropertyValue& val, PropertyFlags ps)"
+        },
+        {
+          "name": "if",
+          "line": 1469,
+          "signature": "if (pid == Pid::AUTOPLACE && (val.toBool() == true && !autoplace()))"
+        },
+        {
+          "name": "EngravingItem::propertyDefault",
+          "line": 1482,
+          "signature": "PropertyValue EngravingItem::propertyDefault(Pid pid) const"
+        },
+        {
+          "name": "switch",
+          "line": 1484,
+          "signature": "switch (pid)"
+        },
+        {
+          "name": "if",
+          "line": 1493,
+          "signature": "if (v.isValid())"
+        },
+        {
+          "name": "if",
+          "line": 1502,
+          "signature": "if (v.isValid())"
+        },
+        {
+          "name": "if",
+          "line": 1509,
+          "signature": "if (v.isValid())"
+        },
+        {
+          "name": "if",
+          "line": 1521,
+          "signature": "if (v.isValid())"
+        },
+        {
+          "name": "if",
+          "line": 1525,
+          "signature": "if (explicitParent())"
+        },
+        {
+          "name": "EngravingItem::custom",
+          "line": 1539,
+          "signature": "bool EngravingItem::custom(Pid id) const"
+        },
+        {
+          "name": "EngravingItem::isPrintable",
+          "line": 1548,
+          "signature": "bool EngravingItem::isPrintable() const"
+        },
+        {
+          "name": "switch",
+          "line": 1550,
+          "signature": "switch (type())"
+        },
+        {
+          "name": "EngravingItem::isPlayable",
+          "line": 1572,
+          "signature": "bool EngravingItem::isPlayable() const"
+        },
+        {
+          "name": "switch",
+          "line": 1574,
+          "signature": "switch (type())"
+        },
+        {
+          "name": "EngravingItem::findAncestor",
+          "line": 1588,
+          "signature": "EngravingItem* EngravingItem::findAncestor(ElementType t)"
+        },
+        {
+          "name": "while",
+          "line": 1591,
+          "signature": "while (e && e->type() != t)"
+        },
+        {
+          "name": "EngravingItem::findAncestor",
+          "line": 1597,
+          "signature": "const EngravingItem* EngravingItem::findAncestor(ElementType t) const"
+        },
+        {
+          "name": "while",
+          "line": 1600,
+          "signature": "while (e && e->type() != t)"
+        },
+        {
+          "name": "EngravingItem::findMeasure",
+          "line": 1610,
+          "signature": "Measure* EngravingItem::findMeasure()"
+        },
+        {
+          "name": "if",
+          "line": 1612,
+          "signature": "if (isMeasure())"
+        },
+        {
+          "name": "EngravingItem::findMeasure",
+          "line": 1625,
+          "signature": "const Measure* EngravingItem::findMeasure() const"
+        },
+        {
+          "name": "EngravingItem::findMeasureBase",
+          "line": 1635,
+          "signature": "MeasureBase* EngravingItem::findMeasureBase()"
+        },
+        {
+          "name": "if",
+          "line": 1637,
+          "signature": "if (isMeasureBase())"
+        },
+        {
+          "name": "EngravingItem::findMeasureBase",
+          "line": 1650,
+          "signature": "const MeasureBase* EngravingItem::findMeasureBase() const"
+        },
+        {
+          "name": "EngravingItem::undoSetColor",
+          "line": 1660,
+          "signature": "void EngravingItem::undoSetColor(const mu::draw::Color& c)"
+        },
+        {
+          "name": "EngravingItem::undoSetVisible",
+          "line": 1669,
+          "signature": "void EngravingItem::undoSetVisible(bool v)"
+        },
+        {
+          "name": "EngravingItem::undoAddElement",
+          "line": 1674,
+          "signature": "void EngravingItem::undoAddElement(EngravingItem* element)"
+        },
+        {
+          "name": "EngravingItem::drawSymbol",
+          "line": 1683,
+          "signature": "void EngravingItem::drawSymbol(SymId id, mu::draw::Painter* p, const mu::PointF& o, double scale) const"
+        },
+        {
+          "name": "EngravingItem::drawSymbol",
+          "line": 1688,
+          "signature": "void EngravingItem::drawSymbol(SymId id, mu::draw::Painter* p, const mu::PointF& o, int n) const"
+        },
+        {
+          "name": "EngravingItem::drawSymbols",
+          "line": 1693,
+          "signature": "void EngravingItem::drawSymbols(const SymIdList& symbols, mu::draw::Painter* p, const PointF& o, double scale) const"
+        },
+        {
+          "name": "EngravingItem::drawSymbols",
+          "line": 1698,
+          "signature": "void EngravingItem::drawSymbols(const SymIdList& symbols, mu::draw::Painter* p, const PointF& o, const SizeF& scale) const"
+        },
+        {
+          "name": "EngravingItem::symHeight",
+          "line": 1707,
+          "signature": "double EngravingItem::symHeight(SymId id) const"
+        },
+        {
+          "name": "EngravingItem::symWidth",
+          "line": 1716,
+          "signature": "double EngravingItem::symWidth(SymId id) const"
+        },
+        {
+          "name": "EngravingItem::symWidth",
+          "line": 1721,
+          "signature": "double EngravingItem::symWidth(const SymIdList& symbols) const"
+        },
+        {
+          "name": "EngravingItem::symAdvance",
+          "line": 1730,
+          "signature": "double EngravingItem::symAdvance(SymId id) const"
+        },
+        {
+          "name": "EngravingItem::symBbox",
+          "line": 1739,
+          "signature": "RectF EngravingItem::symBbox(SymId id) const"
+        },
+        {
+          "name": "EngravingItem::symBbox",
+          "line": 1744,
+          "signature": "RectF EngravingItem::symBbox(const SymIdList& symbols) const"
+        },
+        {
+          "name": "EngravingItem::symSmuflAnchor",
+          "line": 1753,
+          "signature": "PointF EngravingItem::symSmuflAnchor(SymId symId, SmuflAnchorId anchorId) const"
+        },
+        {
+          "name": "EngravingItem::symIsValid",
+          "line": 1762,
+          "signature": "bool EngravingItem::symIsValid(SymId id) const"
+        },
+        {
+          "name": "EngravingItem::concertPitch",
+          "line": 1771,
+          "signature": "bool EngravingItem::concertPitch() const"
+        },
+        {
+          "name": "EngravingItem::nextElement",
+          "line": 1781,
+          "signature": "EngravingItem* EngravingItem::nextElement()"
+        },
+        {
+          "name": "if",
+          "line": 1784,
+          "signature": "if (!e && !score()->selection().elements().empty())"
+        },
+        {
+          "name": "if",
+          "line": 1787,
+          "signature": "if (e)"
+        },
+        {
+          "name": "switch",
+          "line": 1788,
+          "signature": "switch (e->type())"
+        },
+        {
+          "name": "EngravingItem::prevElement",
+          "line": 1815,
+          "signature": "EngravingItem* EngravingItem::prevElement()"
+        },
+        {
+          "name": "if",
+          "line": 1818,
+          "signature": "if (!e && !score()->selection().elements().empty())"
+        },
+        {
+          "name": "if",
+          "line": 1821,
+          "signature": "if (e)"
+        },
+        {
+          "name": "switch",
+          "line": 1822,
+          "signature": "switch (e->type())"
+        },
+        {
+          "name": "EngravingItem::nextSegmentElement",
+          "line": 1852,
+          "signature": "EngravingItem* EngravingItem::nextSegmentElement()"
+        },
+        {
+          "name": "while",
+          "line": 1855,
+          "signature": "while (p)"
+        },
+        {
+          "name": "switch",
+          "line": 1856,
+          "signature": "switch (p->type())"
+        },
+        {
+          "name": "if",
+          "line": 1857,
+          "signature": "case ElementType::NOTE:\n            if (toNote(p)->chord()->isGrace())"
+        },
+        {
+          "name": "if",
+          "line": 1867,
+          "signature": "if (!c->isGrace())"
+        },
+        {
+          "name": "EngravingItem::prevSegmentElement",
+          "line": 1900,
+          "signature": "EngravingItem* EngravingItem::prevSegmentElement()"
+        },
+        {
+          "name": "while",
+          "line": 1903,
+          "signature": "while (p)"
+        },
+        {
+          "name": "switch",
+          "line": 1904,
+          "signature": "switch (p->type())"
+        },
+        {
+          "name": "if",
+          "line": 1905,
+          "signature": "case ElementType::NOTE:\n            if (toNote(p)->chord()->isGrace())"
+        },
+        {
+          "name": "if",
+          "line": 1915,
+          "signature": "if (!c->isGrace())"
+        },
+        {
+          "name": "EngravingItem::accessible",
+          "line": 1941,
+          "signature": "AccessibleItemPtr EngravingItem::accessible() const"
+        },
+        {
+          "name": "EngravingItem::accessibleInfo",
+          "line": 1948,
+          "signature": "String EngravingItem::accessibleInfo() const"
+        },
+        {
+          "name": "EngravingItem::nextGrip",
+          "line": 1957,
+          "signature": "bool EngravingItem::nextGrip(EditData& ed) const"
+        },
+        {
+          "name": "if",
+          "line": 1960,
+          "signature": "if (i >= ed.grips)"
+        },
+        {
+          "name": "EngravingItem::prevGrip",
+          "line": 1972,
+          "signature": "bool EngravingItem::prevGrip(EditData& ed) const"
+        },
+        {
+          "name": "if",
+          "line": 1975,
+          "signature": "if (i < 0)"
+        },
+        {
+          "name": "EngravingItem::isUserModified",
+          "line": 1989,
+          "signature": "bool EngravingItem::isUserModified() const"
+        },
+        {
+          "name": "for",
+          "line": 1991,
+          "signature": "for (const StyledProperty& spp : *styledProperties())"
+        },
+        {
+          "name": "if",
+          "line": 1996,
+          "signature": "if (propertyType(pid) == P_TYPE::MILLIMETRE)"
+        },
+        {
+          "name": "if",
+          "line": 1997,
+          "signature": "if (std::abs(val.value<Millimetre>() - defaultValue.value<Millimetre>()) > 0.0001)"
+        },
+        {
+          "name": "if",
+          "line": 2001,
+          "signature": "if (getProperty(pid) != propertyDefault(pid))"
+        },
+        {
+          "name": "if",
+          "line": 2007,
+          "signature": "if (getProperty(p) != propertyDefault(p))"
+        },
+        {
+          "name": "EngravingItem::triggerLayout",
+          "line": 2018,
+          "signature": "void EngravingItem::triggerLayout() const"
+        },
+        {
+          "name": "if",
+          "line": 2020,
+          "signature": "if (explicitParent())"
+        },
+        {
+          "name": "EngravingItem::triggerLayoutAll",
+          "line": 2029,
+          "signature": "void EngravingItem::triggerLayoutAll() const"
+        },
+        {
+          "name": "if",
+          "line": 2031,
+          "signature": "if (explicitParent())"
+        },
+        {
+          "name": "EditData::addData",
+          "line": 2040,
+          "signature": "void EditData::addData(std::shared_ptr<ElementEditData> ed)"
+        },
+        {
+          "name": "EngravingItem::drawEditMode",
+          "line": 2049,
+          "signature": "void EngravingItem::drawEditMode(draw::Painter* p, EditData& ed, double /*currentViewScaling*/)"
+        },
+        {
+          "name": "if",
+          "line": 2055,
+          "signature": "if (Grip(i) == ed.curGrip)"
+        },
+        {
+          "name": "EngravingItem::startDrag",
+          "line": 2068,
+          "signature": "void EngravingItem::startDrag(EditData& ed)"
+        },
+        {
+          "name": "if",
+          "line": 2070,
+          "signature": "if (!isMovable())"
+        },
+        {
+          "name": "if",
+          "line": 2079,
+          "signature": "if (ed.modifiers & AltModifier)"
+        },
+        {
+          "name": "EngravingItem::drag",
+          "line": 2089,
+          "signature": "RectF EngravingItem::drag(EditData& ed)"
+        },
+        {
+          "name": "if",
+          "line": 2091,
+          "signature": "if (!isMovable())"
+        },
+        {
+          "name": "if",
+          "line": 2104,
+          "signature": "if (ed.hRaster)"
+        },
+        {
+          "name": "if",
+          "line": 2109,
+          "signature": "if (ed.vRaster)"
+        },
+        {
+          "name": "if",
+          "line": 2119,
+          "signature": "if (isTextBase())"
+        },
+        {
+          "name": "while",
+          "line": 2126,
+          "signature": "while (e)"
+        },
+        {
+          "name": "if",
+          "line": 2127,
+          "signature": "if (e->isPage())"
+        },
+        {
+          "name": "if",
+          "line": 2133,
+          "signature": "if (p)"
+        },
+        {
+          "name": "if",
+          "line": 2136,
+          "signature": "if (r.right() > pr.right())"
+        },
+        {
+          "name": "if",
+          "line": 2143,
+          "signature": "if (r.bottom() > pr.bottom())"
+        },
+        {
+          "name": "if",
+          "line": 2150,
+          "signature": "if (move)"
+        },
+        {
+          "name": "EngravingItem::endDrag",
+          "line": 2162,
+          "signature": "void EngravingItem::endDrag(EditData& ed)"
+        },
+        {
+          "name": "if",
+          "line": 2164,
+          "signature": "if (!isMovable())"
+        },
+        {
+          "name": "if",
+          "line": 2168,
+          "signature": "if (!eed)"
+        },
+        {
+          "name": "for",
+          "line": 2171,
+          "signature": "for (const PropertyData& pd : eed->propertyData)"
+        },
+        {
+          "name": "if",
+          "line": 2174,
+          "signature": "if (f == PropertyFlags::STYLED)"
+        },
+        {
+          "name": "EngravingItem::genericDragAnchorLines",
+          "line": 2186,
+          "signature": "std::vector<LineF> EngravingItem::genericDragAnchorLines() const"
+        },
+        {
+          "name": "if",
+          "line": 2193,
+          "signature": "if (explicitParent()->isSegment() || explicitParent()->isMeasure())"
+        },
+        {
+          "name": "if",
+          "line": 2197,
+          "signature": "if (stIdx == mu::nidx)"
+        },
+        {
+          "name": "if",
+          "line": 2201,
+          "signature": "if (placement() == PlacementV::BELOW)"
+        },
+        {
+          "name": "if",
+          "line": 2205,
+          "signature": "if (staff())"
+        },
+        {
+          "name": "EngravingItem::updateGrips",
+          "line": 2220,
+          "signature": "void EngravingItem::updateGrips(EditData& ed) const"
+        },
+        {
+          "name": "EngravingItem::startEdit",
+          "line": 2233,
+          "signature": "void EngravingItem::startEdit(EditData& ed)"
+        },
+        {
+          "name": "EngravingItem::isEditAllowed",
+          "line": 2244,
+          "signature": "bool EngravingItem::isEditAllowed(EditData& ed) const"
+        },
+        {
+          "name": "EngravingItem::edit",
+          "line": 2254,
+          "signature": "bool EngravingItem::edit(EditData& ed)"
+        },
+        {
+          "name": "if",
+          "line": 2256,
+          "signature": "if (ed.key == Key_Home)"
+        },
+        {
+          "name": "EngravingItem::startEditDrag",
+          "line": 2267,
+          "signature": "void EngravingItem::startEditDrag(EditData& ed)"
+        },
+        {
+          "name": "if",
+          "line": 2270,
+          "signature": "if (!eed)"
+        },
+        {
+          "name": "if",
+          "line": 2277,
+          "signature": "if (ed.modifiers & AltModifier)"
+        },
+        {
+          "name": "EngravingItem::editDrag",
+          "line": 2286,
+          "signature": "void EngravingItem::editDrag(EditData& ed)"
+        },
+        {
+          "name": "EngravingItem::endEditDrag",
+          "line": 2298,
+          "signature": "void EngravingItem::endEditDrag(EditData& ed)"
+        },
+        {
+          "name": "if",
+          "line": 2302,
+          "signature": "if (eed)"
+        },
+        {
+          "name": "for",
+          "line": 2303,
+          "signature": "for (const PropertyData& pd : eed->propertyData)"
+        },
+        {
+          "name": "if",
+          "line": 2306,
+          "signature": "if (f == PropertyFlags::STYLED)"
+        },
+        {
+          "name": "if",
+          "line": 2309,
+          "signature": "if (score()->undoPropertyChanged(this, pd.id, pd.data, f))"
+        },
+        {
+          "name": "if",
+          "line": 2315,
+          "signature": "if (changed)"
+        },
+        {
+          "name": "EngravingItem::endEdit",
+          "line": 2324,
+          "signature": "void EngravingItem::endEdit(EditData&)"
+        },
+        {
+          "name": "EngravingItem::styleP",
+          "line": 2332,
+          "signature": "double EngravingItem::styleP(Sid idx) const"
+        },
+        {
+          "name": "EngravingItem::colorsInversionEnabled",
+          "line": 2337,
+          "signature": "bool EngravingItem::colorsInversionEnabled() const"
+        },
+        {
+          "name": "EngravingItem::setColorsInverionEnabled",
+          "line": 2342,
+          "signature": "void EngravingItem::setColorsInverionEnabled(bool enabled)"
+        },
+        {
+          "name": "while",
+          "line": 2350,
+          "signature": "while (parent && parent->type() != ElementType::SEGMENT && parent->type() != ElementType::MEASURE)"
+        },
+        {
+          "name": "if",
+          "line": 2354,
+          "signature": "if (!parent)"
+        },
+        {
+          "name": "if",
+          "line": 2365,
+          "signature": "if (parent->type() == ElementType::SEGMENT)"
+        },
+        {
+          "name": "EngravingItem::setOffsetChanged",
+          "line": 2383,
+          "signature": "void EngravingItem::setOffsetChanged(bool v, bool absolute, const PointF& diff)"
+        },
+        {
+          "name": "if",
+          "line": 2385,
+          "signature": "if (v)"
+        },
+        {
+          "name": "EngravingItem::rebaseOffset",
+          "line": 2400,
+          "signature": "double EngravingItem::rebaseOffset(bool nox)"
+        },
+        {
+          "name": "if",
+          "line": 2404,
+          "signature": "if (nox)"
+        },
+        {
+          "name": "if",
+          "line": 2410,
+          "signature": "if (staffRelative && propertyFlags(Pid::PLACEMENT) != PropertyFlags::NOSTYLE)"
+        },
+        {
+          "name": "if",
+          "line": 2421,
+          "signature": "if (flipped && !multi)"
+        },
+        {
+          "name": "if",
+          "line": 2427,
+          "signature": "if (pf == PropertyFlags::STYLED)"
+        },
+        {
+          "name": "if",
+          "line": 2437,
+          "signature": "if (offsetChanged() == OffsetChange::ABSOLUTE_OFFSET)"
+        },
+        {
+          "name": "EngravingItem::rebaseMinDistance",
+          "line": 2458,
+          "signature": "bool EngravingItem::rebaseMinDistance(double& md, double& yd, double sp, double rebase, bool above, bool fix)"
+        },
+        {
+          "name": "if",
+          "line": 2462,
+          "signature": "if (pf == PropertyFlags::STYLED)"
+        },
+        {
+          "name": "if",
+          "line": 2467,
+          "signature": "if (fix)"
+        },
+        {
+          "name": "if",
+          "line": 2478,
+          "signature": "if (_offsetChanged == OffsetChange::RELATIVE_OFFSET)"
+        },
+        {
+          "name": "if",
+          "line": 2480,
+          "signature": "if ((above && diff > 0.0) || (!above && diff < 0.0))"
+        },
+        {
+          "name": "EngravingItem::autoplaceSegmentElement",
+          "line": 2504,
+          "signature": "void EngravingItem::autoplaceSegmentElement(bool above, bool add)"
+        },
+        {
+          "name": "if",
+          "line": 2508,
+          "signature": "if (offsetChanged() != OffsetChange::NONE)"
+        },
+        {
+          "name": "if",
+          "line": 2512,
+          "signature": "if (autoplace() && explicitParent())"
+        },
+        {
+          "name": "if",
+          "line": 2522,
+          "signature": "if (_skipDraw)"
+        },
+        {
+          "name": "if",
+          "line": 2534,
+          "signature": "if (staffType())"
+        },
+        {
+          "name": "if",
+          "line": 2541,
+          "signature": "if (above)"
+        },
+        {
+          "name": "if",
+          "line": 2549,
+          "signature": "if (d > -minDistance)"
+        },
+        {
+          "name": "if",
+          "line": 2551,
+          "signature": "if (above)"
+        },
+        {
+          "name": "if",
+          "line": 2554,
+          "signature": "if (offsetChanged() != OffsetChange::NONE)"
+        },
+        {
+          "name": "if",
+          "line": 2558,
+          "signature": "if (rebaseMinDistance(minDistance, yd, sp, rebase, above, inStaff))"
+        },
+        {
+          "name": "if",
+          "line": 2565,
+          "signature": "if (add && addToSkyline())"
+        },
+        {
+          "name": "EngravingItem::autoplaceMeasureElement",
+          "line": 2576,
+          "signature": "void EngravingItem::autoplaceMeasureElement(bool above, bool add)"
+        },
+        {
+          "name": "if",
+          "line": 2580,
+          "signature": "if (offsetChanged() != OffsetChange::NONE)"
+        },
+        {
+          "name": "if",
+          "line": 2584,
+          "signature": "if (autoplace() && explicitParent())"
+        },
+        {
+          "name": "if",
+          "line": 2591,
+          "signature": "if (_skipDraw)"
+        },
+        {
+          "name": "if",
+          "line": 2604,
+          "signature": "if (above)"
+        },
+        {
+          "name": "if",
+          "line": 2611,
+          "signature": "if (d > -minDistance)"
+        },
+        {
+          "name": "if",
+          "line": 2613,
+          "signature": "if (above)"
+        },
+        {
+          "name": "if",
+          "line": 2616,
+          "signature": "if (offsetChanged() != OffsetChange::NONE)"
+        },
+        {
+          "name": "if",
+          "line": 2620,
+          "signature": "if (rebaseMinDistance(minDistance, yd, sp, rebase, above, inStaff))"
+        },
+        {
+          "name": "if",
+          "line": 2627,
+          "signature": "if (add && addToSkyline())"
+        },
+        {
+          "name": "EngravingItem::selected",
+          "line": 2634,
+          "signature": "bool EngravingItem::selected() const"
+        },
+        {
+          "name": "EngravingItem::setSelected",
+          "line": 2639,
+          "signature": "void EngravingItem::setSelected(bool f)"
+        },
+        {
+          "name": "EngravingItem::initAccessibleIfNeed",
+          "line": 2645,
+          "signature": "void EngravingItem::initAccessibleIfNeed()"
+        },
+        {
+          "name": "if",
+          "line": 2647,
+          "signature": "if (!engravingConfiguration()->isAccessibleEnabled())"
+        },
+        {
+          "name": "if",
+          "line": 2651,
+          "signature": "if (!m_accessibleEnabled)"
+        },
+        {
+          "name": "EngravingItem::doInitAccessible",
+          "line": 2658,
+          "signature": "void EngravingItem::doInitAccessible()"
+        },
+        {
+          "name": "while",
+          "line": 2662,
+          "signature": "while (parent)"
+        },
+        {
+          "name": "for",
+          "line": 2667,
+          "signature": "for (EngravingItem* parent : parents)"
+        },
+        {
+          "name": "EngravingItem::computeKerningType",
+          "line": 2676,
+          "signature": "KerningType EngravingItem::computeKerningType(const EngravingItem* nextItem) const"
+        },
+        {
+          "name": "if",
+          "line": 2678,
+          "signature": "if (_userSetKerning != KerningType::NOT_SET)"
+        },
+        {
+          "name": "if",
+          "line": 2681,
+          "signature": "if (sameVoiceKerningLimited() && nextItem->sameVoiceKerningLimited() && track() == nextItem->track())"
+        },
+        {
+          "name": "if",
+          "line": 2684,
+          "signature": "if ((neverKernable() || nextItem->neverKernable())\n        && !(alwaysKernable() || nextItem->alwaysKernable()))"
+        },
+        {
+          "name": "EngravingItem::formatBarsAndBeats",
+          "line": 2691,
+          "signature": "String EngravingItem::formatBarsAndBeats() const"
+        },
+        {
+          "name": "if",
+          "line": 2696,
+          "signature": "if (barbeat.first != 0)"
+        },
+        {
+          "name": "if",
+          "line": 2699,
+          "signature": "if (!RealIsNull(barbeat.second))"
+        },
+        {
+          "name": "EngravingItem::computePadding",
+          "line": 2707,
+          "signature": "double EngravingItem::computePadding(const EngravingItem* nextItem) const"
+        }
+      ],
+      "constants": [
+        {
+          "name": "guessedLocalIndex",
+          "value": "ctx->assignLocalIndex(mainLoc)",
+          "line": 859
+        },
+        {
+          "name": "indexDiff",
+          "value": "ctx->lidLocalIndex(_links->lid()) - guessedLocalIndex",
+          "line": 864
+        },
+        {
+          "name": "ngrips",
+          "value": "positions.size()",
+          "line": 2223
+        }
+      ],
+      "arrays": [],
+      "enums": [],
+      "structs": [],
+      "magic_numbers": [
+        {
+          "line": 1997,
+          "values": [
+            "0.0001"
+          ],
+          "context": "if (std::abs(val.value<Millimetre>() - defaultValue.value<Millimetre>()) > 0.0001) {         // we don’t care spatium di"
+        },
+        {
+          "line": 2468,
+          "values": [
+            "-999.0"
+          ],
+          "context": "undoChangeProperty(Pid::MIN_DISTANCE, -999.0, pf);"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_functions": 966,
+    "total_constants": 16,
+    "total_arrays": 0
+  }
+}

@@ -1,0 +1,1577 @@
+{
+  "session": "J",
+  "files": [
+    {
+      "file": "verticalLayout.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\verticalLayout.ts",
+      "exists": true,
+      "line_count": 1347,
+      "functions": [
+        {
+          "name": "pitchToStaffLine",
+          "line": 90,
+          "signature": "function pitchToStaffLine(step: string, octave: number, clef: ClefType): number {",
+          "exported": false
+        },
+        {
+          "name": "getKeySigLines",
+          "line": 106,
+          "signature": "function getKeySigLines(fifths: number, clef: ClefType): number[] {",
+          "exported": false
+        },
+        {
+          "name": "noteheadFromType",
+          "line": 131,
+          "signature": "function noteheadFromType(type: string): NoteheadType {",
+          "exported": false
+        },
+        {
+          "name": "computeAutoStemDirection",
+          "line": 140,
+          "signature": "function computeAutoStemDirection(staffLines: number[]): boolean {",
+          "exported": false
+        },
+        {
+          "name": "fixChordGrouping",
+          "line": 160,
+          "signature": "function fixChordGrouping(",
+          "exported": false
+        },
+        {
+          "name": "accidentalTypeFrom",
+          "line": 270,
+          "signature": "function accidentalTypeFrom(sign: string): AccidentalType {",
+          "exported": false
+        },
+        {
+          "name": "assignBeamGroupIds",
+          "line": 287,
+          "signature": "function assignBeamGroupIds(notes: ExtractedNote[]): Map<string, string> {",
+          "exported": false
+        },
+        {
+          "name": "computeLedgerLines",
+          "line": 308,
+          "signature": "function computeLedgerLines(",
+          "exported": false
+        },
+        {
+          "name": "buildBeams",
+          "line": 349,
+          "signature": "function buildBeams(",
+          "exported": false
+        },
+        {
+          "name": "getMaxBeamLevel",
+          "line": 547,
+          "signature": "function getMaxBeamLevel(",
+          "exported": false
+        },
+        {
+          "name": "buildSubBeams",
+          "line": 562,
+          "signature": "function buildSubBeams(",
+          "exported": false
+        },
+        {
+          "name": "makeTieArc",
+          "line": 620,
+          "signature": "function makeTieArc(",
+          "exported": false
+        },
+        {
+          "name": "buildTies",
+          "line": 648,
+          "signature": "function buildTies(",
+          "exported": false
+        },
+        {
+          "name": "buildCrossBarlineTies",
+          "line": 682,
+          "signature": "function buildCrossBarlineTies(",
+          "exported": false
+        },
+        {
+          "name": "buildBarlines",
+          "line": 733,
+          "signature": "function buildBarlines(",
+          "exported": false
+        },
+        {
+          "name": "buildKeySignature",
+          "line": 771,
+          "signature": "function buildKeySignature(",
+          "exported": false
+        },
+        {
+          "name": "makeDOMRect",
+          "line": 824,
+          "signature": "function makeDOMRect(x: number, y: number, width: number, height: number): DOMRectLike {",
+          "exported": false
+        },
+        {
+          "name": "computeVerticalLayout",
+          "line": 832,
+          "signature": "export function computeVerticalLayout(",
+          "exported": true
+        },
+        {
+          "name": "beamY",
+          "line": 473,
+          "signature": "const beamY = (x: number) => y1 + (y2 - y1) * (x - first.x) / dx",
+          "exported": false
+        },
+        {
+          "name": "beamYFinal",
+          "line": 513,
+          "signature": "const beamYFinal = (x: number) => y1 + (y2 - y1) * (x - first.x) / dx",
+          "exported": false
+        },
+        {
+          "name": "beamYLevel",
+          "line": 573,
+          "signature": "const beamYLevel = (x: number) => beamY(x) + extraOffset",
+          "exported": false
+        }
+      ],
+      "constants": [
+        {
+          "name": "STEP_TO_DIATONIC",
+          "value": "{\n  C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6,\n}",
+          "line": 72,
+          "exported": false
+        },
+        {
+          "name": "CLEF_OFFSET",
+          "value": "{\n  treble:     38,   // F5=0, E4=8, middle C (C4)=10 (ledger below)\n  bass:       26,   // A3=0, G2",
+          "line": 82,
+          "exported": false
+        },
+        {
+          "name": "TREBLE_SHARP_LINES",
+          "value": "[0, 3, -1, 2, 5, 1, 4]",
+          "line": 98,
+          "exported": false
+        },
+        {
+          "name": "TREBLE_FLAT_LINES",
+          "value": "[4, 1, 5, 2, 6, 3, 7]",
+          "line": 101,
+          "exported": false
+        },
+        {
+          "name": "BASS_SHARP_LINES",
+          "value": "[2, 5,  1, 4, 7, 3, 6]",
+          "line": 103,
+          "exported": false
+        },
+        {
+          "name": "BASS_FLAT_LINES",
+          "value": "[6, 3, 7, 4, 8, 5, 9]",
+          "line": 104,
+          "exported": false
+        },
+        {
+          "name": "ACCIDENTAL_WIDTH_SP",
+          "value": "{\n  'sharp':           1.0,\n  'flat':            1.2,\n  'natural':         0.9,\n  'double-sharp':   ",
+          "line": 118,
+          "exported": false
+        },
+        {
+          "name": "sortedByLine",
+          "value": "[...indices]",
+          "line": 186,
+          "exported": false
+        },
+        {
+          "name": "map",
+          "value": "{\n    'sharp':        'sharp',\n    'flat':         'flat',\n    'natural':      'natural',\n    'doubl",
+          "line": 271,
+          "exported": false
+        },
+        {
+          "name": "lines",
+          "value": "[]",
+          "line": 315,
+          "exported": false
+        },
+        {
+          "name": "ledgerPad",
+          "value": "0.33",
+          "line": 316,
+          "exported": false
+        },
+        {
+          "name": "beams",
+          "value": "[]",
+          "line": 372,
+          "exported": false
+        },
+        {
+          "name": "BEAM_MAX_SLOPES",
+          "value": "[0, 1, 2, 3, 4, 5, 6, 7]",
+          "line": 456,
+          "exported": false
+        },
+        {
+          "name": "allSegments",
+          "value": "[[\n      { x1: first.stemX, y1: beamY(first.stemX), x2: last.stemX, y2: beamY(last.stemX) },\n    ]",
+          "line": 476,
+          "exported": false
+        },
+        {
+          "name": "MIN_STEM_QS",
+          "value": "[11, 13, 15, 18, 21, 24, 27, 30]",
+          "line": 492,
+          "exported": false
+        },
+        {
+          "name": "segs",
+          "value": "[]",
+          "line": 570,
+          "exported": false
+        },
+        {
+          "name": "ties",
+          "value": "[]",
+          "line": 654,
+          "exported": false
+        },
+        {
+          "name": "result",
+          "value": "[]",
+          "line": 689,
+          "exported": false
+        },
+        {
+          "name": "barlines",
+          "value": "[]",
+          "line": 741,
+          "exported": false
+        },
+        {
+          "name": "KEY_NATURAL_STRIDE_SP",
+          "value": "0.956",
+          "line": 780,
+          "exported": false
+        },
+        {
+          "name": "CROSS_TYPE_GAP_SP",
+          "value": "0.6",
+          "line": 781,
+          "exported": false
+        },
+        {
+          "name": "KEY_NATURAL_WIDTH_SP",
+          "value": "0.556",
+          "line": 800,
+          "exported": false
+        },
+        {
+          "name": "opts",
+          "value": "{ ...DEFAULT_RENDER_OPTIONS, ...renderOptions }",
+          "line": 837,
+          "exported": false
+        },
+        {
+          "name": "staffHeight",
+          "value": "4",
+          "line": 842,
+          "exported": false
+        },
+        {
+          "name": "clef",
+          "value": "'treble'",
+          "line": 862,
+          "exported": false
+        },
+        {
+          "name": "systemY",
+          "value": "[]",
+          "line": 883,
+          "exported": false
+        },
+        {
+          "name": "allRenderedNotes",
+          "value": "[]",
+          "line": 914,
+          "exported": false
+        },
+        {
+          "name": "staves",
+          "value": "[]",
+          "line": 928,
+          "exported": false
+        },
+        {
+          "name": "noteList",
+          "value": "[]",
+          "line": 957,
+          "exported": false
+        },
+        {
+          "name": "accW",
+          "value": "1.0",
+          "line": 1109,
+          "exported": false
+        },
+        {
+          "name": "accH",
+          "value": "2.5",
+          "line": 1110,
+          "exported": false
+        },
+        {
+          "name": "tuplets",
+          "value": "[]",
+          "line": 1187,
+          "exported": false
+        }
+      ],
+      "classes": [],
+      "interfaces": [],
+      "type_aliases": [],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 83,
+          "values": [
+            "38"
+          ],
+          "context": "treble:     38,   // F5=0, E4=8, middle C (C4)=10 (ledger below)"
+        },
+        {
+          "line": 84,
+          "values": [
+            "26"
+          ],
+          "context": "bass:       26,   // A3=0, G2=8, middle C (C4)=-2 (ledger above)"
+        },
+        {
+          "line": 86,
+          "values": [
+            "30"
+          ],
+          "context": "tenor:      30,"
+        },
+        {
+          "line": 87,
+          "values": [
+            "38"
+          ],
+          "context": "percussion: 38,"
+        },
+        {
+          "line": 92,
+          "values": [
+            "38"
+          ],
+          "context": "return (CLEF_OFFSET[clef] ?? 38) - (diatonic + octave * 7)"
+        },
+        {
+          "line": 120,
+          "values": [
+            "1.2"
+          ],
+          "context": "'flat':            1.2,"
+        },
+        {
+          "line": 121,
+          "values": [
+            "0.9"
+          ],
+          "context": "'natural':         0.9,"
+        },
+        {
+          "line": 122,
+          "values": [
+            "1.1"
+          ],
+          "context": "'double-sharp':    1.1,"
+        },
+        {
+          "line": 123,
+          "values": [
+            "1.4"
+          ],
+          "context": "'double-flat':     1.4,"
+        },
+        {
+          "line": 124,
+          "values": [
+            "1.4"
+          ],
+          "context": "'courtesy-sharp':  1.4,"
+        },
+        {
+          "line": 125,
+          "values": [
+            "1.6"
+          ],
+          "context": "'courtesy-flat':   1.6,"
+        },
+        {
+          "line": 126,
+          "values": [
+            "1.3"
+          ],
+          "context": "'courtesy-natural':1.3,"
+        },
+        {
+          "line": 194,
+          "values": [
+            "0.10"
+          ],
+          "context": "const stemLWCorr = (0.10 / 2) * sp"
+        },
+        {
+          "line": 203,
+          "values": [
+            "4.0"
+          ],
+          "context": "const finalStemLen = (chordHeightQS / 4.0 * sp) + stemLength"
+        },
+        {
+          "line": 316,
+          "values": [
+            "0.33",
+            "851"
+          ],
+          "context": "const ledgerPad = 0.33 * halfSp * 2  // Sid::ledgerLineLength = 0.33sp (chord.cpp:851)"
+        },
+        {
+          "line": 324,
+          "values": [
+            "-3",
+            "-4"
+          ],
+          "context": "const top = Math.floor(staffLine / 2) * 2   // e.g. staffLine=-3 → top=-4"
+        },
+        {
+          "line": 426,
+          "values": [
+            "3.0"
+          ],
+          "context": "beamWidthSp < 3.0  ? 1 :"
+        },
+        {
+          "line": 427,
+          "values": [
+            "5.0"
+          ],
+          "context": "beamWidthSp < 5.0  ? 2 :"
+        },
+        {
+          "line": 428,
+          "values": [
+            "7.5"
+          ],
+          "context": "beamWidthSp < 7.5  ? 3 :"
+        },
+        {
+          "line": 429,
+          "values": [
+            "10.0"
+          ],
+          "context": "beamWidthSp < 10.0 ? 4 :"
+        },
+        {
+          "line": 430,
+          "values": [
+            "15.0"
+          ],
+          "context": "beamWidthSp < 15.0 ? 5 :"
+        },
+        {
+          "line": 431,
+          "values": [
+            "20.0"
+          ],
+          "context": "beamWidthSp < 20.0 ? 6 : 7"
+        },
+        {
+          "line": 492,
+          "values": [
+            "11",
+            "13",
+            "15",
+            "18",
+            "21",
+            "24",
+            "27",
+            "30"
+          ],
+          "context": "const MIN_STEM_QS = [11, 13, 15, 18, 21, 24, 27, 30]"
+        },
+        {
+          "line": 493,
+          "values": [
+            "11"
+          ],
+          "context": "const minStemPx = (MIN_STEM_QS[Math.min(maxLevels, 8) - 1] ?? 11) * sp / 4"
+        },
+        {
+          "line": 498,
+          "values": [
+            "0.168",
+            "0.168"
+          ],
+          "context": "const noteEdge = stemUp ? (rn.y + (sp * 0.168)) : (rn.y - (sp * 0.168)) // noteheadRy"
+        },
+        {
+          "line": 592,
+          "values": [
+            "1.1",
+            "949",
+            "211"
+          ],
+          "context": "const hookW = sp * 1.1  // Sid::beamMinLen = 1.1sp (beam.cpp:949, styledef.cpp:211)"
+        },
+        {
+          "line": 597,
+          "values": [
+            "1.1",
+            "949",
+            "211"
+          ],
+          "context": "const hookW = sp * 1.1  // Sid::beamMinLen = 1.1sp (beam.cpp:949, styledef.cpp:211)"
+        },
+        {
+          "line": 628,
+          "values": [
+            "0.1"
+          ],
+          "context": "const tieGap = sp * 0.1                        // gap from notehead edge to arc endpoint"
+        },
+        {
+          "line": 633,
+          "values": [
+            "0.185",
+            "0.185"
+          ],
+          "context": "const yOff = above ? -(sp * 0.185) : (sp * 0.185)"
+        },
+        {
+          "line": 638,
+          "values": [
+            "1.3",
+            "0.4",
+            "0.4",
+            "0.38"
+          ],
+          "context": "const h      = Math.min(sp * 1.3, Math.max(sp * 0.4, tieWidthInSp * 0.4 * 0.38 * sp))"
+        },
+        {
+          "line": 642,
+          "values": [
+            "0.6"
+          ],
+          "context": "const cx1off = (w - w * 0.6) * 0.5   // C++: bezier1X = (c - c * shoulderW) * .5"
+        },
+        {
+          "line": 780,
+          "values": [
+            "0.956",
+            "0.556",
+            "0.4"
+          ],
+          "context": "const KEY_NATURAL_STRIDE_SP = 0.956   // natural width 0.556 + keysigNaturalDistance 0.4"
+        },
+        {
+          "line": 781,
+          "values": [
+            "0.6"
+          ],
+          "context": "const CROSS_TYPE_GAP_SP     = 0.6     // doubled gap when switching natural→sharp/flat"
+        },
+        {
+          "line": 800,
+          "values": [
+            "0.556"
+          ],
+          "context": "const KEY_NATURAL_WIDTH_SP = 0.556"
+        },
+        {
+          "line": 849,
+          "values": [
+            "1.3"
+          ],
+          "context": "const noteheadWidth   = sp * 1.3         // Leland glyph bbox right ≈ stemUpSE.x = 1.3sp"
+        },
+        {
+          "line": 851,
+          "values": [
+            "0.168"
+          ],
+          "context": "const noteheadRy      = sp * 0.168        // half-height offset for stem attach + bbox/tie"
+        },
+        {
+          "line": 852,
+          "values": [
+            "3.5"
+          ],
+          "context": "const stemLength    = sp * 3.5          // standard un-beamed stem"
+        },
+        {
+          "line": 854,
+          "values": [
+            "0.25"
+          ],
+          "context": "const beamGap       = sp * 0.25         // gap between beam levels"
+        },
+        {
+          "line": 855,
+          "values": [
+            "216"
+          ],
+          "context": "const dotOffsetX    = sp * 0.5    // Sid::dotNoteDistance = 0.5sp (styledef.cpp:216)"
+        },
+        {
+          "line": 856,
+          "values": [
+            "0.24"
+          ],
+          "context": "const dotGlyphW     = sp * 0.24   // approximate Leland augmentation dot glyph width"
+        },
+        {
+          "line": 857,
+          "values": [
+            "0.8"
+          ],
+          "context": "const accidentalW   = sp * 0.8          // approximate glyph width for spacing"
+        },
+        {
+          "line": 858,
+          "values": [
+            "0.3"
+          ],
+          "context": "const accidentalGap = sp * 0.3"
+        },
+        {
+          "line": 867,
+          "values": [
+            "7.0"
+          ],
+          "context": "const staffUpperBorder = sp * 7.0"
+        },
+        {
+          "line": 869,
+          "values": [
+            "7.0"
+          ],
+          "context": "const staffLowerBorder = sp * 7.0"
+        },
+        {
+          "line": 879,
+          "values": [
+            "10.0"
+          ],
+          "context": "const titleHeight = score.metadata.title ? sp * 10.0 : 0"
+        },
+        {
+          "line": 962,
+          "values": [
+            "20"
+          ],
+          "context": "const noteX = hLayout.noteX.get(en.id) ?? hMeasure.x + 20"
+        },
+        {
+          "line": 999,
+          "values": [
+            "0.10",
+            "120"
+          ],
+          "context": "const stemLWCorr = (0.10 / 2) * sp   // stem.cpp:120 — Sid::stemWidth=0.10sp, lineWidthMag()*0.5"
+        },
+        {
+          "line": 1020,
+          "values": [
+            "0.2"
+          ],
+          "context": "const accGap = sp * 0.2"
+        },
+        {
+          "line": 1034,
+          "values": [
+            "0.25"
+          ],
+          "context": "const dot2X = doubleDotted ? noteX + noteheadWidth + dotOffsetX + dotGlyphW + sp * 0.25 : undefined"
+        },
+        {
+          "line": 1046,
+          "values": [
+            "0.25"
+          ],
+          "context": "? dotOffsetX + dotGlyphW + (doubleDotted ? sp * 0.25 + dotGlyphW : 0) + 4"
+        },
+        {
+          "line": 1110,
+          "values": [
+            "2.5"
+          ],
+          "context": "const accH = 2.5 * sp"
+        },
+        {
+          "line": 1117,
+          "values": [
+            "2.2"
+          ],
+          "context": "const baseChordY = primaryStaffTop - sp * 2.2"
+        },
+        {
+          "line": 1119,
+          "values": [
+            "0.8"
+          ],
+          "context": "const chordGap = sp * 0.8"
+        },
+        {
+          "line": 1121,
+          "values": [
+            "1.5"
+          ],
+          "context": "const chordHeight = sp * 1.5"
+        },
+        {
+          "line": 1146,
+          "values": [
+            "0.6"
+          ],
+          "context": "const csWidth = cs.text.length * sp * 0.6"
+        },
+        {
+          "line": 1202,
+          "values": [
+            "1.2"
+          ],
+          "context": "? Math.min(...tnotes.map(n => n.stemYTop))    - sp * 1.2"
+        },
+        {
+          "line": 1203,
+          "values": [
+            "0.8"
+          ],
+          "context": ": Math.max(...tnotes.map(n => n.stemYBottom)) + sp * 0.8"
+        },
+        {
+          "line": 1215,
+          "values": [
+            "0.8"
+          ],
+          "context": "hookHeight: sp * 0.8,"
+        }
+      ]
+    },
+    {
+      "file": "Shape.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\engine/libmscore/Shape.ts",
+      "exists": true,
+      "line_count": 263,
+      "functions": [
+        {
+          "name": "verticalIntersects",
+          "line": 24,
+          "signature": "function verticalIntersects(",
+          "exported": false
+        }
+      ],
+      "constants": [
+        {
+          "name": "eps",
+          "value": "1e-10",
+          "line": 59,
+          "exported": false
+        },
+        {
+          "name": "verticalClearance",
+          "value": "0.2",
+          "line": 146,
+          "exported": false
+        }
+      ],
+      "classes": [
+        {
+          "name": "Shape",
+          "line": 36,
+          "methods": [
+            {
+              "name": "add",
+              "line": 43
+            },
+            {
+              "name": "add",
+              "line": 44
+            },
+            {
+              "name": "add",
+              "line": 45
+            },
+            {
+              "name": "addHorizontalSpacing",
+              "line": 58
+            },
+            {
+              "name": "clear",
+              "line": 65
+            },
+            {
+              "name": "size",
+              "line": 69
+            },
+            {
+              "name": "empty",
+              "line": 70
+            },
+            {
+              "name": "left",
+              "line": 74
+            },
+            {
+              "name": "right",
+              "line": 82
+            },
+            {
+              "name": "top",
+              "line": 91
+            },
+            {
+              "name": "bottom",
+              "line": 99
+            },
+            {
+              "name": "translate",
+              "line": 110
+            },
+            {
+              "name": "translateX",
+              "line": 117
+            },
+            {
+              "name": "translateY",
+              "line": 121
+            },
+            {
+              "name": "translated",
+              "line": 125
+            },
+            {
+              "name": "minHorizontalDistance",
+              "line": 144
+            },
+            {
+              "name": "minVerticalDistance",
+              "line": 169
+            },
+            {
+              "name": "intersectsRect",
+              "line": 192
+            },
+            {
+              "name": "intersectsShape",
+              "line": 202
+            },
+            {
+              "name": "clearsVertically",
+              "line": 213
+            },
+            {
+              "name": "topDistance",
+              "line": 231
+            },
+            {
+              "name": "bottomDistance",
+              "line": 245
+            },
+            {
+              "name": "contains",
+              "line": 255
+            }
+          ],
+          "exported": true
+        }
+      ],
+      "interfaces": [
+        {
+          "name": "ShapeRect",
+          "line": 12,
+          "exported": true
+        }
+      ],
+      "type_aliases": [],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 59,
+          "values": [
+            "1e-10"
+          ],
+          "context": "const eps = 1e-10"
+        },
+        {
+          "line": 92,
+          "values": [
+            "1e6"
+          ],
+          "context": "let dist = 1e6"
+        },
+        {
+          "line": 100,
+          "values": [
+            "-1e6"
+          ],
+          "context": "let dist = -1e6"
+        },
+        {
+          "line": 145,
+          "values": [
+            "-1e6"
+          ],
+          "context": "let dist = -1e6"
+        },
+        {
+          "line": 146,
+          "values": [
+            "0.2"
+          ],
+          "context": "const verticalClearance = 0.2 * spatiumPx"
+        },
+        {
+          "line": 171,
+          "values": [
+            "-1e6"
+          ],
+          "context": "let dist = -1e6"
+        },
+        {
+          "line": 232,
+          "values": [
+            "1e6"
+          ],
+          "context": "let dist = 1e6"
+        },
+        {
+          "line": 246,
+          "values": [
+            "1e6"
+          ],
+          "context": "let dist = 1e6"
+        }
+      ]
+    },
+    {
+      "file": "Skyline.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\engine/libmscore/Skyline.ts",
+      "exists": true,
+      "line_count": 286,
+      "functions": [],
+      "constants": [
+        {
+          "name": "MAXIMUM_Y",
+          "value": "1e6",
+          "line": 19,
+          "exported": false
+        },
+        {
+          "name": "MINIMUM_Y",
+          "value": "-1e6",
+          "line": 20,
+          "exported": false
+        }
+      ],
+      "classes": [
+        {
+          "name": "SkylineLine",
+          "line": 33,
+          "methods": [
+            {
+              "name": "clear",
+              "line": 41
+            },
+            {
+              "name": "segments",
+              "line": 45
+            },
+            {
+              "name": "valid",
+              "line": 46
+            },
+            {
+              "name": "isValidSegment",
+              "line": 48
+            },
+            {
+              "name": "max",
+              "line": 53
+            },
+            {
+              "name": "addShape",
+              "line": 67
+            },
+            {
+              "name": "addRect",
+              "line": 73
+            },
+            {
+              "name": "add",
+              "line": 89
+            },
+            {
+              "name": "minDistance",
+              "line": 188
+            },
+            {
+              "name": "findIndex",
+              "line": 228
+            },
+            {
+              "name": "insertAt",
+              "line": 239
+            }
+          ],
+          "exported": true
+        },
+        {
+          "name": "Skyline",
+          "line": 251,
+          "methods": [
+            {
+              "name": "north",
+              "line": 255
+            },
+            {
+              "name": "south",
+              "line": 256
+            },
+            {
+              "name": "clear",
+              "line": 258
+            },
+            {
+              "name": "addShape",
+              "line": 264
+            },
+            {
+              "name": "addRect",
+              "line": 272
+            },
+            {
+              "name": "minDistance",
+              "line": 283
+            }
+          ],
+          "exported": true
+        }
+      ],
+      "interfaces": [
+        {
+          "name": "SkylineSegment",
+          "line": 24,
+          "exported": true
+        }
+      ],
+      "type_aliases": [],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 19,
+          "values": [
+            "1e6"
+          ],
+          "context": "const MAXIMUM_Y = 1e6"
+        },
+        {
+          "line": 20,
+          "values": [
+            "-1e6"
+          ],
+          "context": "const MINIMUM_Y = -1e6"
+        },
+        {
+          "line": 126,
+          "values": [
+            "1e-7"
+          ],
+          "context": "if (w1 > 1e-7) {"
+        },
+        {
+          "line": 134,
+          "values": [
+            "1e-7"
+          ],
+          "context": "if (w3 > 1e-7) {"
+        },
+        {
+          "line": 156,
+          "values": [
+            "1e-7"
+          ],
+          "context": "if (w2 > 1e-7) {"
+        }
+      ]
+    },
+    {
+      "file": "LedgerLine.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\engine/libmscore/LedgerLine.ts",
+      "exists": true,
+      "line_count": 96,
+      "functions": [
+        {
+          "name": "layoutLedgerLines",
+          "line": 65,
+          "signature": "export function layoutLedgerLines(",
+          "exported": true
+        }
+      ],
+      "constants": [
+        {
+          "name": "LEDGER_LINE_WIDTH_SP",
+          "value": "0.16",
+          "line": 34,
+          "exported": true
+        },
+        {
+          "name": "lines",
+          "value": "[]",
+          "line": 77,
+          "exported": false
+        }
+      ],
+      "classes": [],
+      "interfaces": [
+        {
+          "name": "LedgerLineLayout",
+          "line": 40,
+          "exported": true
+        }
+      ],
+      "type_aliases": [],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 27,
+          "values": [
+            "0.33"
+          ],
+          "context": "export const LEDGER_OVERRUN_SP: number = Sid.ledgerLineLength   // 0.33"
+        },
+        {
+          "line": 34,
+          "values": [
+            "0.16",
+            "200"
+          ],
+          "context": "export const LEDGER_LINE_WIDTH_SP = 0.16   // Sid::ledgerLineWidth, styledef.cpp:200"
+        }
+      ]
+    },
+    {
+      "file": "atomicElements.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\atomicElements.ts",
+      "exists": true,
+      "line_count": 651,
+      "functions": [
+        {
+          "name": "pitchToStaffLine",
+          "line": 126,
+          "signature": "export function pitchToStaffLine(step: string, octave: number, clef: string): number {",
+          "exported": true
+        },
+        {
+          "name": "computeStemUp",
+          "line": 148,
+          "signature": "export function computeStemUp(",
+          "exported": true
+        },
+        {
+          "name": "noteheadGlyph",
+          "line": 166,
+          "signature": "export function noteheadGlyph(type: NoteheadType): string {",
+          "exported": true
+        },
+        {
+          "name": "hasStem",
+          "line": 176,
+          "signature": "export function hasStem(type: NoteheadType): boolean {",
+          "exported": true
+        },
+        {
+          "name": "layoutNotehead",
+          "line": 195,
+          "signature": "export function layoutNotehead(",
+          "exported": true
+        },
+        {
+          "name": "paintNotehead",
+          "line": 214,
+          "signature": "export function paintNotehead(",
+          "exported": true
+        },
+        {
+          "name": "layoutStem",
+          "line": 245,
+          "signature": "export function layoutStem(",
+          "exported": true
+        },
+        {
+          "name": "paintStem",
+          "line": 292,
+          "signature": "export function paintStem(",
+          "exported": true
+        },
+        {
+          "name": "flagInfo",
+          "line": 314,
+          "signature": "export function flagInfo(type: NoteheadType, stemUp: boolean): { glyph: string } | null {",
+          "exported": true
+        },
+        {
+          "name": "layoutFlag",
+          "line": 327,
+          "signature": "export function layoutFlag(stem: StemLayout, stemUp: boolean, spatiumPx: Px, type: NoteheadType): FlagLayout | null {",
+          "exported": true
+        },
+        {
+          "name": "paintFlag",
+          "line": 339,
+          "signature": "export function paintFlag(",
+          "exported": true
+        },
+        {
+          "name": "layoutRest",
+          "line": 382,
+          "signature": "export function layoutRest(",
+          "exported": true
+        },
+        {
+          "name": "restGlyph",
+          "line": 407,
+          "signature": "function restGlyph(type: NoteheadType): string {",
+          "exported": false
+        },
+        {
+          "name": "paintRest",
+          "line": 420,
+          "signature": "export function paintRest(",
+          "exported": true
+        },
+        {
+          "name": "layoutAccidental",
+          "line": 453,
+          "signature": "export function layoutAccidental(",
+          "exported": true
+        },
+        {
+          "name": "accidentalGlyph",
+          "line": 472,
+          "signature": "function accidentalGlyph(type: string): string {",
+          "exported": false
+        },
+        {
+          "name": "accidentalWidthSp",
+          "line": 486,
+          "signature": "function accidentalWidthSp(type: string): number {",
+          "exported": false
+        },
+        {
+          "name": "paintAccidental",
+          "line": 496,
+          "signature": "export function paintAccidental(",
+          "exported": true
+        },
+        {
+          "name": "layoutDots",
+          "line": 527,
+          "signature": "export function layoutDots(",
+          "exported": true
+        },
+        {
+          "name": "paintDots",
+          "line": 555,
+          "signature": "export function paintDots(",
+          "exported": true
+        },
+        {
+          "name": "layoutLedgerLines",
+          "line": 584,
+          "signature": "export function layoutLedgerLines(",
+          "exported": true
+        },
+        {
+          "name": "paintLedgerLines",
+          "line": 614,
+          "signature": "export function paintLedgerLines(",
+          "exported": true
+        },
+        {
+          "name": "paintStaffLines",
+          "line": 637,
+          "signature": "export function paintStaffLines(",
+          "exported": true
+        }
+      ],
+      "constants": [
+        {
+          "name": "INK",
+          "value": "'#1a1a1a'",
+          "line": 39,
+          "exported": true
+        },
+        {
+          "name": "STEM_LENGTH_SP",
+          "value": "3.5",
+          "line": 46,
+          "exported": true
+        },
+        {
+          "name": "STEM_FLAG_EXTRA_SP",
+          "value": "0.5",
+          "line": 49,
+          "exported": true
+        },
+        {
+          "name": "NOTEHEAD_RX_SP",
+          "value": "0.59",
+          "line": 52,
+          "exported": true
+        },
+        {
+          "name": "NOTEHEAD_RY_SP",
+          "value": "0.36",
+          "line": 55,
+          "exported": true
+        },
+        {
+          "name": "DOT_NOTE_GAP_SP",
+          "value": "0.5",
+          "line": 62,
+          "exported": true
+        },
+        {
+          "name": "DOT_DOT_DIST_SP",
+          "value": "0.65",
+          "line": 69,
+          "exported": true
+        },
+        {
+          "name": "LEDGER_OVERRUN_SP",
+          "value": "0.33",
+          "line": 76,
+          "exported": true
+        },
+        {
+          "name": "ACC_NOTE_GAP_SP",
+          "value": "0.25",
+          "line": 83,
+          "exported": true
+        },
+        {
+          "name": "ACC_ACC_GAP_SP",
+          "value": "0.22",
+          "line": 90,
+          "exported": true
+        },
+        {
+          "name": "CLEF_OFFSET",
+          "value": "{\n  treble:     38,   // CLEF_OFFSET = 38 → C4 at line 10 (below staff)\n  bass:       26,   // C4 at",
+          "line": 104,
+          "exported": false
+        },
+        {
+          "name": "STEP_TO_DIATONIC",
+          "value": "{\n  C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6\n}",
+          "line": 112,
+          "exported": false
+        },
+        {
+          "name": "REST_STAFF_LINES",
+          "value": "{\n  'whole':   1,    // Whole rest hangs below 2nd line from top (staffLine = 2, offset -1)\n  'half'",
+          "line": 362,
+          "exported": false
+        },
+        {
+          "name": "WIDTHS",
+          "value": "{\n    sharp: 1.0, flat: 0.65, natural: 0.9,\n    'double-sharp': 1.1, 'double-flat': 1.4,\n    'courte",
+          "line": 487,
+          "exported": false
+        },
+        {
+          "name": "result",
+          "value": "[{ x: dot1X, y: dotY, fontSize }]",
+          "line": 543,
+          "exported": false
+        },
+        {
+          "name": "lines",
+          "value": "[]",
+          "line": 594,
+          "exported": false
+        }
+      ],
+      "classes": [],
+      "interfaces": [
+        {
+          "name": "NoteheadLayout",
+          "line": 180,
+          "exported": true
+        },
+        {
+          "name": "StemLayout",
+          "line": 228,
+          "exported": true
+        },
+        {
+          "name": "FlagLayout",
+          "line": 306,
+          "exported": true
+        },
+        {
+          "name": "RestLayout",
+          "line": 351,
+          "exported": true
+        },
+        {
+          "name": "AccidentalLayout",
+          "line": 434,
+          "exported": true
+        },
+        {
+          "name": "DotLayout",
+          "line": 509,
+          "exported": true
+        },
+        {
+          "name": "LedgerLineLayout",
+          "line": 569,
+          "exported": true
+        }
+      ],
+      "type_aliases": [
+        {
+          "name": "NoteheadType",
+          "line": 162,
+          "exported": true
+        }
+      ],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 46,
+          "values": [
+            "3.5"
+          ],
+          "context": "export const STEM_LENGTH_SP = 3.5"
+        },
+        {
+          "line": 52,
+          "values": [
+            "0.59"
+          ],
+          "context": "export const NOTEHEAD_RX_SP = 0.59   // ~1.18sp total width / 2"
+        },
+        {
+          "line": 55,
+          "values": [
+            "0.36"
+          ],
+          "context": "export const NOTEHEAD_RY_SP = 0.36"
+        },
+        {
+          "line": 69,
+          "values": [
+            "0.65"
+          ],
+          "context": "export const DOT_DOT_DIST_SP = 0.65  // Sid::dotDotDistance (replaces DOT_WIDTH_SP + DOT_DOT_GAP_SP)"
+        },
+        {
+          "line": 76,
+          "values": [
+            "0.33"
+          ],
+          "context": "export const LEDGER_OVERRUN_SP = 0.33   // Sid::ledgerLineLength"
+        },
+        {
+          "line": 83,
+          "values": [
+            "0.25"
+          ],
+          "context": "export const ACC_NOTE_GAP_SP = 0.25    // Sid::accidentalNoteDistance"
+        },
+        {
+          "line": 90,
+          "values": [
+            "0.22"
+          ],
+          "context": "export const ACC_ACC_GAP_SP = 0.22     // Sid::accidentalDistance"
+        },
+        {
+          "line": 105,
+          "values": [
+            "38",
+            "38"
+          ],
+          "context": "treble:     38,   // CLEF_OFFSET = 38 → C4 at line 10 (below staff)"
+        },
+        {
+          "line": 106,
+          "values": [
+            "26"
+          ],
+          "context": "bass:       26,   // C4 at line -2 (above staff)"
+        },
+        {
+          "line": 108,
+          "values": [
+            "30"
+          ],
+          "context": "tenor:      30,   // C4 at line 6"
+        },
+        {
+          "line": 109,
+          "values": [
+            "38"
+          ],
+          "context": "percussion: 38,"
+        },
+        {
+          "line": 488,
+          "values": [
+            "0.65",
+            "0.9"
+          ],
+          "context": "sharp: 1.0, flat: 0.65, natural: 0.9,"
+        },
+        {
+          "line": 489,
+          "values": [
+            "1.1",
+            "1.4"
+          ],
+          "context": "'double-sharp': 1.1, 'double-flat': 1.4,"
+        },
+        {
+          "line": 490,
+          "values": [
+            "0.65",
+            "0.9"
+          ],
+          "context": "'courtesy-sharp': 1.0, 'courtesy-flat': 0.65, 'courtesy-natural': 0.9,"
+        },
+        {
+          "line": 535,
+          "values": [
+            "-0.5"
+          ],
+          "context": "const dotYAdjust = (staffLine % 2 === 0) ? -0.5 * spatiumPx : 0"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_functions": 46,
+    "total_constants": 54,
+    "total_classes": 3,
+    "total_interfaces": 10,
+    "total_type_aliases": 1,
+    "total_enums": 0
+  }
+}

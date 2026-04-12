@@ -333,7 +333,7 @@ function HarmonyShape({ annotation, elementMap, containerRect, toVrv, onDragEnd,
         if (anchorId) {
           setSelection({ type: 'note', measureStart: ann.measureStart, measureEnd: ann.measureStart, noteIds: [anchorId], anchorMeasure: ann.measureStart, anchorNoteId: anchorId })
         } else {
-          setSelection({ type: 'measure', measureStart: ann.measureStart, measureEnd: ann.measureStart, noteIds: [], anchorMeasure: ann.measureStart })
+          setSelection({ type: 'note', measureStart: ann.measureStart, measureEnd: ann.measureStart, noteIds: ann.noteIds ?? [], anchorMeasure: ann.measureStart })
         }
         showContextMenu(e.clientX, e.clientY, 'harmony')
       }}

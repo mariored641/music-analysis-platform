@@ -9,7 +9,6 @@ export interface Selection {
   anchorMeasure?: number   // for shift+click range
   anchorNoteId?: string    // fixed end for Shift+arrow extend/shrink
   notePitch?: string       // e.g. "G4" from Verovio getElementAttr
-  staffIndex?: number      // index of g.staff within measure (0 = top staff)
 }
 
 interface ContextMenuState {

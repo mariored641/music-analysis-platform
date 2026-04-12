@@ -28,7 +28,7 @@ export function ResearchNotes() {
       label = mEnd !== mStart ? `m.${mStart}–${mEnd}` : `m.${mStart}`
     }
     const link: ResearchLink = {
-      type: selection.type === 'notes' || selection.type === 'note' ? 'notes' : 'measures',
+      type: 'notes',
       measureStart: mStart,
       measureEnd: mEnd !== mStart ? mEnd : undefined,
       noteIds: selection.noteIds?.length ? selection.noteIds : undefined,
@@ -38,19 +38,12 @@ export function ResearchNotes() {
   }
 
   function handleLinkClick(link: ResearchLink) {
-    if (link.type === 'notes' && link.noteIds?.length) {
+    if (link.noteIds?.length) {
       setSelection({
-        type: 'notes',
+        type: link.noteIds.length === 1 ? 'note' : 'notes',
         measureStart: link.measureStart,
         measureEnd: link.measureEnd ?? link.measureStart,
         noteIds: link.noteIds,
-      })
-    } else {
-      setSelection({
-        type: 'measures',
-        measureStart: link.measureStart,
-        measureEnd: link.measureEnd ?? link.measureStart,
-        noteIds: [],
       })
     }
     setScrollToMeasure(link.measureStart)

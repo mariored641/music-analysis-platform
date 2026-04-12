@@ -1,0 +1,2752 @@
+{
+  "session": "D",
+  "files": [
+    {
+      "file": "barline.cpp",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\engraving\\libmscore/barline.cpp",
+      "exists": true,
+      "line_count": 1674,
+      "functions": [
+        {
+          "name": "undoChangeBarLineType",
+          "line": 63,
+          "signature": "static void undoChangeBarLineType(BarLine* bl, BarLineType barType, bool allStaves)"
+        },
+        {
+          "name": "if",
+          "line": 66,
+          "signature": "if (!m)"
+        },
+        {
+          "name": "if",
+          "line": 70,
+          "signature": "if (barType == BarLineType::START_REPEAT)"
+        },
+        {
+          "name": "if",
+          "line": 72,
+          "signature": "if (!m)"
+        },
+        {
+          "name": "if",
+          "line": 76,
+          "signature": "if (barType != BarLineType::END_REPEAT)"
+        },
+        {
+          "name": "if",
+          "line": 80,
+          "signature": "if (!m)"
+        },
+        {
+          "name": "switch",
+          "line": 85,
+          "signature": "switch (barType)"
+        },
+        {
+          "name": "if",
+          "line": 96,
+          "signature": "if (segmentType == SegmentType::EndBarLine)"
+        },
+        {
+          "name": "if",
+          "line": 102,
+          "signature": "if (bl->barLineType() == barType)"
+        },
+        {
+          "name": "if",
+          "line": 109,
+          "signature": "if (allStaves)"
+        },
+        {
+          "name": "if",
+          "line": 112,
+          "signature": "if (!m2)"
+        },
+        {
+          "name": "for",
+          "line": 118,
+          "signature": "for (EngravingItem* e : elist)"
+        },
+        {
+          "name": "if",
+          "line": 119,
+          "signature": "if (!e || !e->staff() || !e->isBarLine())"
+        },
+        {
+          "name": "for",
+          "line": 127,
+          "signature": "for (Staff* lstaff : sbl->staff()->staffList())"
+        },
+        {
+          "name": "if",
+          "line": 135,
+          "signature": "if (!lmeasure)"
+        },
+        {
+          "name": "if",
+          "line": 142,
+          "signature": "if (!lbl)"
+        },
+        {
+          "name": "if",
+          "line": 152,
+          "signature": "if (!generated)"
+        },
+        {
+          "name": "if",
+          "line": 160,
+          "signature": "if (lbl != sbl && !generated && !lbl->links())"
+        },
+        {
+          "name": "for",
+          "line": 170,
+          "signature": "for (EngravingItem* e : segment1->elist())"
+        },
+        {
+          "name": "if",
+          "line": 171,
+          "signature": "if (e)"
+        },
+        {
+          "name": "if",
+          "line": 184,
+          "signature": "if (m2->isMeasureRepeatGroupWithPrevM(staffIdx))"
+        },
+        {
+          "name": "for",
+          "line": 189,
+          "signature": "for (Score* lscore : m2->score()->scoreList())"
+        },
+        {
+          "name": "if",
+          "line": 191,
+          "signature": "if (lmeasure)"
+        },
+        {
+          "name": "if",
+          "line": 200,
+          "signature": "if (m2->isMeasureRepeatGroupWithNextM(staffIdx))"
+        },
+        {
+          "name": "for",
+          "line": 205,
+          "signature": "for (Score* lscore : m2->score()->scoreList())"
+        },
+        {
+          "name": "if",
+          "line": 207,
+          "signature": "if (lmeasure)"
+        },
+        {
+          "name": "if",
+          "line": 216,
+          "signature": "if (m2->isMeasureRepeatGroupWithNextM(staffIdx))"
+        },
+        {
+          "name": "for",
+          "line": 221,
+          "signature": "for (Score* lscore : m2->score()->scoreList())"
+        },
+        {
+          "name": "if",
+          "line": 223,
+          "signature": "if (lmeasure)"
+        },
+        {
+          "name": "if",
+          "line": 226,
+          "signature": "if (lmeasure)"
+        },
+        {
+          "name": "type",
+          "line": 246,
+          "signature": "virtual EditDataType type() override"
+        },
+        {
+          "name": "BarLine::translatedUserTypeName",
+          "line": 271,
+          "signature": "String BarLine::translatedUserTypeName(BarLineType t)"
+        },
+        {
+          "name": "for",
+          "line": 273,
+          "signature": "for (const auto& i : barLineTable)"
+        },
+        {
+          "name": "if",
+          "line": 274,
+          "signature": "if (i.type == t)"
+        },
+        {
+          "name": "EngravingItem",
+          "line": 286,
+          "signature": ": EngravingItem(ElementType::BAR_LINE, parent)"
+        },
+        {
+          "name": "EngravingItem",
+          "line": 292,
+          "signature": ": EngravingItem(bl)"
+        },
+        {
+          "name": "for",
+          "line": 301,
+          "signature": "for (EngravingItem* e : bl._el)"
+        },
+        {
+          "name": "BarLine::setParent",
+          "line": 311,
+          "signature": "void BarLine::setParent(Segment* parent)"
+        },
+        {
+          "name": "BarLine::canvasPos",
+          "line": 320,
+          "signature": "PointF BarLine::canvasPos() const"
+        },
+        {
+          "name": "if",
+          "line": 323,
+          "signature": "if (explicitParent())"
+        },
+        {
+          "name": "BarLine::pagePos",
+          "line": 335,
+          "signature": "PointF BarLine::pagePos() const"
+        },
+        {
+          "name": "if",
+          "line": 337,
+          "signature": "if (segment() == 0)"
+        },
+        {
+          "name": "if",
+          "line": 343,
+          "signature": "if (system)"
+        },
+        {
+          "name": "while",
+          "line": 351,
+          "signature": "while (staff1 && sysStaff1 && !(sysStaff1->show() && staff1->show()))"
+        },
+        {
+          "name": "if",
+          "line": 352,
+          "signature": "if (++staffIdx1 >= endIdx)"
+        },
+        {
+          "name": "prevVisibleSpannedStaff",
+          "line": 369,
+          "signature": "static staff_idx_t prevVisibleSpannedStaff(const BarLine* bl)"
+        },
+        {
+          "name": "if",
+          "line": 376,
+          "signature": "if (!nbl || !nbl->spanStaff())"
+        },
+        {
+          "name": "if",
+          "line": 380,
+          "signature": "if (s->part()->show() && bl->measure()->visible(i))"
+        },
+        {
+          "name": "nextVisibleSpannedStaff",
+          "line": 391,
+          "signature": "static size_t nextVisibleSpannedStaff(const BarLine* bl)"
+        },
+        {
+          "name": "if",
+          "line": 399,
+          "signature": "if (s->part()->show())"
+        },
+        {
+          "name": "if",
+          "line": 401,
+          "signature": "if (bl->measure()->visible(i))"
+        },
+        {
+          "name": "if",
+          "line": 405,
+          "signature": "if (segment && segment->isEndBarLineType())"
+        },
+        {
+          "name": "if",
+          "line": 407,
+          "signature": "if (bl->measure()->isCutawayClef(i))"
+        },
+        {
+          "name": "if",
+          "line": 412,
+          "signature": "if ((nm ? nm->visible(i) : false) && (nm ? nm->system() == bl->measure()->system() : false))"
+        },
+        {
+          "name": "if",
+          "line": 418,
+          "signature": "if (!nbl || !nbl->spanStaff())"
+        },
+        {
+          "name": "BarLine::getY",
+          "line": 429,
+          "signature": "void BarLine::getY() const"
+        },
+        {
+          "name": "if",
+          "line": 432,
+          "signature": "if (!explicitParent())"
+        },
+        {
+          "name": "if",
+          "line": 444,
+          "signature": "if (_spanStaff)"
+        },
+        {
+          "name": "if",
+          "line": 449,
+          "signature": "if (!system)"
+        },
+        {
+          "name": "if",
+          "line": 465,
+          "signature": "if (oneLine && _spanFrom == 0)"
+        },
+        {
+          "name": "if",
+          "line": 467,
+          "signature": "if (!_spanStaff || (staffIdx1 == nstaves - 1))"
+        },
+        {
+          "name": "if",
+          "line": 478,
+          "signature": "if (staffIdx2 != staffIdx1)"
+        },
+        {
+          "name": "BarLine::drawDots",
+          "line": 489,
+          "signature": "void BarLine::drawDots(Painter* painter, double x) const"
+        },
+        {
+          "name": "if",
+          "line": 495,
+          "signature": "if (explicitParent() == 0)"
+        },
+        {
+          "name": "if",
+          "line": 506,
+          "signature": "if (!(score()->symbolFont()->name() == \"Leland\"\n              || score()->symbolFont()->name() == \"Bravura\"\n              || score()->symbolFont()->name() == \"Petaluma\"))"
+        },
+        {
+          "name": "BarLine::drawTips",
+          "line": 528,
+          "signature": "void BarLine::drawTips(Painter* painter, bool reversed, double x) const"
+        },
+        {
+          "name": "if",
+          "line": 530,
+          "signature": "if (reversed)"
+        },
+        {
+          "name": "if",
+          "line": 531,
+          "signature": "if (isTop())"
+        },
+        {
+          "name": "if",
+          "line": 534,
+          "signature": "if (isBottom())"
+        },
+        {
+          "name": "if",
+          "line": 538,
+          "signature": "if (isTop())"
+        },
+        {
+          "name": "if",
+          "line": 541,
+          "signature": "if (isBottom())"
+        },
+        {
+          "name": "BarLine::isTop",
+          "line": 551,
+          "signature": "bool BarLine::isTop() const"
+        },
+        {
+          "name": "if",
+          "line": 554,
+          "signature": "if (idx == 0)"
+        },
+        {
+          "name": "BarLine::isBottom",
+          "line": 565,
+          "signature": "bool BarLine::isBottom() const"
+        },
+        {
+          "name": "if",
+          "line": 567,
+          "signature": "if (!_spanStaff)"
+        },
+        {
+          "name": "if",
+          "line": 571,
+          "signature": "if (idx == score()->nstaves() - 1)"
+        },
+        {
+          "name": "BarLine::draw",
+          "line": 582,
+          "signature": "void BarLine::draw(Painter* painter) const"
+        },
+        {
+          "name": "switch",
+          "line": 586,
+          "signature": "switch (barLineType())"
+        },
+        {
+          "name": "if",
+          "line": 675,
+          "signature": "if (score()->styleB(Sid::repeatBarTips))"
+        },
+        {
+          "name": "if",
+          "line": 697,
+          "signature": "if (score()->styleB(Sid::repeatBarTips))"
+        },
+        {
+          "name": "if",
+          "line": 718,
+          "signature": "if (score()->styleB(Sid::repeatBarTips))"
+        },
+        {
+          "name": "if",
+          "line": 729,
+          "signature": "if (score()->styleB(Sid::repeatBarTips))"
+        },
+        {
+          "name": "if",
+          "line": 736,
+          "signature": "if (s && s->isEndBarLineType() && !score()->printing() && score()->showUnprintable())"
+        },
+        {
+          "name": "if",
+          "line": 738,
+          "signature": "if (m->isIrregular() && score()->markIrregularMeasures() && !m->isMMRest())"
+        },
+        {
+          "name": "BarLine::drawEditMode",
+          "line": 759,
+          "signature": "void BarLine::drawEditMode(Painter* p, EditData& ed, double currentViewScaling)"
+        },
+        {
+          "name": "BarLine::playTick",
+          "line": 777,
+          "signature": "Fraction BarLine::playTick() const"
+        },
+        {
+          "name": "if",
+          "line": 782,
+          "signature": "if (measure)"
+        },
+        {
+          "name": "if",
+          "line": 784,
+          "signature": "if (!nextMeasure || (nextMeasure->system() != measure->system()))"
+        },
+        {
+          "name": "BarLine::write",
+          "line": 796,
+          "signature": "void BarLine::write(XmlWriter& xml) const"
+        },
+        {
+          "name": "for",
+          "line": 805,
+          "signature": "for (const EngravingItem* e : _el)"
+        },
+        {
+          "name": "BarLine::read",
+          "line": 816,
+          "signature": "void BarLine::read(XmlReader& e)"
+        },
+        {
+          "name": "while",
+          "line": 822,
+          "signature": "while (e.readNextStartElement())"
+        },
+        {
+          "name": "if",
+          "line": 824,
+          "signature": "if (tag == \"subtype\")"
+        },
+        {
+          "name": "if",
+          "line": 842,
+          "signature": "if (MScore::noImages)"
+        },
+        {
+          "name": "BarLine::acceptDrop",
+          "line": 860,
+          "signature": "bool BarLine::acceptDrop(EditData& data) const"
+        },
+        {
+          "name": "if",
+          "line": 863,
+          "signature": "if (type == ElementType::BAR_LINE)"
+        },
+        {
+          "name": "BarLine::drop",
+          "line": 879,
+          "signature": "EngravingItem* BarLine::drop(EditData& data)"
+        },
+        {
+          "name": "if",
+          "line": 883,
+          "signature": "if (e->isBarLine())"
+        },
+        {
+          "name": "if",
+          "line": 888,
+          "signature": "if (st == barLineType() && !bl->spanFrom() && !bl->spanTo())"
+        },
+        {
+          "name": "if",
+          "line": 902,
+          "signature": "if ((data.control() && !oldRepeat && !newRepeat) || (bl->spanFrom() || bl->spanTo()))"
+        },
+        {
+          "name": "if",
+          "line": 904,
+          "signature": "if (bl->spanFrom() || bl->spanTo())"
+        },
+        {
+          "name": "for",
+          "line": 934,
+          "signature": "for (EngravingItem* el: segment()->annotations())"
+        },
+        {
+          "name": "if",
+          "line": 935,
+          "signature": "if (el->isFermata() && (el->track() == track()))"
+        },
+        {
+          "name": "if",
+          "line": 936,
+          "signature": "if (el->subtype() == e->subtype())"
+        },
+        {
+          "name": "BarLine::setShowTips",
+          "line": 960,
+          "signature": "void BarLine::setShowTips(bool val)"
+        },
+        {
+          "name": "if",
+          "line": 962,
+          "signature": "if (!score())"
+        },
+        {
+          "name": "BarLine::showTips",
+          "line": 973,
+          "signature": "bool BarLine::showTips() const"
+        },
+        {
+          "name": "if",
+          "line": 975,
+          "signature": "if (!score())"
+        },
+        {
+          "name": "BarLine::gripsPositions",
+          "line": 986,
+          "signature": "std::vector<PointF> BarLine::gripsPositions(const EditData& ed) const"
+        },
+        {
+          "name": "BarLine::startEdit",
+          "line": 1005,
+          "signature": "void BarLine::startEdit(EditData& ed)"
+        },
+        {
+          "name": "BarLine::isEditAllowed",
+          "line": 1014,
+          "signature": "bool BarLine::isEditAllowed(EditData& ed) const"
+        },
+        {
+          "name": "BarLine::edit",
+          "line": 1020,
+          "signature": "bool BarLine::edit(EditData& ed)"
+        },
+        {
+          "name": "if",
+          "line": 1022,
+          "signature": "if (!isEditAllowed(ed))"
+        },
+        {
+          "name": "if",
+          "line": 1027,
+          "signature": "if ((ed.key == Key_Up && spanStaff()) || (ed.key == Key_Down && !spanStaff()))"
+        },
+        {
+          "name": "if",
+          "line": 1028,
+          "signature": "if (local)"
+        },
+        {
+          "name": "if",
+          "line": 1030,
+          "signature": "if (b)"
+        },
+        {
+          "name": "BarLine::editDrag",
+          "line": 1045,
+          "signature": "void BarLine::editDrag(EditData& ed)"
+        },
+        {
+          "name": "if",
+          "line": 1051,
+          "signature": "if (ed.curGrip != Grip::START)"
+        },
+        {
+          "name": "if",
+          "line": 1063,
+          "signature": "if (bed->yoff2 < min)"
+        },
+        {
+          "name": "if",
+          "line": 1066,
+          "signature": "if (bed->yoff2 > max)"
+        },
+        {
+          "name": "BarLine::endEditDrag",
+          "line": 1077,
+          "signature": "void BarLine::endEditDrag(EditData& ed)"
+        },
+        {
+          "name": "if",
+          "line": 1093,
+          "signature": "if (staffIdx1 + 1 >= numOfStaves)"
+        },
+        {
+          "name": "if",
+          "line": 1107,
+          "signature": "if (ay2 < (staff1TopY + staff1Hght + blnkBtwnStaff * .5))"
+        },
+        {
+          "name": "if",
+          "line": 1121,
+          "signature": "if (localDrag)"
+        },
+        {
+          "name": "if",
+          "line": 1126,
+          "signature": "if (!b)"
+        },
+        {
+          "name": "if",
+          "line": 1136,
+          "signature": "if (breakLast)"
+        },
+        {
+          "name": "if",
+          "line": 1138,
+          "signature": "if (b)"
+        },
+        {
+          "name": "if",
+          "line": 1148,
+          "signature": "if (breakLast)"
+        },
+        {
+          "name": "BarLine::layoutWidth",
+          "line": 1163,
+          "signature": "double BarLine::layoutWidth() const"
+        },
+        {
+          "name": "switch",
+          "line": 1168,
+          "signature": "switch (barLineType())"
+        },
+        {
+          "name": "BarLine::layoutRect",
+          "line": 1214,
+          "signature": "RectF BarLine::layoutRect() const"
+        },
+        {
+          "name": "if",
+          "line": 1217,
+          "signature": "if (staff())"
+        },
+        {
+          "name": "if",
+          "line": 1224,
+          "signature": "if (span == 0 && _spanTo == 0)"
+        },
+        {
+          "name": "if",
+          "line": 1233,
+          "signature": "if (score()->styleB(Sid::repeatBarTips))"
+        },
+        {
+          "name": "switch",
+          "line": 1234,
+          "signature": "switch (barLineType())"
+        },
+        {
+          "name": "if",
+          "line": 1238,
+          "signature": "if (isTop())"
+        },
+        {
+          "name": "if",
+          "line": 1243,
+          "signature": "if (isBottom())"
+        },
+        {
+          "name": "BarLine::layout",
+          "line": 1262,
+          "signature": "void BarLine::layout()"
+        },
+        {
+          "name": "if",
+          "line": 1266,
+          "signature": "if (staff() && segment())"
+        },
+        {
+          "name": "if",
+          "line": 1267,
+          "signature": "if ((!staff()->staffTypeForElement(this)->showBarlines() && segment()->segmentType() == SegmentType::EndBarLine)\n            || (staff()->hideSystemBarLine() && segment()->segmentType() == SegmentType::BeginBarLine))"
+        },
+        {
+          "name": "if",
+          "line": 1279,
+          "signature": "if (RealIsEqual(y2, 0.0))"
+        },
+        {
+          "name": "if",
+          "line": 1286,
+          "signature": "if (score()->styleB(Sid::repeatBarTips))"
+        },
+        {
+          "name": "switch",
+          "line": 1287,
+          "signature": "switch (barLineType())"
+        },
+        {
+          "name": "for",
+          "line": 1311,
+          "signature": "for (EngravingItem* e : _el)"
+        },
+        {
+          "name": "if",
+          "line": 1313,
+          "signature": "if (e->isArticulation())"
+        },
+        {
+          "name": "if",
+          "line": 1318,
+          "signature": "if (dir == DirectionV::DOWN)"
+        },
+        {
+          "name": "BarLine::layout2",
+          "line": 1334,
+          "signature": "void BarLine::layout2()"
+        },
+        {
+          "name": "if",
+          "line": 1337,
+          "signature": "if (staff() && segment())"
+        },
+        {
+          "name": "if",
+          "line": 1338,
+          "signature": "if ((!staff()->staffTypeForElement(this)->showBarlines() && segment()->segmentType() == SegmentType::EndBarLine)\n            || (staff()->hideSystemBarLine() && segment()->segmentType() == SegmentType::BeginBarLine))"
+        },
+        {
+          "name": "if",
+          "line": 1349,
+          "signature": "if (score()->styleB(Sid::repeatBarTips))"
+        },
+        {
+          "name": "switch",
+          "line": 1350,
+          "signature": "switch (barLineType())"
+        },
+        {
+          "name": "BarLine::shape",
+          "line": 1381,
+          "signature": "Shape BarLine::shape() const"
+        },
+        {
+          "name": "BarLine::scanElements",
+          "line": 1392,
+          "signature": "void BarLine::scanElements(void* data, void (* func)(void*, EngravingItem*), bool all)"
+        },
+        {
+          "name": "if",
+          "line": 1395,
+          "signature": "if (width() == 0.0 && !all)"
+        },
+        {
+          "name": "for",
+          "line": 1400,
+          "signature": "for (EngravingItem* e : _el)"
+        },
+        {
+          "name": "BarLine::setTrack",
+          "line": 1409,
+          "signature": "void BarLine::setTrack(track_idx_t t)"
+        },
+        {
+          "name": "for",
+          "line": 1412,
+          "signature": "for (EngravingItem* e : _el)"
+        },
+        {
+          "name": "BarLine::add",
+          "line": 1421,
+          "signature": "void BarLine::add(EngravingItem* e)"
+        },
+        {
+          "name": "switch",
+          "line": 1424,
+          "signature": "switch (e->type())"
+        },
+        {
+          "name": "BarLine::remove",
+          "line": 1443,
+          "signature": "void BarLine::remove(EngravingItem* e)"
+        },
+        {
+          "name": "switch",
+          "line": 1445,
+          "signature": "switch (e->type())"
+        },
+        {
+          "name": "if",
+          "line": 1448,
+          "signature": "case ElementType::IMAGE:\n        if (!_el.remove(e))"
+        },
+        {
+          "name": "BarLine::getProperty",
+          "line": 1465,
+          "signature": "PropertyValue BarLine::getProperty(Pid id) const"
+        },
+        {
+          "name": "switch",
+          "line": 1467,
+          "signature": "switch (id)"
+        },
+        {
+          "name": "BarLine::setProperty",
+          "line": 1488,
+          "signature": "bool BarLine::setProperty(Pid id, const PropertyValue& v)"
+        },
+        {
+          "name": "switch",
+          "line": 1490,
+          "signature": "switch (id)"
+        },
+        {
+          "name": "BarLine::undoChangeProperty",
+          "line": 1518,
+          "signature": "void BarLine::undoChangeProperty(Pid id, const PropertyValue& v, PropertyFlags ps)"
+        },
+        {
+          "name": "if",
+          "line": 1520,
+          "signature": "if (id == Pid::BARLINE_TYPE && segment())"
+        },
+        {
+          "name": "if",
+          "line": 1523,
+          "signature": "if (blType == BarLineType::START_REPEAT)"
+        },
+        {
+          "name": "if",
+          "line": 1524,
+          "signature": "if (bl->measure()->nextMeasure())"
+        },
+        {
+          "name": "if",
+          "line": 1530,
+          "signature": "if (bl)"
+        },
+        {
+          "name": "BarLine::propertyDefault",
+          "line": 1542,
+          "signature": "PropertyValue BarLine::propertyDefault(Pid propertyId) const"
+        },
+        {
+          "name": "switch",
+          "line": 1544,
+          "signature": "switch (propertyId)"
+        },
+        {
+          "name": "BarLine::nextSegmentElement",
+          "line": 1573,
+          "signature": "EngravingItem* BarLine::nextSegmentElement()"
+        },
+        {
+          "name": "BarLine::prevSegmentElement",
+          "line": 1582,
+          "signature": "EngravingItem* BarLine::prevSegmentElement()"
+        },
+        {
+          "name": "BarLine::accessibleInfo",
+          "line": 1591,
+          "signature": "String BarLine::accessibleInfo() const"
+        },
+        {
+          "name": "BarLine::accessibleExtraInfo",
+          "line": 1600,
+          "signature": "String BarLine::accessibleExtraInfo() const"
+        },
+        {
+          "name": "for",
+          "line": 1605,
+          "signature": "for (const EngravingItem* e : *el())"
+        },
+        {
+          "name": "if",
+          "line": 1606,
+          "signature": "if (!score()->selectionFilter().canSelect(e))"
+        },
+        {
+          "name": "for",
+          "line": 1612,
+          "signature": "for (const EngravingItem* e : seg->annotations())"
+        },
+        {
+          "name": "if",
+          "line": 1613,
+          "signature": "if (!score()->selectionFilter().canSelect(e))"
+        },
+        {
+          "name": "if",
+          "line": 1616,
+          "signature": "if (e->track() == track())"
+        },
+        {
+          "name": "if",
+          "line": 1622,
+          "signature": "if (m)"
+        },
+        {
+          "name": "for",
+          "line": 1624,
+          "signature": "for (const EngravingItem* e : m->el())"
+        },
+        {
+          "name": "if",
+          "line": 1625,
+          "signature": "if (!score()->selectionFilter().canSelect(e))"
+        },
+        {
+          "name": "if",
+          "line": 1628,
+          "signature": "if (e->type() == ElementType::JUMP)"
+        },
+        {
+          "name": "if",
+          "line": 1631,
+          "signature": "if (e->type() == ElementType::MARKER)"
+        },
+        {
+          "name": "if",
+          "line": 1633,
+          "signature": "if (m1->markerType() == MarkerType::FINE)"
+        },
+        {
+          "name": "if",
+          "line": 1640,
+          "signature": "if (nextM)"
+        },
+        {
+          "name": "for",
+          "line": 1641,
+          "signature": "for (const EngravingItem* e : nextM->el())"
+        },
+        {
+          "name": "if",
+          "line": 1642,
+          "signature": "if (!score()->selectionFilter().canSelect(e))"
+        },
+        {
+          "name": "if",
+          "line": 1645,
+          "signature": "if (e->isMarker())"
+        },
+        {
+          "name": "if",
+          "line": 1646,
+          "signature": "if (toMarker(e)->markerType() == MarkerType::FINE)"
+        },
+        {
+          "name": "for",
+          "line": 1658,
+          "signature": "for (auto interval : spanners)"
+        },
+        {
+          "name": "if",
+          "line": 1660,
+          "signature": "if (!score()->selectionFilter().canSelect(s))"
+        },
+        {
+          "name": "if",
+          "line": 1663,
+          "signature": "if (s->type() == ElementType::VOLTA)"
+        },
+        {
+          "name": "if",
+          "line": 1664,
+          "signature": "if (s->tick() == tick)"
+        },
+        {
+          "name": "if",
+          "line": 1667,
+          "signature": "if (s->tick2() == tick)"
+        }
+      ],
+      "constants": [
+        {
+          "name": "measure",
+          "value": "findMeasure()",
+          "line": 781
+        },
+        {
+          "name": "nextMeasure",
+          "value": "findMeasure()->next()",
+          "line": 783
+        },
+        {
+          "name": "min",
+          "value": "y1 - y2 + lineDist",
+          "line": 1055
+        },
+        {
+          "name": "max",
+          "value": "(system && st != mu::nidx) ? (system->height() - y2 - system->staff(st)->y()) : std::numeric_limits<double>::max()",
+          "line": 1059
+        },
+        {
+          "name": "dotWidth",
+          "value": "symWidth(SymId::repeatDot)",
+          "line": 1165
+        }
+      ],
+      "arrays": [],
+      "enums": [],
+      "structs": [],
+      "magic_numbers": [
+        {
+          "line": 1170,
+          "values": [
+            "2.0"
+          ],
+          "context": "w = score()->styleMM(Sid::doubleBarWidth) * 2.0"
+        },
+        {
+          "line": 1174,
+          "values": [
+            "2.0"
+          ],
+          "context": "w = score()->styleMM(Sid::endBarWidth) * 2.0"
+        },
+        {
+          "line": 1179,
+          "values": [
+            "2.0"
+          ],
+          "context": "+ score()->styleMM(Sid::barWidth) * 2.0"
+        },
+        {
+          "line": 1180,
+          "values": [
+            "2.0"
+          ],
+          "context": "+ score()->styleMM(Sid::endBarDistance) * 2.0"
+        },
+        {
+          "line": 1181,
+          "values": [
+            "2.0"
+          ],
+          "context": "+ score()->styleMM(Sid::repeatBarlineDotSeparation) * 2.0"
+        },
+        {
+          "line": 1280,
+          "values": [
+            "8.0"
+          ],
+          "context": "y2 = _spatium * .5 * (8.0 + _spanTo);"
+        }
+      ]
+    },
+    {
+      "file": "keysig.cpp",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\engraving\\libmscore/keysig.cpp",
+      "exists": true,
+      "line_count": 809,
+      "functions": [
+        {
+          "name": "EngravingItem",
+          "line": 49,
+          "signature": ": EngravingItem(ElementType::KEYSIG, s, ElementFlag::ON_STAFF)"
+        },
+        {
+          "name": "EngravingItem",
+          "line": 56,
+          "signature": ": EngravingItem(k)"
+        },
+        {
+          "name": "KeySig::mag",
+          "line": 67,
+          "signature": "double KeySig::mag() const"
+        },
+        {
+          "name": "KeySig::addLayout",
+          "line": 76,
+          "signature": "void KeySig::addLayout(SymId sym, int line)"
+        },
+        {
+          "name": "if",
+          "line": 83,
+          "signature": "if (_sig.keySymbols().size() > 0)"
+        },
+        {
+          "name": "if",
+          "line": 86,
+          "signature": "if (previous.sym != sym)"
+        },
+        {
+          "name": "if",
+          "line": 99,
+          "signature": "if ((isAscending && currentCutoutY < previousCutoutY) || (!isAscending && currentCutoutY > previousCutoutY))"
+        },
+        {
+          "name": "KeySig::layout",
+          "line": 112,
+          "signature": "void KeySig::layout()"
+        },
+        {
+          "name": "if",
+          "line": 120,
+          "signature": "if (staff() && !staff()->staffType(tick())->genKeysig())"
+        },
+        {
+          "name": "if",
+          "line": 126,
+          "signature": "if (staff())"
+        },
+        {
+          "name": "if",
+          "line": 129,
+          "signature": "if (segment())"
+        },
+        {
+          "name": "if",
+          "line": 131,
+          "signature": "if (seg->isClefType() || seg->isHeaderClefType())"
+        },
+        {
+          "name": "if",
+          "line": 136,
+          "signature": "if (c)"
+        },
+        {
+          "name": "if",
+          "line": 146,
+          "signature": "if (isCustom() && !isAtonal())"
+        },
+        {
+          "name": "for",
+          "line": 151,
+          "signature": "for (CustDef& cd: _sig.customKeyDefs())"
+        },
+        {
+          "name": "if",
+          "line": 154,
+          "signature": "if ((degree * 2 + 2) % 7 == (t1 < 0 ? 8 - i : i) % 7)"
+        },
+        {
+          "name": "if",
+          "line": 159,
+          "signature": "if (!drop)"
+        },
+        {
+          "name": "if",
+          "line": 164,
+          "signature": "if (_sig.keySymbols().size() > 0)"
+        },
+        {
+          "name": "for",
+          "line": 175,
+          "signature": "for (CustDef& cd: _sig.customKeyDefs())"
+        },
+        {
+          "name": "if",
+          "line": 183,
+          "signature": "if (_sig.keySymbols().size() > 0)"
+        },
+        {
+          "name": "if",
+          "line": 189,
+          "signature": "if (sym == SymId::noSym)"
+        },
+        {
+          "name": "if",
+          "line": 194,
+          "signature": "if (cd.sym == SymId::accidentalTripleSharp)"
+        },
+        {
+          "name": "if",
+          "line": 205,
+          "signature": "if (sym != SymId::accidentalNatural || sym == cd.sym)"
+        },
+        {
+          "name": "switch",
+          "line": 215,
+          "signature": "switch (std::abs(t1))"
+        },
+        {
+          "name": "if",
+          "line": 246,
+          "signature": "if (!_hideNaturals)"
+        },
+        {
+          "name": "if",
+          "line": 254,
+          "signature": "if (measure() && measure()->system() && measure()->isFirstInSystem()\n            && prevMeasure && prevMeasure->findSegment(SegmentType::KeySigAnnounce, tick())\n            && !segment()->isKeySigAnnounceType())"
+        },
+        {
+          "name": "if",
+          "line": 259,
+          "signature": "if (track() == mu::nidx)"
+        },
+        {
+          "name": "if",
+          "line": 265,
+          "signature": "if (naturalsOn)"
+        },
+        {
+          "name": "if",
+          "line": 266,
+          "signature": "if (staff())"
+        },
+        {
+          "name": "if",
+          "line": 269,
+          "signature": "if (t2 == Key::C)"
+        },
+        {
+          "name": "switch",
+          "line": 272,
+          "signature": "switch (std::abs(int(t2)))"
+        },
+        {
+          "name": "if",
+          "line": 294,
+          "signature": "if (!((t1 > 0) ^ (t2 > 0)))"
+        },
+        {
+          "name": "if",
+          "line": 297,
+          "signature": "if (t2 < 0)"
+        },
+        {
+          "name": "if",
+          "line": 315,
+          "signature": "if (prefixNaturals)"
+        },
+        {
+          "name": "if",
+          "line": 317,
+          "signature": "if (naturals & (1 << i))"
+        },
+        {
+          "name": "if",
+          "line": 322,
+          "signature": "if (abs(t1) <= 7)"
+        },
+        {
+          "name": "if",
+          "line": 333,
+          "signature": "if (suffixNaturals)"
+        },
+        {
+          "name": "if",
+          "line": 335,
+          "signature": "if (naturals & (1 << i))"
+        },
+        {
+          "name": "if",
+          "line": 342,
+          "signature": "if (staffType())"
+        },
+        {
+          "name": "for",
+          "line": 348,
+          "signature": "for (KeySym& ks : _sig.keySymbols())"
+        },
+        {
+          "name": "KeySig::draw",
+          "line": 359,
+          "signature": "void KeySig::draw(mu::draw::Painter* painter) const"
+        },
+        {
+          "name": "for",
+          "line": 369,
+          "signature": "for (const KeySym& ks: _sig.keySymbols())"
+        },
+        {
+          "name": "if",
+          "line": 387,
+          "signature": "if (!explicitParent() && (isAtonal() || isCustom()) && _sig.keySymbols().empty())"
+        },
+        {
+          "name": "KeySig::acceptDrop",
+          "line": 398,
+          "signature": "bool KeySig::acceptDrop(EditData& data) const"
+        },
+        {
+          "name": "KeySig::drop",
+          "line": 407,
+          "signature": "EngravingItem* KeySig::drop(EditData& data)"
+        },
+        {
+          "name": "if",
+          "line": 410,
+          "signature": "if (ks->type() != ElementType::KEYSIG)"
+        },
+        {
+          "name": "if",
+          "line": 416,
+          "signature": "if (data.modifiers & ControlModifier)"
+        },
+        {
+          "name": "if",
+          "line": 418,
+          "signature": "if (!(k == keySigEvent()))"
+        },
+        {
+          "name": "for",
+          "line": 423,
+          "signature": "for (Staff* s : score()->masterScore()->staves())"
+        },
+        {
+          "name": "KeySig::setKey",
+          "line": 434,
+          "signature": "void KeySig::setKey(Key key)"
+        },
+        {
+          "name": "KeySig::write",
+          "line": 445,
+          "signature": "void KeySig::write(XmlWriter& xml) const"
+        },
+        {
+          "name": "if",
+          "line": 449,
+          "signature": "if (_sig.isAtonal())"
+        },
+        {
+          "name": "for",
+          "line": 454,
+          "signature": "for (const CustDef& cd : _sig.customKeyDefs())"
+        },
+        {
+          "name": "if",
+          "line": 464,
+          "signature": "if (_sig.mode() != KeyMode::UNKNOWN)"
+        },
+        {
+          "name": "if",
+          "line": 468,
+          "signature": "if (!_showCourtesy)"
+        },
+        {
+          "name": "if",
+          "line": 471,
+          "signature": "if (forInstrumentChange())"
+        },
+        {
+          "name": "KeySig::read",
+          "line": 481,
+          "signature": "void KeySig::read(XmlReader& e)"
+        },
+        {
+          "name": "while",
+          "line": 486,
+          "signature": "while (e.readNextStartElement())"
+        },
+        {
+          "name": "if",
+          "line": 488,
+          "signature": "if (tag == \"CustDef\" || tag == \"KeySym\")"
+        },
+        {
+          "name": "while",
+          "line": 490,
+          "signature": "while (e.readNextStartElement())"
+        },
+        {
+          "name": "if",
+          "line": 492,
+          "signature": "if (t == \"sym\")"
+        },
+        {
+          "name": "if",
+          "line": 496,
+          "signature": "if (!valid)"
+        },
+        {
+          "name": "if",
+          "line": 499,
+          "signature": "if (score()->mscVersion() <= 114)"
+        },
+        {
+          "name": "if",
+          "line": 500,
+          "signature": "if (valid)"
+        },
+        {
+          "name": "if",
+          "line": 503,
+          "signature": "if (!valid)"
+        },
+        {
+          "name": "for",
+          "line": 518,
+          "signature": "for (CustDef& cd: _sig.customKeyDefs())"
+        },
+        {
+          "name": "if",
+          "line": 549,
+          "signature": "if (m == \"none\")"
+        },
+        {
+          "name": "if",
+          "line": 581,
+          "signature": "if (!_sig.isValid())"
+        },
+        {
+          "name": "if",
+          "line": 584,
+          "signature": "if (_sig.custom() && _sig.customKeyDefs().empty())"
+        },
+        {
+          "name": "KeySig::convertFromOldId",
+          "line": 595,
+          "signature": "SymId KeySig::convertFromOldId(int val) const"
+        },
+        {
+          "name": "switch",
+          "line": 598,
+          "signature": "switch (val)"
+        },
+        {
+          "name": "KeySig::isChange",
+          "line": 667,
+          "signature": "bool KeySig::isChange() const"
+        },
+        {
+          "name": "if",
+          "line": 669,
+          "signature": "if (!staff())"
+        },
+        {
+          "name": "if",
+          "line": 672,
+          "signature": "if (!segment() || segment()->segmentType() != SegmentType::KeySig)"
+        },
+        {
+          "name": "KeySig::changeKeySigEvent",
+          "line": 683,
+          "signature": "void KeySig::changeKeySigEvent(const KeySigEvent& t)"
+        },
+        {
+          "name": "if",
+          "line": 685,
+          "signature": "if (_sig == t)"
+        },
+        {
+          "name": "KeySig::undoSetShowCourtesy",
+          "line": 695,
+          "signature": "void KeySig::undoSetShowCourtesy(bool v)"
+        },
+        {
+          "name": "KeySig::undoSetMode",
+          "line": 704,
+          "signature": "void KeySig::undoSetMode(KeyMode v)"
+        },
+        {
+          "name": "KeySig::getProperty",
+          "line": 713,
+          "signature": "PropertyValue KeySig::getProperty(Pid propertyId) const"
+        },
+        {
+          "name": "switch",
+          "line": 715,
+          "signature": "switch (propertyId)"
+        },
+        {
+          "name": "KeySig::setProperty",
+          "line": 731,
+          "signature": "bool KeySig::setProperty(Pid propertyId, const PropertyValue& v)"
+        },
+        {
+          "name": "switch",
+          "line": 733,
+          "signature": "switch (propertyId)"
+        },
+        {
+          "name": "if",
+          "line": 734,
+          "signature": "case Pid::KEY:\n        if (generated())"
+        },
+        {
+          "name": "if",
+          "line": 740,
+          "signature": "case Pid::SHOW_COURTESY:\n        if (generated())"
+        },
+        {
+          "name": "if",
+          "line": 746,
+          "signature": "case Pid::KEYSIG_MODE:\n        if (generated())"
+        },
+        {
+          "name": "if",
+          "line": 753,
+          "signature": "default:\n        if (!EngravingItem::setProperty(propertyId, v))"
+        },
+        {
+          "name": "KeySig::propertyDefault",
+          "line": 768,
+          "signature": "PropertyValue KeySig::propertyDefault(Pid id) const"
+        },
+        {
+          "name": "switch",
+          "line": 770,
+          "signature": "switch (id)"
+        },
+        {
+          "name": "KeySig::nextSegmentElement",
+          "line": 786,
+          "signature": "EngravingItem* KeySig::nextSegmentElement()"
+        },
+        {
+          "name": "KeySig::prevSegmentElement",
+          "line": 795,
+          "signature": "EngravingItem* KeySig::prevSegmentElement()"
+        },
+        {
+          "name": "KeySig::accessibleInfo",
+          "line": 804,
+          "signature": "String KeySig::accessibleInfo() const"
+        }
+      ],
+      "constants": [
+        {
+          "name": "newSection",
+          "value": "(!segment()\n                                     || (segment()->rtick().isZero() && (!prevMeasure || prevMeasure->sectionBreak()))\n                                     )",
+          "line": 247
+        }
+      ],
+      "arrays": [],
+      "enums": [],
+      "structs": [],
+      "magic_numbers": [
+        {
+          "line": 202,
+          "values": [
+            "0.7"
+          ],
+          "context": "xpos += t1 < 0 ? 0.7 : 1; // flats closer"
+        },
+        {
+          "line": 390,
+          "values": [
+            "-0.5",
+            "2.0"
+          ],
+          "context": "drawSymbol(SymId::timeSigX, painter, PointF(symWidth(SymId::timeSigX) * -0.5, 2.0 * spatium()));"
+        }
+      ]
+    },
+    {
+      "file": "timesig.cpp",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\engraving\\libmscore/timesig.cpp",
+      "exists": true,
+      "line_count": 615,
+      "functions": [
+        {
+          "name": "EngravingItem",
+          "line": 55,
+          "signature": ": EngravingItem(ElementType::TIMESIG, parent, ElementFlag::ON_STAFF | ElementFlag::MOVABLE)"
+        },
+        {
+          "name": "TimeSig::setParent",
+          "line": 66,
+          "signature": "void TimeSig::setParent(Segment* parent)"
+        },
+        {
+          "name": "TimeSig::mag",
+          "line": 75,
+          "signature": "double TimeSig::mag() const"
+        },
+        {
+          "name": "TimeSig::setSig",
+          "line": 85,
+          "signature": "void TimeSig::setSig(const Fraction& f, TimeSigType st)"
+        },
+        {
+          "name": "TimeSig::acceptDrop",
+          "line": 98,
+          "signature": "bool TimeSig::acceptDrop(EditData& data) const"
+        },
+        {
+          "name": "TimeSig::drop",
+          "line": 107,
+          "signature": "EngravingItem* TimeSig::drop(EditData& data)"
+        },
+        {
+          "name": "if",
+          "line": 110,
+          "signature": "if (e->isTimeSig())"
+        },
+        {
+          "name": "TimeSig::setNumeratorString",
+          "line": 126,
+          "signature": "void TimeSig::setNumeratorString(const String& a)"
+        },
+        {
+          "name": "if",
+          "line": 128,
+          "signature": "if (_timeSigType == TimeSigType::NORMAL)"
+        },
+        {
+          "name": "TimeSig::setDenominatorString",
+          "line": 138,
+          "signature": "void TimeSig::setDenominatorString(const String& a)"
+        },
+        {
+          "name": "if",
+          "line": 140,
+          "signature": "if (_timeSigType == TimeSigType::NORMAL)"
+        },
+        {
+          "name": "TimeSig::write",
+          "line": 149,
+          "signature": "void TimeSig::write(XmlWriter& xml) const"
+        },
+        {
+          "name": "if",
+          "line": 157,
+          "signature": "if (stretch() != Fraction(1, 1))"
+        },
+        {
+          "name": "if",
+          "line": 163,
+          "signature": "if (!_groups.empty())"
+        },
+        {
+          "name": "TimeSig::read",
+          "line": 176,
+          "signature": "void TimeSig::read(XmlReader& e)"
+        },
+        {
+          "name": "while",
+          "line": 181,
+          "signature": "while (e.readNextStartElement())"
+        },
+        {
+          "name": "if",
+          "line": 184,
+          "signature": "if (tag == \"den\")"
+        },
+        {
+          "name": "if",
+          "line": 201,
+          "signature": "if (score()->mscVersion() <= 114)"
+        },
+        {
+          "name": "if",
+          "line": 202,
+          "signature": "if (i == 0x40000104)"
+        },
+        {
+          "name": "if",
+          "line": 233,
+          "signature": "if (old)"
+        },
+        {
+          "name": "if",
+          "line": 241,
+          "signature": "if (!version.isEmpty() && (version >= u\"3.0\") && (version < u\"3.5\"))"
+        },
+        {
+          "name": "if",
+          "line": 242,
+          "signature": "if ((_timeSigType == TimeSigType::NORMAL) && !_numeratorString.isEmpty() && _denominatorString.isEmpty())"
+        },
+        {
+          "name": "if",
+          "line": 243,
+          "signature": "if (_numeratorString == String::number(_sig.numerator()))"
+        },
+        {
+          "name": "TimeSig::layout",
+          "line": 256,
+          "signature": "void TimeSig::layout()"
+        },
+        {
+          "name": "if",
+          "line": 272,
+          "signature": "if (_staff)"
+        },
+        {
+          "name": "if",
+          "line": 274,
+          "signature": "if (!_staff->staffTypeForElement(this)->genTimesig())"
+        },
+        {
+          "name": "if",
+          "line": 301,
+          "signature": "if (sigType == TimeSigType::FOUR_FOUR)"
+        },
+        {
+          "name": "if",
+          "line": 326,
+          "signature": "if (_numeratorString.isEmpty())"
+        },
+        {
+          "name": "if",
+          "line": 350,
+          "signature": "if (numRect.width() >= denRect.width())"
+        },
+        {
+          "name": "if",
+          "line": 370,
+          "signature": "if (_largeParentheses)"
+        },
+        {
+          "name": "TimeSig::draw",
+          "line": 383,
+          "signature": "void TimeSig::draw(mu::draw::Painter* painter) const"
+        },
+        {
+          "name": "if",
+          "line": 386,
+          "signature": "if (staff() && !const_cast<const Staff*>(staff())->staffType(tick())->genTimesig())"
+        },
+        {
+          "name": "if",
+          "line": 394,
+          "signature": "if (_largeParentheses)"
+        },
+        {
+          "name": "TimeSig::setFrom",
+          "line": 404,
+          "signature": "void TimeSig::setFrom(const TimeSig* ts)"
+        },
+        {
+          "name": "TimeSig::ssig",
+          "line": 417,
+          "signature": "String TimeSig::ssig() const"
+        },
+        {
+          "name": "TimeSig::setSSig",
+          "line": 426,
+          "signature": "void TimeSig::setSSig(const String& s)"
+        },
+        {
+          "name": "if",
+          "line": 429,
+          "signature": "if (sl.size() == 2)"
+        },
+        {
+          "name": "TimeSig::getProperty",
+          "line": 439,
+          "signature": "PropertyValue TimeSig::getProperty(Pid propertyId) const"
+        },
+        {
+          "name": "switch",
+          "line": 441,
+          "signature": "switch (propertyId)"
+        },
+        {
+          "name": "TimeSig::setProperty",
+          "line": 469,
+          "signature": "bool TimeSig::setProperty(Pid propertyId, const PropertyValue& v)"
+        },
+        {
+          "name": "switch",
+          "line": 471,
+          "signature": "switch (propertyId)"
+        },
+        {
+          "name": "if",
+          "line": 472,
+          "signature": "case Pid::SHOW_COURTESY:\n        if (generated())"
+        },
+        {
+          "name": "if",
+          "line": 502,
+          "signature": "default:\n        if (!EngravingItem::setProperty(propertyId, v))"
+        },
+        {
+          "name": "TimeSig::propertyDefault",
+          "line": 517,
+          "signature": "PropertyValue TimeSig::propertyDefault(Pid id) const"
+        },
+        {
+          "name": "switch",
+          "line": 519,
+          "signature": "switch (id)"
+        },
+        {
+          "name": "TimeSig::nextSegmentElement",
+          "line": 543,
+          "signature": "EngravingItem* TimeSig::nextSegmentElement()"
+        },
+        {
+          "name": "TimeSig::prevSegmentElement",
+          "line": 552,
+          "signature": "EngravingItem* TimeSig::prevSegmentElement()"
+        },
+        {
+          "name": "TimeSig::accessibleInfo",
+          "line": 561,
+          "signature": "String TimeSig::accessibleInfo() const"
+        },
+        {
+          "name": "switch",
+          "line": 564,
+          "signature": "switch (timeSigType())"
+        },
+        {
+          "name": "TimeSig::added",
+          "line": 598,
+          "signature": "void TimeSig::added()"
+        },
+        {
+          "name": "IF_ASSERT_FAILED",
+          "line": 600,
+          "signature": "IF_ASSERT_FAILED(score())"
+        },
+        {
+          "name": "TimeSig::removed",
+          "line": 607,
+          "signature": "void TimeSig::removed()"
+        },
+        {
+          "name": "IF_ASSERT_FAILED",
+          "line": 609,
+          "signature": "IF_ASSERT_FAILED(score())"
+        }
+      ],
+      "constants": [],
+      "arrays": [],
+      "enums": [],
+      "structs": [],
+      "magic_numbers": [
+        {
+          "line": 344,
+          "values": [
+            "0.05"
+          ],
+          "context": "double displ = (numOfLines & 1) ? 0.0 : (0.05 * _spatium);"
+        },
+        {
+          "line": 347,
+          "values": [
+            "0.01"
+          ],
+          "context": "double pzY = yoff - (denRect.width() < 0.01 ? 0.0 : (displ + numRect.height() * .5));"
+        }
+      ]
+    },
+    {
+      "file": "accidental.cpp",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\engraving\\libmscore/accidental.cpp",
+      "exists": true,
+      "line_count": 657,
+      "functions": [
+        {
+          "name": "Acc",
+          "line": 49,
+          "signature": "Acc(AccidentalVal o, double o2, SymId s)\n        : offset(o), centOffset(o2), sym(s)"
+        },
+        {
+          "name": "sym2accidentalVal",
+          "line": 233,
+          "signature": "AccidentalVal sym2accidentalVal(SymId id)"
+        },
+        {
+          "name": "for",
+          "line": 235,
+          "signature": "for (const Acc& a : accList)"
+        },
+        {
+          "name": "if",
+          "line": 236,
+          "signature": "if (a.sym == id)"
+        },
+        {
+          "name": "EngravingItem",
+          "line": 248,
+          "signature": ": EngravingItem(ElementType::ACCIDENTAL, parent, ElementFlag::MOVABLE)"
+        },
+        {
+          "name": "Accidental::read",
+          "line": 256,
+          "signature": "void Accidental::read(XmlReader& e)"
+        },
+        {
+          "name": "while",
+          "line": 258,
+          "signature": "while (e.readNextStartElement())"
+        },
+        {
+          "name": "if",
+          "line": 260,
+          "signature": "if (tag == \"bracket\")"
+        },
+        {
+          "name": "if",
+          "line": 262,
+          "signature": "if (i == 0 || i == 1 || i == 2)"
+        },
+        {
+          "name": "Accidental::write",
+          "line": 282,
+          "signature": "void Accidental::write(XmlWriter& xml) const"
+        },
+        {
+          "name": "Accidental::subtypeUserName",
+          "line": 297,
+          "signature": "TranslatableString Accidental::subtypeUserName() const"
+        },
+        {
+          "name": "Accidental::symbol",
+          "line": 306,
+          "signature": "SymId Accidental::symbol() const"
+        },
+        {
+          "name": "Accidental::subtype2value",
+          "line": 316,
+          "signature": "AccidentalVal Accidental::subtype2value(AccidentalType st)"
+        },
+        {
+          "name": "Accidental::subtype2name",
+          "line": 325,
+          "signature": "AsciiStringView Accidental::subtype2name(AccidentalType st)"
+        },
+        {
+          "name": "Accidental::subtype2symbol",
+          "line": 334,
+          "signature": "SymId Accidental::subtype2symbol(AccidentalType st)"
+        },
+        {
+          "name": "Accidental::name2subtype",
+          "line": 343,
+          "signature": "AccidentalType Accidental::name2subtype(const AsciiStringView& tag)"
+        },
+        {
+          "name": "if",
+          "line": 346,
+          "signature": "if (symId == SymId::noSym)"
+        },
+        {
+          "name": "for",
+          "line": 350,
+          "signature": "for (const Acc& acc : accList)"
+        },
+        {
+          "name": "if",
+          "line": 351,
+          "signature": "if (acc.sym == symId)"
+        },
+        {
+          "name": "Accidental::setSubtype",
+          "line": 364,
+          "signature": "void Accidental::setSubtype(const AsciiStringView& tag)"
+        },
+        {
+          "name": "Accidental::layout",
+          "line": 373,
+          "signature": "void Accidental::layout()"
+        },
+        {
+          "name": "if",
+          "line": 379,
+          "signature": "if (onTabStaff() || (note() && note()->fixed()))"
+        },
+        {
+          "name": "if",
+          "line": 385,
+          "signature": "if (m_isSmall)"
+        },
+        {
+          "name": "if",
+          "line": 392,
+          "signature": "if (_bracket == AccidentalBracket::NONE\n        || (_bracket == AccidentalBracket::PARENTHESIS\n            && (_accidentalType == AccidentalType::FLAT\n                || _accidentalType == AccidentalType::NATURAL\n                || _accidentalType == AccidentalType::SHARP\n                || _accidentalType == AccidentalType::SHARP2\n                || _accidentalType == AccidentalType::FLAT2)))"
+        },
+        {
+          "name": "Accidental::layoutSingleGlyphAccidental",
+          "line": 405,
+          "signature": "void Accidental::layoutSingleGlyphAccidental()"
+        },
+        {
+          "name": "if",
+          "line": 410,
+          "signature": "if (_bracket == AccidentalBracket::PARENTHESIS)"
+        },
+        {
+          "name": "switch",
+          "line": 411,
+          "signature": "switch (_accidentalType)"
+        },
+        {
+          "name": "if",
+          "line": 430,
+          "signature": "if (!score()->symbolFont()->isValid(s))"
+        },
+        {
+          "name": "Accidental::layoutMultiGlyphAccidental",
+          "line": 442,
+          "signature": "void Accidental::layoutMultiGlyphAccidental()"
+        },
+        {
+          "name": "if",
+          "line": 449,
+          "signature": "if (_bracket != AccidentalBracket::NONE)"
+        },
+        {
+          "name": "switch",
+          "line": 451,
+          "signature": "switch (_bracket)"
+        },
+        {
+          "name": "if",
+          "line": 476,
+          "signature": "if (_bracket != AccidentalBracket::NONE)"
+        },
+        {
+          "name": "switch",
+          "line": 479,
+          "signature": "switch (_bracket)"
+        },
+        {
+          "name": "Accidental::value2subtype",
+          "line": 503,
+          "signature": "AccidentalType Accidental::value2subtype(AccidentalVal v)"
+        },
+        {
+          "name": "switch",
+          "line": 505,
+          "signature": "switch (v)"
+        },
+        {
+          "name": "Accidental::draw",
+          "line": 523,
+          "signature": "void Accidental::draw(mu::draw::Painter* painter) const"
+        },
+        {
+          "name": "if",
+          "line": 527,
+          "signature": "if (onTabStaff() || (note() && note()->fixed()))"
+        },
+        {
+          "name": "for",
+          "line": 532,
+          "signature": "for (const SymElement& e : el)"
+        },
+        {
+          "name": "Accidental::acceptDrop",
+          "line": 541,
+          "signature": "bool Accidental::acceptDrop(EditData& data) const"
+        },
+        {
+          "name": "if",
+          "line": 545,
+          "signature": "if (e->isActionIcon())"
+        },
+        {
+          "name": "Accidental::drop",
+          "line": 558,
+          "signature": "EngravingItem* Accidental::drop(EditData& data)"
+        },
+        {
+          "name": "switch",
+          "line": 561,
+          "signature": "switch (e->type())"
+        },
+        {
+          "name": "switch",
+          "line": 562,
+          "signature": "case ElementType::ACTION_ICON:\n        switch (toActionIcon(e)->actionType())"
+        },
+        {
+          "name": "Accidental::undoSetSmall",
+          "line": 586,
+          "signature": "void Accidental::undoSetSmall(bool val)"
+        },
+        {
+          "name": "Accidental::getProperty",
+          "line": 595,
+          "signature": "PropertyValue Accidental::getProperty(Pid propertyId) const"
+        },
+        {
+          "name": "switch",
+          "line": 597,
+          "signature": "switch (propertyId)"
+        },
+        {
+          "name": "Accidental::propertyDefault",
+          "line": 611,
+          "signature": "PropertyValue Accidental::propertyDefault(Pid propertyId) const"
+        },
+        {
+          "name": "switch",
+          "line": 613,
+          "signature": "switch (propertyId)"
+        },
+        {
+          "name": "Accidental::setProperty",
+          "line": 627,
+          "signature": "bool Accidental::setProperty(Pid propertyId, const PropertyValue& v)"
+        },
+        {
+          "name": "switch",
+          "line": 629,
+          "signature": "switch (propertyId)"
+        },
+        {
+          "name": "Accidental::accessibleInfo",
+          "line": 653,
+          "signature": "String Accidental::accessibleInfo() const"
+        }
+      ],
+      "constants": [],
+      "arrays": [],
+      "enums": [],
+      "structs": [
+        {
+          "name": "Acc",
+          "line": 45
+        }
+      ],
+      "magic_numbers": [
+        {
+          "line": 147,
+          "values": [
+            "-6.8"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,   -6.8, SymId::accidentalCombiningLower17Schisma),"
+        },
+        {
+          "line": 148,
+          "values": [
+            "6.8"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,    6.8, SymId::accidentalCombiningRaise17Schisma),"
+        },
+        {
+          "line": 149,
+          "values": [
+            "-3.4"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,   -3.4, SymId::accidentalCombiningLower19Schisma),"
+        },
+        {
+          "line": 150,
+          "values": [
+            "3.4"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,    3.4, SymId::accidentalCombiningRaise19Schisma),"
+        },
+        {
+          "line": 151,
+          "values": [
+            "-16.5"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,  -16.5, SymId::accidentalCombiningLower23Limit29LimitComma),"
+        },
+        {
+          "line": 152,
+          "values": [
+            "16.5"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,   16.5, SymId::accidentalCombiningRaise23Limit29LimitComma),"
+        },
+        {
+          "line": 153,
+          "values": [
+            "-1.7"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,   -1.7, SymId::accidentalCombiningLower31Schisma),"
+        },
+        {
+          "line": 154,
+          "values": [
+            "1.7"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,    1.7, SymId::accidentalCombiningRaise31Schisma),"
+        },
+        {
+          "line": 155,
+          "values": [
+            "-10.9"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,  -10.9, SymId::accidentalCombiningLower53LimitComma),"
+        },
+        {
+          "line": 156,
+          "values": [
+            "10.9"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,   10.9, SymId::accidentalCombiningRaise53LimitComma),"
+        },
+        {
+          "line": 190,
+          "values": [
+            "-5.8"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,   -5.8, SymId::accSagittal5v7KleismaDown),"
+        },
+        {
+          "line": 191,
+          "values": [
+            "5.8"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,    5.8, SymId::accSagittal5v7KleismaUp),"
+        },
+        {
+          "line": 192,
+          "values": [
+            "-21.5"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,  -21.5, SymId::accSagittal5CommaDown),"
+        },
+        {
+          "line": 193,
+          "values": [
+            "21.5"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,   21.5, SymId::accSagittal5CommaUp),"
+        },
+        {
+          "line": 194,
+          "values": [
+            "-27.3"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,  -27.3, SymId::accSagittal7CommaDown),"
+        },
+        {
+          "line": 195,
+          "values": [
+            "27.3"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,   27.3, SymId::accSagittal7CommaUp),"
+        },
+        {
+          "line": 196,
+          "values": [
+            "-43.0"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,  -43.0, SymId::accSagittal25SmallDiesisDown),"
+        },
+        {
+          "line": 197,
+          "values": [
+            "43.0"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,   43.0, SymId::accSagittal25SmallDiesisUp),"
+        },
+        {
+          "line": 198,
+          "values": [
+            "-48.8"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,  -48.8, SymId::accSagittal35MediumDiesisDown),"
+        },
+        {
+          "line": 199,
+          "values": [
+            "48.8"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,   48.8, SymId::accSagittal35MediumDiesisUp),"
+        },
+        {
+          "line": 200,
+          "values": [
+            "-53.3"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,  -53.3, SymId::accSagittal11MediumDiesisDown),"
+        },
+        {
+          "line": 201,
+          "values": [
+            "53.3"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,   53.3, SymId::accSagittal11MediumDiesisUp),"
+        },
+        {
+          "line": 202,
+          "values": [
+            "-60.4"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,  -60.4, SymId::accSagittal11LargeDiesisDown),"
+        },
+        {
+          "line": 203,
+          "values": [
+            "60.4"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,   60.4, SymId::accSagittal11LargeDiesisUp),"
+        },
+        {
+          "line": 204,
+          "values": [
+            "-64.9"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,  -64.9, SymId::accSagittal35LargeDiesisDown),"
+        },
+        {
+          "line": 205,
+          "values": [
+            "64.9"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,   64.9, SymId::accSagittal35LargeDiesisUp),"
+        },
+        {
+          "line": 206,
+          "values": [
+            "-70.7"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,  -70.7, SymId::accSagittalFlat25SUp),"
+        },
+        {
+          "line": 207,
+          "values": [
+            "70.7"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,   70.7, SymId::accSagittalSharp25SDown),"
+        },
+        {
+          "line": 208,
+          "values": [
+            "-86.4"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,  -86.4, SymId::accSagittalFlat7CUp),"
+        },
+        {
+          "line": 209,
+          "values": [
+            "86.4"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,   86.4, SymId::accSagittalSharp7CDown),"
+        },
+        {
+          "line": 210,
+          "values": [
+            "-92.2"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,  -92.2, SymId::accSagittalFlat5CUp),"
+        },
+        {
+          "line": 211,
+          "values": [
+            "92.2"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,   92.2, SymId::accSagittalSharp5CDown),"
+        },
+        {
+          "line": 212,
+          "values": [
+            "-107.9"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL, -107.9, SymId::accSagittalFlat5v7kUp),"
+        },
+        {
+          "line": 213,
+          "values": [
+            "107.9"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,  107.9, SymId::accSagittalSharp5v7kDown),"
+        },
+        {
+          "line": 214,
+          "values": [
+            "-113.7"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL, -113.7, SymId::accSagittalFlat),"
+        },
+        {
+          "line": 215,
+          "values": [
+            "113.7"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,  113.7, SymId::accSagittalSharp),"
+        },
+        {
+          "line": 218,
+          "values": [
+            "-22.2"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL, -22.2, SymId::accidental1CommaFlat),"
+        },
+        {
+          "line": 219,
+          "values": [
+            "22.2"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,  22.2, SymId::accidental1CommaSharp),"
+        },
+        {
+          "line": 220,
+          "values": [
+            "-44.4"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL, -44.4, SymId::accidental2CommaFlat),"
+        },
+        {
+          "line": 221,
+          "values": [
+            "44.4"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,  44.4, SymId::accidental2CommaSharp),"
+        },
+        {
+          "line": 222,
+          "values": [
+            "-66.7"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL, -66.7, SymId::accidental3CommaFlat),"
+        },
+        {
+          "line": 223,
+          "values": [
+            "66.7"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL,  66.7, SymId::accidental3CommaSharp),"
+        },
+        {
+          "line": 224,
+          "values": [
+            "-88.9"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL, -88.9, SymId::accidental4CommaFlat),"
+        },
+        {
+          "line": 226,
+          "values": [
+            "111.1"
+          ],
+          "context": "Acc(AccidentalVal::NATURAL, 111.1, SymId::accidental5CommaSharp),"
+        },
+        {
+          "line": 464,
+          "values": [
+            "0.4"
+          ],
+          "context": "SymElement se(id, 0.0, _bracket == AccidentalBracket::BRACE ? spatium() * 0.4 : 0.0);"
+        },
+        {
+          "line": 492,
+          "values": [
+            "0.4"
+          ],
+          "context": "SymElement se(id, x, _bracket == AccidentalBracket::BRACE ? spatium() * 0.4 : 0.0);"
+        }
+      ]
+    },
+    {
+      "file": "clef.cpp",
+      "full_path": "C:\\Users\\DELL\\Documents\\webmscore\\src\\engraving\\libmscore/clef.cpp",
+      "exists": true,
+      "line_count": 538,
+      "functions": [
+        {
+          "name": "EngravingItem",
+          "line": 99,
+          "signature": ": EngravingItem(ElementType::CLEF, parent, ElementFlag::ON_STAFF), symId(SymId::noSym)"
+        },
+        {
+          "name": "Clef::mag",
+          "line": 106,
+          "signature": "double Clef::mag() const"
+        },
+        {
+          "name": "if",
+          "line": 109,
+          "signature": "if (m_isSmall)"
+        },
+        {
+          "name": "Clef::layout",
+          "line": 119,
+          "signature": "void Clef::layout()"
+        },
+        {
+          "name": "if",
+          "line": 128,
+          "signature": "if (clefSeg && staff())"
+        },
+        {
+          "name": "if",
+          "line": 135,
+          "signature": "if (staffGroup != StaffGroup::TAB)"
+        },
+        {
+          "name": "if",
+          "line": 140,
+          "signature": "if (ClefInfo::staffGroup(clefType()) != staffGroup)"
+        },
+        {
+          "name": "if",
+          "line": 141,
+          "signature": "if (tick > Fraction(0, 1) && !generated())"
+        },
+        {
+          "name": "if",
+          "line": 151,
+          "signature": "if (!show)"
+        },
+        {
+          "name": "if",
+          "line": 169,
+          "signature": "if (clefType() != ClefType::INVALID && clefType() != ClefType::MAX)"
+        },
+        {
+          "name": "switch",
+          "line": 176,
+          "signature": "switch (clefType())"
+        },
+        {
+          "name": "Clef::draw",
+          "line": 228,
+          "signature": "void Clef::draw(mu::draw::Painter* painter) const"
+        },
+        {
+          "name": "if",
+          "line": 231,
+          "signature": "if (symId == SymId::noSym || (staff() && !const_cast<const Staff*>(staff())->staffType(tick())->genClef()))"
+        },
+        {
+          "name": "Clef::acceptDrop",
+          "line": 242,
+          "signature": "bool Clef::acceptDrop(EditData& data) const"
+        },
+        {
+          "name": "Clef::drop",
+          "line": 252,
+          "signature": "EngravingItem* Clef::drop(EditData& data)"
+        },
+        {
+          "name": "if",
+          "line": 256,
+          "signature": "if (e->isClef())"
+        },
+        {
+          "name": "if",
+          "line": 259,
+          "signature": "if (clefType() != stype)"
+        },
+        {
+          "name": "if",
+          "line": 268,
+          "signature": "if (segm->element(track()))"
+        },
+        {
+          "name": "Clef::setSmall",
+          "line": 285,
+          "signature": "void Clef::setSmall(bool val)"
+        },
+        {
+          "name": "if",
+          "line": 287,
+          "signature": "if (val != m_isSmall)"
+        },
+        {
+          "name": "Clef::read",
+          "line": 296,
+          "signature": "void Clef::read(XmlReader& e)"
+        },
+        {
+          "name": "while",
+          "line": 298,
+          "signature": "while (e.readNextStartElement())"
+        },
+        {
+          "name": "if",
+          "line": 300,
+          "signature": "if (tag == \"concertClefType\")"
+        },
+        {
+          "name": "if",
+          "line": 312,
+          "signature": "if (clefType() == ClefType::INVALID)"
+        },
+        {
+          "name": "Clef::write",
+          "line": 321,
+          "signature": "void Clef::write(XmlWriter& xml) const"
+        },
+        {
+          "name": "if",
+          "line": 326,
+          "signature": "if (!_showCourtesy)"
+        },
+        {
+          "name": "if",
+          "line": 329,
+          "signature": "if (_forInstrumentChange)"
+        },
+        {
+          "name": "Clef::setClefType",
+          "line": 340,
+          "signature": "void Clef::setClefType(ClefType i)"
+        },
+        {
+          "name": "if",
+          "line": 342,
+          "signature": "if (concertPitch())"
+        },
+        {
+          "name": "if",
+          "line": 344,
+          "signature": "if (_clefTypes._transposingClef == ClefType::INVALID)"
+        },
+        {
+          "name": "if",
+          "line": 349,
+          "signature": "if (_clefTypes._concertClef == ClefType::INVALID)"
+        },
+        {
+          "name": "Clef::setConcertClef",
+          "line": 359,
+          "signature": "void Clef::setConcertClef(ClefType val)"
+        },
+        {
+          "name": "Clef::setTransposingClef",
+          "line": 368,
+          "signature": "void Clef::setTransposingClef(ClefType val)"
+        },
+        {
+          "name": "Clef::clefType",
+          "line": 377,
+          "signature": "ClefType Clef::clefType() const"
+        },
+        {
+          "name": "if",
+          "line": 379,
+          "signature": "if (concertPitch())"
+        },
+        {
+          "name": "Clef::spatiumChanged",
+          "line": 390,
+          "signature": "void Clef::spatiumChanged(double oldValue, double newValue)"
+        },
+        {
+          "name": "Clef::undoSetShowCourtesy",
+          "line": 400,
+          "signature": "void Clef::undoSetShowCourtesy(bool v)"
+        },
+        {
+          "name": "Clef::otherClef",
+          "line": 410,
+          "signature": "Clef* Clef::otherClef()"
+        },
+        {
+          "name": "if",
+          "line": 413,
+          "signature": "if (!explicitParent() || !explicitParent()->isSegment())"
+        },
+        {
+          "name": "if",
+          "line": 417,
+          "signature": "if (!segm->explicitParent() || !segm->explicitParent()->isMeasure())"
+        },
+        {
+          "name": "if",
+          "line": 425,
+          "signature": "if (segmTick == meas->tick() && segm->segmentType() == SegmentType::HeaderClef)"
+        },
+        {
+          "name": "if",
+          "line": 431,
+          "signature": "if (!otherMeas)"
+        },
+        {
+          "name": "if",
+          "line": 436,
+          "signature": "if (!otherSegm)"
+        },
+        {
+          "name": "Clef::getProperty",
+          "line": 447,
+          "signature": "PropertyValue Clef::getProperty(Pid propertyId) const"
+        },
+        {
+          "name": "switch",
+          "line": 449,
+          "signature": "switch (propertyId)"
+        },
+        {
+          "name": "Clef::setProperty",
+          "line": 463,
+          "signature": "bool Clef::setProperty(Pid propertyId, const PropertyValue& v)"
+        },
+        {
+          "name": "switch",
+          "line": 465,
+          "signature": "switch (propertyId)"
+        },
+        {
+          "name": "Clef::propertyDefault",
+          "line": 487,
+          "signature": "PropertyValue Clef::propertyDefault(Pid id) const"
+        },
+        {
+          "name": "switch",
+          "line": 489,
+          "signature": "switch (id)"
+        },
+        {
+          "name": "Clef::nextSegmentElement",
+          "line": 502,
+          "signature": "EngravingItem* Clef::nextSegmentElement()"
+        },
+        {
+          "name": "Clef::prevSegmentElement",
+          "line": 511,
+          "signature": "EngravingItem* Clef::prevSegmentElement()"
+        },
+        {
+          "name": "Clef::accessibleInfo",
+          "line": 520,
+          "signature": "String Clef::accessibleInfo() const"
+        },
+        {
+          "name": "if",
+          "line": 523,
+          "signature": "if (type == ClefType::INVALID)"
+        },
+        {
+          "name": "Clef::clear",
+          "line": 533,
+          "signature": "void Clef::clear()"
+        }
+      ],
+      "constants": [],
+      "arrays": [],
+      "enums": [],
+      "structs": [],
+      "magic_numbers": [
+        {
+          "line": 178,
+          "values": [
+            "1.5"
+          ],
+          "context": "yoff = lineDist * 1.5;"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_functions": 447,
+    "total_constants": 6,
+    "total_arrays": 0
+  }
+}

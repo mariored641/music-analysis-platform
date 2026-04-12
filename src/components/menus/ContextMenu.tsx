@@ -89,9 +89,7 @@ export function ContextMenu() {
       <div className="menu-header">
         <span className="menu-title">
           {selection.type === 'note' && `${t('selection.note')} · m.${selection.measureStart}`}
-          {selection.type === 'notes' && `${selection.noteIds.length} ${t('selection.notes')}`}
-          {selection.type === 'measure' && `${t('selection.measure')} ${selection.measureStart}`}
-          {selection.type === 'measures' && `m.${selection.measureStart}–${selection.measureEnd}`}
+          {selection.type === 'notes' && `${selection.noteIds.length} ${t('selection.notes')} · m.${selection.measureStart}${selection.measureEnd !== selection.measureStart ? `–${selection.measureEnd}` : ''}`}
         </span>
         <button className="menu-close" onClick={hideContextMenu}>×</button>
       </div>
@@ -125,8 +123,6 @@ function deriveDefaultTab(selType?: string): MenuTab {
   switch (selType) {
     case 'note': return 'melody'
     case 'notes': return 'motif'
-    case 'measure': return 'harmony'
-    case 'measures': return 'form'
     default: return 'harmony'
   }
 }

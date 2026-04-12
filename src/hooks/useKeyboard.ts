@@ -1,9 +1,19 @@
 import { useEffect, useRef } from 'react'
 import { useAnnotationStore } from '../store/annotationStore'
+import { useAnnotationBrowserStore } from '../store/annotationBrowserStore'
 import { useSelectionStore } from '../store/selectionStore'
 import { usePlaybackStore } from '../store/playbackStore'
 import { useScoreStore } from '../store/scoreStore'
 import type { Selection } from '../store/selectionStore'
+import type { NoteMap } from '../types/score'
+
+function getNoteIdsInRange(noteMap: NoteMap | null, start: number, end: number): string[] {
+  if (!noteMap) return []
+  return Array.from(noteMap.notes.values())
+    .filter(n => n.measureNum >= start && n.measureNum <= end && n.step !== 'R')
+    .sort((a, b) => a.measureNum - b.measureNum || a.beat - b.beat)
+    .map(n => n.id)
+}
 
 // Renderer-agnostic selectors — OSMD uses .note (stamped), native uses g.note
 // Combined selectors match whichever renderer is active
@@ -49,7 +59,8 @@ export function useKeyboard() {
   const { undo, redo } = useAnnotationStore()
   const { clearSelection, hideContextMenu, showContextMenu, selection, setSelection } = useSelectionStore()
   const { isPlaying, isPaused, setPlaying, pausePlayback, resumePlayback } = usePlaybackStore()
-  const totalMeasures = useScoreStore(s => s.noteMap?.metadata.totalMeasures ?? 999)
+  const noteMap = useScoreStore(s => s.noteMap)
+  const totalMeasures = noteMap?.metadata.totalMeasures ?? 999
 
   // Keep a ref to the latest selection so arrow key handlers never see stale closures
   const selectionRef = useRef<Selection | null>(selection)
@@ -67,6 +78,16 @@ export function useKeyboard() {
       }
 
       switch (e.key) {
+        case 'Delete':
+        case 'Backspace': {
+          const { checkedIds, uncheckAll } = useAnnotationBrowserStore.getState()
+          if (checkedIds.size > 0) {
+            e.preventDefault()
+            useAnnotationStore.getState().removeAnnotations([...checkedIds])
+            uncheckAll()
+          }
+          break
+        }
         case 'Escape':
           hideContextMenu()
           clearSelection()
@@ -146,12 +167,6 @@ export function useKeyboard() {
                   setSelection(updated)
                 }
               }
-            } else {
-              if (sel.measureEnd < totalMeasures) {
-                const updated = { ...sel, measureEnd: sel.measureEnd + 1 }
-                selectionRef.current = updated
-                setSelection(updated)
-              }
             }
           }
           break
@@ -199,15 +214,11 @@ export function useKeyboard() {
                   setSelection(updated)
                 }
               }
-            } else if (sel.measureStart > 1) {
-              const updated = { ...sel, measureStart: sel.measureStart - 1 }
-              selectionRef.current = updated
-              setSelection(updated)
             }
           }
           break
 
-        // ── Shift+↑ : extend selection to system row above ──────────────────
+        // ── Shift+↑ : extend selection to system row above (select notes) ──
         case 'ArrowUp':
           if (e.shiftKey && selectionRef.current) {
             e.preventDefault()
@@ -219,20 +230,23 @@ export function useKeyboard() {
             if (currentSysIdx > 0) {
               const prevSystem = allSystems[currentSysIdx - 1]
               const { first } = getSystemMeasureRange(prevSystem)
-              const updated: Selection = {
-                ...sel,
-                type: 'measures',
-                measureStart: first,
-                noteIds: [],
-                anchorMeasure: sel.measureEnd,
+              const ids = getNoteIdsInRange(noteMap, first, sel.measureEnd)
+              if (ids.length > 0) {
+                const updated: Selection = {
+                  ...sel,
+                  type: 'notes',
+                  measureStart: first,
+                  noteIds: ids,
+                  anchorMeasure: sel.measureEnd,
+                }
+                selectionRef.current = updated
+                setSelection(updated)
               }
-              selectionRef.current = updated
-              setSelection(updated)
             }
           }
           break
 
-        // ── Shift+↓ : extend selection to system row below ──────────────────
+        // ── Shift+↓ : extend selection to system row below (select notes) ──
         case 'ArrowDown':
           if (e.shiftKey && selectionRef.current) {
             e.preventDefault()
@@ -244,15 +258,18 @@ export function useKeyboard() {
             if (currentSysIdx < allSystems.length - 1) {
               const nextSystem = allSystems[currentSysIdx + 1]
               const { last } = getSystemMeasureRange(nextSystem)
-              const updated: Selection = {
-                ...sel,
-                type: 'measures',
-                measureEnd: last,
-                noteIds: [],
-                anchorMeasure: sel.measureStart,
+              const ids = getNoteIdsInRange(noteMap, sel.measureStart, last)
+              if (ids.length > 0) {
+                const updated: Selection = {
+                  ...sel,
+                  type: 'notes',
+                  measureEnd: last,
+                  noteIds: ids,
+                  anchorMeasure: sel.measureStart,
+                }
+                selectionRef.current = updated
+                setSelection(updated)
               }
-              selectionRef.current = updated
-              setSelection(updated)
             }
           }
           break
@@ -270,5 +287,5 @@ export function useKeyboard() {
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('keyup', onKeyUp)
     }
-  }, [undo, redo, clearSelection, hideContextMenu, showContextMenu, selection, setSelection, isPlaying, isPaused, setPlaying, pausePlayback, resumePlayback, totalMeasures])
+  }, [undo, redo, clearSelection, hideContextMenu, showContextMenu, selection, setSelection, isPlaying, isPaused, setPlaying, pausePlayback, resumePlayback, totalMeasures, noteMap])
 }

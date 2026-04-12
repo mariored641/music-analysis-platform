@@ -1,0 +1,1024 @@
+{
+  "session": "H",
+  "files": [
+    {
+      "file": "horizontalLayout.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\horizontalLayout.ts",
+      "exists": true,
+      "line_count": 711,
+      "functions": [
+        {
+          "name": "keySigWidthSp",
+          "line": 121,
+          "signature": "export function keySigWidthSp(fifths: number): number {",
+          "exported": true
+        },
+        {
+          "name": "inlineKeySigWidthSp",
+          "line": 138,
+          "signature": "export function inlineKeySigWidthSp(cancels: number, newFifths: number): number {",
+          "exported": true
+        },
+        {
+          "name": "computeHorizontalLayout",
+          "line": 246,
+          "signature": "export function computeHorizontalLayout(",
+          "exported": true
+        },
+        {
+          "name": "computeHeaderWidth",
+          "line": 287,
+          "signature": "function computeHeaderWidth(fifths: number): number {",
+          "exported": false
+        },
+        {
+          "name": "buildMeasureWork",
+          "line": 402,
+          "signature": "function buildMeasureWork(",
+          "exported": false
+        },
+        {
+          "name": "applySystemStretch",
+          "line": 485,
+          "signature": "function applySystemStretch(",
+          "exported": false
+        },
+        {
+          "name": "computeStretch",
+          "line": 545,
+          "signature": "function computeStretch(duration: number, minDuration: number): number {",
+          "exported": false
+        },
+        {
+          "name": "snapBeat",
+          "line": 552,
+          "signature": "function snapBeat(beat: number): number {",
+          "exported": false
+        },
+        {
+          "name": "greedyBreak",
+          "line": 560,
+          "signature": "function greedyBreak(",
+          "exported": false
+        },
+        {
+          "name": "placeSystem",
+          "line": 594,
+          "signature": "function placeSystem(",
+          "exported": false
+        }
+      ],
+      "constants": [
+        {
+          "name": "DEFAULT_RENDER_OPTIONS",
+          "value": "{\n  // webmscore/MuseScore internal units: DPI=360, SPATIUM20=25.0 (5pt reference)\n  // Default staf",
+          "line": 23,
+          "exported": true
+        },
+        {
+          "name": "NOTE_BASE_WIDTH_SP",
+          "value": "1.68",
+          "line": 53,
+          "exported": false
+        },
+        {
+          "name": "BAR_NOTE_DIST_SP",
+          "value": "1.3",
+          "line": 56,
+          "exported": true
+        },
+        {
+          "name": "BAR_ACC_DIST_SP",
+          "value": "0.65",
+          "line": 59,
+          "exported": false
+        },
+        {
+          "name": "TRAILING_SP",
+          "value": "1.5",
+          "line": 62,
+          "exported": false
+        },
+        {
+          "name": "MIN_MEASURE_WIDTH_SP",
+          "value": "2.0",
+          "line": 65,
+          "exported": false
+        },
+        {
+          "name": "CLEF_LEFT_MARGIN_SP",
+          "value": "0.75",
+          "line": 70,
+          "exported": true
+        },
+        {
+          "name": "CLEF_GLYPH_WIDTH_SP",
+          "value": "2.560",
+          "line": 77,
+          "exported": true
+        },
+        {
+          "name": "CLEF_KEY_DIST_SP",
+          "value": "1.0",
+          "line": 80,
+          "exported": true
+        },
+        {
+          "name": "CLEF_TIMESIG_DIST_SP",
+          "value": "1.0",
+          "line": 83,
+          "exported": true
+        },
+        {
+          "name": "KEY_SHARP_STRIDE_SP",
+          "value": "1.096",
+          "line": 96,
+          "exported": true
+        },
+        {
+          "name": "KEY_FLAT_STRIDE_SP",
+          "value": "1.112",
+          "line": 97,
+          "exported": true
+        },
+        {
+          "name": "KEY_SHARP_WIDTH_SP",
+          "value": "0.976",
+          "line": 98,
+          "exported": true
+        },
+        {
+          "name": "KEY_FLAT_WIDTH_SP",
+          "value": "0.812",
+          "line": 99,
+          "exported": true
+        },
+        {
+          "name": "KEY_ACC_STRIDE_SP",
+          "value": "0.812",
+          "line": 101,
+          "exported": true
+        },
+        {
+          "name": "KEY_TIMESIG_DIST_SP",
+          "value": "1.0",
+          "line": 104,
+          "exported": true
+        },
+        {
+          "name": "TIMESIG_GLYPH_WIDTH_SP",
+          "value": "1.768",
+          "line": 110,
+          "exported": true
+        },
+        {
+          "name": "SYS_HDR_TIMESIG_SP",
+          "value": "2.0",
+          "line": 113,
+          "exported": true
+        },
+        {
+          "name": "KEY_NATURAL_WIDTH_SP",
+          "value": "0.556",
+          "line": 139,
+          "exported": false
+        },
+        {
+          "name": "KEY_NATURAL_STRIDE_SP",
+          "value": "0.956",
+          "line": 140,
+          "exported": false
+        },
+        {
+          "name": "FIRST_SYSTEM_INDENT_SP",
+          "value": "5.0",
+          "line": 167,
+          "exported": true
+        },
+        {
+          "name": "opts",
+          "value": "{ ...DEFAULT_RENDER_OPTIONS, ...renderOptions }",
+          "line": 250,
+          "exported": false
+        },
+        {
+          "name": "workData",
+          "value": "[]",
+          "line": 257,
+          "exported": false
+        },
+        {
+          "name": "systems",
+          "value": "[]",
+          "line": 333,
+          "exported": false
+        },
+        {
+          "name": "pages",
+          "value": "[]",
+          "line": 334,
+          "exported": false
+        },
+        {
+          "name": "system",
+          "value": "{\n      systemIndex:     sysIdx,\n      pageIndex:       pageIdx,\n      measureNums:     mNums,\n     ",
+          "line": 364,
+          "exported": false
+        },
+        {
+          "name": "measureEndBeat",
+          "value": "1",
+          "line": 426,
+          "exported": false
+        },
+        {
+          "name": "MEASURE_SPACING_SLOPE",
+          "value": "1.5",
+          "line": 526,
+          "exported": false
+        },
+        {
+          "name": "systems",
+          "value": "[]",
+          "line": 566,
+          "exported": false
+        },
+        {
+          "name": "springs",
+          "value": "[]",
+          "line": 616,
+          "exported": false
+        },
+        {
+          "name": "springConst",
+          "value": "1",
+          "line": 621,
+          "exported": false
+        },
+        {
+          "name": "sorted",
+          "value": "[...springs]",
+          "line": 630,
+          "exported": false
+        },
+        {
+          "name": "segments",
+          "value": "[]",
+          "line": 665,
+          "exported": false
+        }
+      ],
+      "classes": [],
+      "interfaces": [
+        {
+          "name": "HorizontalLayout",
+          "line": 173,
+          "exported": true
+        },
+        {
+          "name": "HLayoutPage",
+          "line": 183,
+          "exported": true
+        },
+        {
+          "name": "HLayoutSystem",
+          "line": 188,
+          "exported": true
+        },
+        {
+          "name": "HLayoutMeasure",
+          "line": 204,
+          "exported": true
+        },
+        {
+          "name": "HLayoutSegment",
+          "line": 213,
+          "exported": true
+        },
+        {
+          "name": "MeasureWork",
+          "line": 225,
+          "exported": false
+        },
+        {
+          "name": "SegWork",
+          "line": 234,
+          "exported": false
+        },
+        {
+          "name": "Spring",
+          "line": 615,
+          "exported": false
+        }
+      ],
+      "type_aliases": [],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 33,
+          "values": [
+            "2978"
+          ],
+          "context": "pageWidth:       2978,"
+        },
+        {
+          "line": 34,
+          "values": [
+            "4209"
+          ],
+          "context": "pageHeight:      4209,"
+        },
+        {
+          "line": 35,
+          "values": [
+            "24.8",
+            "24"
+          ],
+          "context": "spatium:         24.8,   // 1 sp = 24.8 px (= 1.75mm at 360dpi) — MuseScore default"
+        },
+        {
+          "line": 36,
+          "values": [
+            "212.6",
+            "15.0",
+            "25.4",
+            "212.598",
+            "360",
+            "213"
+          ],
+          "context": "marginTop:      212.6,   // From page.cpp: (15.0/25.4)*360 = 212.598 (not rounded 213)"
+        },
+        {
+          "line": 37,
+          "values": [
+            "212.6"
+          ],
+          "context": "marginBottom:   212.6,"
+        },
+        {
+          "line": 38,
+          "values": [
+            "212.6"
+          ],
+          "context": "marginLeft:     212.6,"
+        },
+        {
+          "line": 39,
+          "values": [
+            "212.6"
+          ],
+          "context": "marginRight:    212.6,"
+        },
+        {
+          "line": 40,
+          "values": [
+            "6.0"
+          ],
+          "context": "staffSpacingSp:   6.0,   // between staves in a grand staff"
+        },
+        {
+          "line": 41,
+          "values": [
+            "9.5",
+            "8.5"
+          ],
+          "context": "systemSpacingSp:  9.5,   // empirically matches webmscore output (minSystemDistance=8.5 + page stretch ≈ +1sp)"
+        },
+        {
+          "line": 53,
+          "values": [
+            "1.68"
+          ],
+          "context": "const NOTE_BASE_WIDTH_SP   = 1.68  // sp — empirically calibrated (DO NOT change without testing)"
+        },
+        {
+          "line": 56,
+          "values": [
+            "1.3"
+          ],
+          "context": "export const BAR_NOTE_DIST_SP     = 1.3"
+        },
+        {
+          "line": 59,
+          "values": [
+            "0.65"
+          ],
+          "context": "const BAR_ACC_DIST_SP      = 0.65"
+        },
+        {
+          "line": 61,
+          "values": [
+            "1.5"
+          ],
+          "context": "/** Trailing space at end of measure (before next barline) — webmscore noteBarDistance=1.5 */"
+        },
+        {
+          "line": 62,
+          "values": [
+            "1.5"
+          ],
+          "context": "const TRAILING_SP          = 1.5"
+        },
+        {
+          "line": 70,
+          "values": [
+            "0.75"
+          ],
+          "context": "export const CLEF_LEFT_MARGIN_SP    = 0.75"
+        },
+        {
+          "line": 77,
+          "values": [
+            "2.560"
+          ],
+          "context": "export const CLEF_GLYPH_WIDTH_SP    = 2.560"
+        },
+        {
+          "line": 96,
+          "values": [
+            "1.096",
+            "0.976",
+            "0.3",
+            "0.18"
+          ],
+          "context": "export const KEY_SHARP_STRIDE_SP    = 1.096   // sharp: 0.976 + 0.3 - 0.18"
+        },
+        {
+          "line": 97,
+          "values": [
+            "1.112",
+            "0.812",
+            "0.3"
+          ],
+          "context": "export const KEY_FLAT_STRIDE_SP     = 1.112   // flat:  0.812 + 0.3"
+        },
+        {
+          "line": 98,
+          "values": [
+            "0.976"
+          ],
+          "context": "export const KEY_SHARP_WIDTH_SP     = 0.976   // Leland accidentalSharp.xMax"
+        },
+        {
+          "line": 99,
+          "values": [
+            "0.812"
+          ],
+          "context": "export const KEY_FLAT_WIDTH_SP      = 0.812   // Leland accidentalFlat.xMax"
+        },
+        {
+          "line": 101,
+          "values": [
+            "0.812"
+          ],
+          "context": "export const KEY_ACC_STRIDE_SP      = 0.812   // kept for legacy callers"
+        },
+        {
+          "line": 110,
+          "values": [
+            "1.768"
+          ],
+          "context": "export const TIMESIG_GLYPH_WIDTH_SP = 1.768"
+        },
+        {
+          "line": 139,
+          "values": [
+            "0.556"
+          ],
+          "context": "const KEY_NATURAL_WIDTH_SP  = 0.556   // Leland accidentalNatural.cutOutSW.x"
+        },
+        {
+          "line": 140,
+          "values": [
+            "0.956",
+            "0.556",
+            "0.4"
+          ],
+          "context": "const KEY_NATURAL_STRIDE_SP = 0.956   // 0.556 + 0.4 (keysigNaturalDistance)"
+        },
+        {
+          "line": 148,
+          "values": [
+            "0.6"
+          ],
+          "context": "width += 0.6   // gap between last natural and first sharp/flat"
+        },
+        {
+          "line": 167,
+          "values": [
+            "5.0"
+          ],
+          "context": "export const FIRST_SYSTEM_INDENT_SP = 5.0"
+        },
+        {
+          "line": 434,
+          "values": [
+            "0.01"
+          ],
+          "context": "n => !n.isGrace && n.duration > 0 && Math.abs(snapBeat(n.beat) - beat) < 0.01"
+        },
+        {
+          "line": 443,
+          "values": [
+            "0.01"
+          ],
+          "context": "n => !n.isGrace && n.duration > 0 && Math.abs(snapBeat(n.beat) - firstBeat) < 0.01"
+        },
+        {
+          "line": 498,
+          "values": [
+            "0.125"
+          ],
+          "context": "if (!isFinite(globalMinDuration) || globalMinDuration <= 0) globalMinDuration = 0.125"
+        },
+        {
+          "line": 500,
+          "values": [
+            "0.25"
+          ],
+          "context": "globalMinDuration = Math.min(globalMinDuration, 0.25)"
+        },
+        {
+          "line": 513,
+          "values": [
+            "0.7"
+          ],
+          "context": "seg.baseWidth += 0.7 * sp  // extra room for the next note's accidental"
+        },
+        {
+          "line": 526,
+          "values": [
+            "1.5"
+          ],
+          "context": "const MEASURE_SPACING_SLOPE = 1.5  // Sid::measureSpacing default in webmscore"
+        },
+        {
+          "line": 546,
+          "values": [
+            "1e-9"
+          ],
+          "context": "if (minDuration <= 0 || duration <= minDuration + 1e-9) return 1.0"
+        },
+        {
+          "line": 547,
+          "values": [
+            "32.0"
+          ],
+          "context": "const ratio = Math.min(duration / minDuration, 32.0)"
+        },
+        {
+          "line": 553,
+          "values": [
+            "1000",
+            "1000"
+          ],
+          "context": "return Math.round(beat * 1000) / 1000"
+        }
+      ]
+    },
+    {
+      "file": "LayoutMeasure.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\engine/layout/LayoutMeasure.ts",
+      "exists": true,
+      "line_count": 191,
+      "functions": [
+        {
+          "name": "computeDurationStretch",
+          "line": 71,
+          "signature": "export function computeDurationStretch(",
+          "exported": true
+        },
+        {
+          "name": "computeSegmentWidths",
+          "line": 146,
+          "signature": "export function computeSegmentWidths(",
+          "exported": true
+        },
+        {
+          "name": "computeMeasureWidth",
+          "line": 182,
+          "signature": "export function computeMeasureWidth(",
+          "exported": true
+        }
+      ],
+      "constants": [
+        {
+          "name": "SPACING_MULTIPLIER",
+          "value": "1.2",
+          "line": 27,
+          "exported": false
+        },
+        {
+          "name": "NOTE_BAR_DIST_SP",
+          "value": "1.5",
+          "line": 52,
+          "exported": true
+        },
+        {
+          "name": "longNoteThreshold",
+          "value": "0.25",
+          "line": 82,
+          "exported": false
+        },
+        {
+          "name": "maxRatio",
+          "value": "32.0",
+          "line": 92,
+          "exported": false
+        },
+        {
+          "name": "empFactor",
+          "value": "0.6",
+          "line": 105,
+          "exported": false
+        },
+        {
+          "name": "noteHeadWidthSp",
+          "value": "1.18",
+          "line": 152,
+          "exported": false
+        },
+        {
+          "name": "accidentalPaddingSp",
+          "value": "0.7",
+          "line": 159,
+          "exported": false
+        }
+      ],
+      "classes": [],
+      "interfaces": [
+        {
+          "name": "MeasureSegment",
+          "line": 119,
+          "exported": true
+        }
+      ],
+      "type_aliases": [],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 27,
+          "values": [
+            "1.2"
+          ],
+          "context": "const SPACING_MULTIPLIER = 1.2"
+        },
+        {
+          "line": 40,
+          "values": [
+            "1.5"
+          ],
+          "context": "export const MEASURE_SPACING_SLOPE: number = Sid.measureSpacing  // 1.5"
+        },
+        {
+          "line": 46,
+          "values": [
+            "1.3"
+          ],
+          "context": "export const BAR_NOTE_DIST_SP: number = Sid.barNoteDistance   // 1.3"
+        },
+        {
+          "line": 52,
+          "values": [
+            "1.5",
+            "186"
+          ],
+          "context": "export const NOTE_BAR_DIST_SP = 1.5    // Sid::noteBarDistance, styledef.cpp:186"
+        },
+        {
+          "line": 82,
+          "values": [
+            "0.25"
+          ],
+          "context": "const longNoteThreshold = 0.25   // sixteenth note in quarter-beat units"
+        },
+        {
+          "line": 89,
+          "values": [
+            "1e-9"
+          ],
+          "context": "if (ratio <= 1.0 + 1e-9) ratio = 1.0"
+        },
+        {
+          "line": 92,
+          "values": [
+            "32.0"
+          ],
+          "context": "const maxRatio = 32.0"
+        },
+        {
+          "line": 105,
+          "values": [
+            "0.6"
+          ],
+          "context": "const empFactor = 0.6"
+        },
+        {
+          "line": 152,
+          "values": [
+            "1.18"
+          ],
+          "context": "const noteHeadWidthSp = 1.18  // 2 * NOTEHEAD_RX_SP"
+        },
+        {
+          "line": 159,
+          "values": [
+            "0.7"
+          ],
+          "context": "const accidentalPaddingSp = 0.7"
+        }
+      ]
+    },
+    {
+      "file": "LayoutSystem.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\engine/layout/LayoutSystem.ts",
+      "exists": true,
+      "line_count": 424,
+      "functions": [
+        {
+          "name": "justifySystem",
+          "line": 81,
+          "signature": "export function justifySystem(",
+          "exported": true
+        },
+        {
+          "name": "collectSystems",
+          "line": 150,
+          "signature": "export function collectSystems(",
+          "exported": true
+        },
+        {
+          "name": "computeMeasureSqueezable",
+          "line": 212,
+          "signature": "export function computeMeasureSqueezable(segmentWidths: number[], sp: number): number {",
+          "exported": true
+        },
+        {
+          "name": "collectSystemsIncremental",
+          "line": 253,
+          "signature": "export function collectSystemsIncremental(",
+          "exported": true
+        },
+        {
+          "name": "computeSystemSqueezableIncremental",
+          "line": 380,
+          "signature": "function computeSystemSqueezableIncremental(",
+          "exported": false
+        },
+        {
+          "name": "shouldJustifyLastSystem",
+          "line": 421,
+          "signature": "export function shouldJustifyLastSystem(curWidth: number, targetWidth: number): boolean {",
+          "exported": true
+        },
+        {
+          "name": "recomputeSystemWidth",
+          "line": 279,
+          "signature": "const recomputeSystemWidth = (): number => {",
+          "exported": false
+        }
+      ],
+      "constants": [
+        {
+          "name": "SQUEEZABILITY",
+          "value": "0.3",
+          "line": 119,
+          "exported": true
+        },
+        {
+          "name": "MIN_HORIZ_DIST_SP",
+          "value": "1.68",
+          "line": 127,
+          "exported": false
+        },
+        {
+          "name": "systems",
+          "value": "[]",
+          "line": 157,
+          "exported": false
+        },
+        {
+          "name": "mNums",
+          "value": "[...measureWidths.keys()]",
+          "line": 162,
+          "exported": false
+        },
+        {
+          "name": "systemGroups",
+          "value": "[]",
+          "line": 263,
+          "exported": false
+        },
+        {
+          "name": "systemMinDurs",
+          "value": "[]",
+          "line": 264,
+          "exported": false
+        },
+        {
+          "name": "systemMaxDurs",
+          "value": "[]",
+          "line": 265,
+          "exported": false
+        },
+        {
+          "name": "mNums",
+          "value": "[...allSegments.keys()]",
+          "line": 276,
+          "exported": false
+        },
+        {
+          "name": "minMeasureWidthPx",
+          "value": "8.0",
+          "line": 390,
+          "exported": false
+        }
+      ],
+      "classes": [],
+      "interfaces": [
+        {
+          "name": "SystemSpring",
+          "line": 49,
+          "exported": true
+        },
+        {
+          "name": "IncrementalSystemResult",
+          "line": 225,
+          "exported": true
+        }
+      ],
+      "type_aliases": [],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 31,
+          "values": [
+            "0.3"
+          ],
+          "context": "export const LAST_SYSTEM_FILL_LIMIT: number = Sid.lastSystemFillLimit   // 0.3"
+        },
+        {
+          "line": 39,
+          "values": [
+            "180.0"
+          ],
+          "context": "export const PAGE_PRINTABLE_WIDTH_MM: number = Sid.pagePrintableWidthMm  // 180.0"
+        },
+        {
+          "line": 119,
+          "values": [
+            "0.3"
+          ],
+          "context": "export const SQUEEZABILITY = 0.3"
+        },
+        {
+          "line": 127,
+          "values": [
+            "1.68"
+          ],
+          "context": "const MIN_HORIZ_DIST_SP = 1.68"
+        },
+        {
+          "line": 390,
+          "values": [
+            "8.0",
+            "8.0"
+          ],
+          "context": "const minMeasureWidthPx = 8.0 * sp   // Sid::minMeasureWidth = Spatium(8.0)"
+        }
+      ]
+    },
+    {
+      "file": "LayoutPage.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\engine/layout/LayoutPage.ts",
+      "exists": true,
+      "line_count": 323,
+      "functions": [
+        {
+          "name": "collectPages",
+          "line": 108,
+          "signature": "export function collectPages(",
+          "exported": true
+        },
+        {
+          "name": "layoutPageSystems",
+          "line": 176,
+          "signature": "export function layoutPageSystems(",
+          "exported": true
+        },
+        {
+          "name": "layoutStaves",
+          "line": 291,
+          "signature": "export function layoutStaves(",
+          "exported": true
+        },
+        {
+          "name": "systemHeight",
+          "line": 315,
+          "signature": "export function systemHeight(",
+          "exported": true
+        }
+      ],
+      "constants": [
+        {
+          "name": "pages",
+          "value": "[]",
+          "line": 114,
+          "exported": false
+        },
+        {
+          "name": "placements",
+          "value": "[]",
+          "line": 189,
+          "exported": false
+        },
+        {
+          "name": "gapDists",
+          "value": "[]",
+          "line": 213,
+          "exported": false
+        },
+        {
+          "name": "positions",
+          "value": "[]",
+          "line": 298,
+          "exported": false
+        }
+      ],
+      "classes": [],
+      "interfaces": [
+        {
+          "name": "SystemLayout",
+          "line": 74,
+          "exported": true
+        },
+        {
+          "name": "SystemPlacement",
+          "line": 83,
+          "exported": true
+        }
+      ],
+      "type_aliases": [],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 26,
+          "values": [
+            "7.0"
+          ],
+          "context": "export const STAFF_UPPER_BORDER_SP: number = Sid.staffUpperBorder   // 7.0"
+        },
+        {
+          "line": 33,
+          "values": [
+            "7.0"
+          ],
+          "context": "export const STAFF_LOWER_BORDER_SP: number = Sid.staffLowerBorder   // 7.0"
+        },
+        {
+          "line": 40,
+          "values": [
+            "15.0"
+          ],
+          "context": "export const MAX_SYSTEM_DISTANCE_SP: number = Sid.maxSystemDistance   // 15.0"
+        },
+        {
+          "line": 47,
+          "values": [
+            "20.0"
+          ],
+          "context": "export const MAX_STAFF_SPREAD_SP: number = Sid.maxStaffSpread   // 20.0"
+        },
+        {
+          "line": 54,
+          "values": [
+            "32.0"
+          ],
+          "context": "export const MAX_SYSTEM_SPREAD_SP: number = Sid.maxSystemSpread   // 32.0"
+        },
+        {
+          "line": 61,
+          "values": [
+            "2.5"
+          ],
+          "context": "export const SPREAD_SYSTEM: number = Sid.spreadSystem   // 2.5"
+        },
+        {
+          "line": 68,
+          "values": [
+            "8.5"
+          ],
+          "context": "export const MIN_SYSTEM_DISTANCE_SP: number = Sid.minSystemDistance   // 8.5"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_functions": 24,
+    "total_constants": 53,
+    "total_classes": 0,
+    "total_interfaces": 13,
+    "total_type_aliases": 0,
+    "total_enums": 0
+  }
+}

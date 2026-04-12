@@ -11,6 +11,8 @@ interface AnnotationState {
   addAnnotation: (annotation: Annotation) => void
   updateAnnotation: (id: string, patch: Partial<Annotation>) => void
   removeAnnotation: (id: string) => void
+  removeAnnotations: (ids: string[]) => void
+  updateAnnotations: (ids: string[], patch: Partial<Annotation>) => void
   undo: () => void
   redo: () => void
   clearAll: () => void
@@ -48,6 +50,24 @@ export const useAnnotationStore = create<AnnotationState>()(
       if (state.undoStack.length > MAX_UNDO) state.undoStack.shift()
       state.redoStack = []
       delete state.annotations[id]
+    }),
+
+    removeAnnotations: (ids) => set((state) => {
+      const toDelete = ids.filter(id => state.annotations[id])
+      if (toDelete.length === 0) return
+      state.undoStack.push({ ...state.annotations })
+      if (state.undoStack.length > MAX_UNDO) state.undoStack.shift()
+      state.redoStack = []
+      for (const id of toDelete) delete state.annotations[id]
+    }),
+
+    updateAnnotations: (ids, patch) => set((state) => {
+      const toUpdate = ids.filter(id => state.annotations[id])
+      if (toUpdate.length === 0) return
+      state.undoStack.push({ ...state.annotations })
+      if (state.undoStack.length > MAX_UNDO) state.undoStack.shift()
+      state.redoStack = []
+      for (const id of toUpdate) Object.assign(state.annotations[id], patch)
     }),
 
     undo: () => set((state) => {

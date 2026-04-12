@@ -1,0 +1,1457 @@
+{
+  "session": "K",
+  "files": [
+    {
+      "file": "svgRenderer.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\svgRenderer.ts",
+      "exists": true,
+      "line_count": 558,
+      "functions": [
+        {
+          "name": "esc",
+          "line": 60,
+          "signature": "function esc(s: string): string {",
+          "exported": false
+        },
+        {
+          "name": "n",
+          "line": 64,
+          "signature": "function n(x: number, d = 1): string { return x.toFixed(d) }",
+          "exported": false
+        },
+        {
+          "name": "renderFontDefs",
+          "line": 67,
+          "signature": "function renderFontDefs(): string {",
+          "exported": false
+        },
+        {
+          "name": "renderStaffLines",
+          "line": 105,
+          "signature": "function renderStaffLines(system: RenderedSystem, sp: number): string {",
+          "exported": false
+        },
+        {
+          "name": "renderClef",
+          "line": 118,
+          "signature": "function renderClef(clef: RenderedClefSymbol, sp: number): string {",
+          "exported": false
+        },
+        {
+          "name": "renderKeySig",
+          "line": 146,
+          "signature": "function renderKeySig(ks: RenderedKeySignature, sp: number): string {",
+          "exported": false
+        },
+        {
+          "name": "renderTimeSig",
+          "line": 160,
+          "signature": "function renderTimeSig(ts: RenderedTimeSignature, sp: number): string {",
+          "exported": false
+        },
+        {
+          "name": "renderBarline",
+          "line": 189,
+          "signature": "function renderBarline(bl: RenderedBarline, sp: number): string {",
+          "exported": false
+        },
+        {
+          "name": "renderRest",
+          "line": 302,
+          "signature": "function renderRest(rn: RenderedNote, sp: number): string {",
+          "exported": false
+        },
+        {
+          "name": "renderNote",
+          "line": 324,
+          "signature": "function renderNote(rn: RenderedNote, sp: number): string {",
+          "exported": false
+        },
+        {
+          "name": "renderBeam",
+          "line": 405,
+          "signature": "function renderBeam(beam: RenderedBeam, sp: number): string {",
+          "exported": false
+        },
+        {
+          "name": "renderChordSymbol",
+          "line": 429,
+          "signature": "function renderChordSymbol(cs: RenderedChordSymbol, sp: number): string {",
+          "exported": false
+        },
+        {
+          "name": "renderTuplet",
+          "line": 435,
+          "signature": "function renderTuplet(t: RenderedTuplet, sp: number): string {",
+          "exported": false
+        },
+        {
+          "name": "renderTieArc",
+          "line": 460,
+          "signature": "function renderTieArc(path: import('./types').BezierArc, above: boolean, sp: number): string {",
+          "exported": false
+        },
+        {
+          "name": "renderTie",
+          "line": 475,
+          "signature": "function renderTie(tie: RenderedTie, sp: number): string {",
+          "exported": false
+        },
+        {
+          "name": "renderMeasure",
+          "line": 484,
+          "signature": "function renderMeasure(measure: RenderedMeasure, sp: number): string {",
+          "exported": false
+        },
+        {
+          "name": "renderSystem",
+          "line": 503,
+          "signature": "function renderSystem(system: RenderedSystem, sp: number): string {",
+          "exported": false
+        },
+        {
+          "name": "renderTitle",
+          "line": 512,
+          "signature": "function renderTitle(title: string, pageWidth: number, marginTop: number, sp: number): string {",
+          "exported": false
+        },
+        {
+          "name": "renderPage",
+          "line": 524,
+          "signature": "function renderPage(page: RenderedPage, sp: number, title: string, pageWidth: number, marginTop: number): string {",
+          "exported": false
+        },
+        {
+          "name": "renderToSVG",
+          "line": 535,
+          "signature": "export function renderToSVG(",
+          "exported": true
+        }
+      ],
+      "constants": [
+        {
+          "name": "INK",
+          "value": "'#1a1a1a'",
+          "line": 57,
+          "exported": false
+        },
+        {
+          "name": "parts",
+          "value": "[]",
+          "line": 107,
+          "exported": false
+        },
+        {
+          "name": "lw",
+          "value": "0.18",
+          "line": 191,
+          "exported": false
+        },
+        {
+          "name": "lw2",
+          "value": "0.55",
+          "line": 192,
+          "exported": false
+        },
+        {
+          "name": "eDist",
+          "value": "0.37",
+          "line": 193,
+          "exported": false
+        },
+        {
+          "name": "dDist",
+          "value": "0.37",
+          "line": 194,
+          "exported": false
+        },
+        {
+          "name": "dotSep",
+          "value": "0.37",
+          "line": 195,
+          "exported": false
+        },
+        {
+          "name": "parts",
+          "value": "[]",
+          "line": 198,
+          "exported": false
+        },
+        {
+          "name": "parts",
+          "value": "[]",
+          "line": 328,
+          "exported": false
+        },
+        {
+          "name": "parts",
+          "value": "[]",
+          "line": 407,
+          "exported": false
+        },
+        {
+          "name": "parts",
+          "value": "[]",
+          "line": 436,
+          "exported": false
+        },
+        {
+          "name": "d",
+          "value": "[\n    `M ${n(x1)},${n(y1)}`,\n    `C ${n(cx1)},${n(cy1)} ${n(cx2)},${n(cy2)} ${n(x2)},${n(y2)}`,\n    ",
+          "line": 466,
+          "exported": false
+        },
+        {
+          "name": "parts",
+          "value": "[`<g class=\"measure\" data-measure=\"${measure.measureNum}\">`]",
+          "line": 485,
+          "exported": false
+        },
+        {
+          "name": "parts",
+          "value": "[`<g class=\"system\" data-system=\"${system.systemIndex}\">`]",
+          "line": 504,
+          "exported": false
+        },
+        {
+          "name": "parts",
+          "value": "[`<g class=\"page\" data-page=\"${page.pageIndex}\">`]",
+          "line": 525,
+          "exported": false
+        },
+        {
+          "name": "opts",
+          "value": "{ ...DEFAULT_RENDER_OPTIONS, ...renderOptions }",
+          "line": 539,
+          "exported": false
+        },
+        {
+          "name": "parts",
+          "value": "[\n    `<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"map-score\" width=\"${width}\" height=\"${totalHei",
+          "line": 545,
+          "exported": false
+        }
+      ],
+      "classes": [],
+      "interfaces": [],
+      "type_aliases": [],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 191,
+          "values": [
+            "0.18"
+          ],
+          "context": "const lw     = 0.18 * sp   // Sid::barWidth (thin barline pen width)"
+        },
+        {
+          "line": 192,
+          "values": [
+            "0.55"
+          ],
+          "context": "const lw2    = 0.55 * sp   // Sid::endBarWidth (thick barline pen width)"
+        },
+        {
+          "line": 193,
+          "values": [
+            "0.37"
+          ],
+          "context": "const eDist  = 0.37 * sp   // Sid::endBarDistance (inner gap between thin+thick)"
+        },
+        {
+          "line": 194,
+          "values": [
+            "0.37"
+          ],
+          "context": "const dDist  = 0.37 * sp   // Sid::doubleBarDistance (inner gap between double lines)"
+        },
+        {
+          "line": 195,
+          "values": [
+            "0.37"
+          ],
+          "context": "const dotSep = 0.37 * sp   // Sid::repeatBarlineDotSeparation"
+        },
+        {
+          "line": 196,
+          "values": [
+            "0.25"
+          ],
+          "context": "const dotR   = sp * 0.25   // symBbox(repeatDot).width() ≈ 0.5sp → radius ≈ 0.25sp"
+        },
+        {
+          "line": 430,
+          "values": [
+            "1.4"
+          ],
+          "context": "const fs = sp * 1.4  // slightly larger than a space — editorial-size text"
+        },
+        {
+          "line": 441,
+          "values": [
+            "1.8"
+          ],
+          "context": "const gapW = sp * 1.8"
+        },
+        {
+          "line": 448,
+          "values": [
+            "0.2",
+            "0.55"
+          ],
+          "context": "const numY = t.above ? t.numberY - sp * 0.2 : t.numberY + sp * 0.55"
+        },
+        {
+          "line": 449,
+          "values": [
+            "1.3"
+          ],
+          "context": "parts.push(`<text x=\"${n(t.numberX)}\" y=\"${n(numY)}\" text-anchor=\"middle\" font-family=\"${EDWIN_FONT}\" font-size=\"${n(sp "
+        },
+        {
+          "line": 518,
+          "values": [
+            "22",
+            "360",
+            "72"
+          ],
+          "context": "const fontSize = Math.round(22 * (360 / 72))  // 22pt at 360dpi = 110px"
+        },
+        {
+          "line": 519,
+          "values": [
+            "83"
+          ],
+          "context": "const y = marginTop + 83"
+        },
+        {
+          "line": 546,
+          "values": [
+            "2000"
+          ],
+          "context": "`<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"map-score\" width=\"${width}\" height=\"${totalHeight}\" viewBox=\"0 0 ${width"
+        }
+      ]
+    },
+    {
+      "file": "Painter.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\painter/Painter.ts",
+      "exists": true,
+      "line_count": 158,
+      "functions": [],
+      "constants": [],
+      "classes": [],
+      "interfaces": [
+        {
+          "name": "ElementMetadata",
+          "line": 42,
+          "exported": true
+        },
+        {
+          "name": "Painter",
+          "line": 73,
+          "exported": true
+        }
+      ],
+      "type_aliases": [
+        {
+          "name": "ElementType",
+          "line": 16,
+          "exported": true
+        }
+      ],
+      "enums": [],
+      "magic_numbers": []
+    },
+    {
+      "file": "SVGPainter.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\painter/SVGPainter.ts",
+      "exists": true,
+      "line_count": 180,
+      "functions": [
+        {
+          "name": "r",
+          "line": 145,
+          "signature": "function r(n: number): string {",
+          "exported": false
+        },
+        {
+          "name": "escapeAttr",
+          "line": 150,
+          "signature": "function escapeAttr(s: string): string {",
+          "exported": false
+        },
+        {
+          "name": "escapeText",
+          "line": 155,
+          "signature": "function escapeText(s: string): string {",
+          "exported": false
+        },
+        {
+          "name": "codepointToChar",
+          "line": 163,
+          "signature": "function codepointToChar(cp: string): string {",
+          "exported": false
+        }
+      ],
+      "constants": [
+        {
+          "name": "DEFAULT_COLOR",
+          "value": "'#1a1a1a'",
+          "line": 19,
+          "exported": false
+        },
+        {
+          "name": "attrs",
+          "value": "[`id=\"${escapeAttr(id)}\"`]",
+          "line": 41,
+          "exported": false
+        }
+      ],
+      "classes": [
+        {
+          "name": "SVGPainter",
+          "line": 21,
+          "methods": [
+            {
+              "name": "setViewport",
+              "line": 31
+            },
+            {
+              "name": "beginGroup",
+              "line": 40
+            },
+            {
+              "name": "endGroup",
+              "line": 53
+            },
+            {
+              "name": "drawGlyph",
+              "line": 62
+            },
+            {
+              "name": "drawLine",
+              "line": 74
+            },
+            {
+              "name": "drawFilledPath",
+              "line": 82
+            },
+            {
+              "name": "drawText",
+              "line": 86
+            },
+            {
+              "name": "getOutput",
+              "line": 109
+            },
+            {
+              "name": "prependFontFaces",
+              "line": 135
+            }
+          ],
+          "exported": true
+        }
+      ],
+      "interfaces": [],
+      "type_aliases": [],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 123,
+          "values": [
+            "2000"
+          ],
+          "context": "`<svg xmlns=\"http://www.w3.org/2000/svg\" ` +"
+        }
+      ]
+    },
+    {
+      "file": "leland.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\glyphs/leland.ts",
+      "exists": true,
+      "line_count": 174,
+      "functions": [
+        {
+          "name": "smuflFontSize",
+          "line": 100,
+          "signature": "export function smuflFontSize(spatium: number): number {",
+          "exported": true
+        },
+        {
+          "name": "lelandAccidentalGlyph",
+          "line": 105,
+          "signature": "export function lelandAccidentalGlyph(type: string): string {",
+          "exported": true
+        },
+        {
+          "name": "sp",
+          "line": 143,
+          "signature": "export function sp(staffSpaces: number, spatium: number): number {",
+          "exported": true
+        },
+        {
+          "name": "lelandTimeSigGlyph",
+          "line": 148,
+          "signature": "export function lelandTimeSigGlyph(num: number): string {",
+          "exported": true
+        },
+        {
+          "name": "lelandRestGlyph",
+          "line": 153,
+          "signature": "export function lelandRestGlyph(noteheadType: string): string {",
+          "exported": true
+        },
+        {
+          "name": "lelandFlagGlyph",
+          "line": 167,
+          "signature": "export function lelandFlagGlyph(noteheadType: string, stemUp: boolean): string | null {",
+          "exported": true
+        }
+      ],
+      "constants": [
+        {
+          "name": "LELAND_NOTEHEAD_WHOLE",
+          "value": "'\\uE0A2'",
+          "line": 17,
+          "exported": true
+        },
+        {
+          "name": "LELAND_NOTEHEAD_HALF",
+          "value": "'\\uE0A3'",
+          "line": 18,
+          "exported": true
+        },
+        {
+          "name": "LELAND_NOTEHEAD_BLACK",
+          "value": "'\\uE0A4'",
+          "line": 19,
+          "exported": true
+        },
+        {
+          "name": "LELAND_NOTEHEAD_DOUBLE_WHOLE",
+          "value": "'\\uE0A0'",
+          "line": 20,
+          "exported": true
+        },
+        {
+          "name": "LELAND_G_CLEF",
+          "value": "'\\uE050'",
+          "line": 24,
+          "exported": true
+        },
+        {
+          "name": "LELAND_F_CLEF",
+          "value": "'\\uE062'",
+          "line": 26,
+          "exported": true
+        },
+        {
+          "name": "LELAND_C_CLEF",
+          "value": "'\\uE05C'",
+          "line": 28,
+          "exported": true
+        },
+        {
+          "name": "LELAND_SHARP",
+          "value": "'\\uE262'",
+          "line": 31,
+          "exported": true
+        },
+        {
+          "name": "LELAND_FLAT",
+          "value": "'\\uE260'",
+          "line": 32,
+          "exported": true
+        },
+        {
+          "name": "LELAND_NATURAL",
+          "value": "'\\uE261'",
+          "line": 33,
+          "exported": true
+        },
+        {
+          "name": "LELAND_DOUBLE_SHARP",
+          "value": "'\\uE263'",
+          "line": 34,
+          "exported": true
+        },
+        {
+          "name": "LELAND_DOUBLE_FLAT",
+          "value": "'\\uE264'",
+          "line": 35,
+          "exported": true
+        },
+        {
+          "name": "LELAND_REST_WHOLE",
+          "value": "'\\uE4E3'",
+          "line": 39,
+          "exported": true
+        },
+        {
+          "name": "LELAND_REST_HALF",
+          "value": "'\\uE4E4'",
+          "line": 41,
+          "exported": true
+        },
+        {
+          "name": "LELAND_REST_QUARTER",
+          "value": "'\\uE4E5'",
+          "line": 42,
+          "exported": true
+        },
+        {
+          "name": "LELAND_REST_EIGHTH",
+          "value": "'\\uE4E6'",
+          "line": 43,
+          "exported": true
+        },
+        {
+          "name": "LELAND_REST_16TH",
+          "value": "'\\uE4E7'",
+          "line": 44,
+          "exported": true
+        },
+        {
+          "name": "LELAND_REST_32ND",
+          "value": "'\\uE4E8'",
+          "line": 45,
+          "exported": true
+        },
+        {
+          "name": "LELAND_REST_64TH",
+          "value": "'\\uE4E9'",
+          "line": 46,
+          "exported": true
+        },
+        {
+          "name": "LELAND_FLAG_8TH_UP",
+          "value": "'\\uE240'",
+          "line": 50,
+          "exported": true
+        },
+        {
+          "name": "LELAND_FLAG_8TH_DOWN",
+          "value": "'\\uE241'",
+          "line": 52,
+          "exported": true
+        },
+        {
+          "name": "LELAND_FLAG_16TH_UP",
+          "value": "'\\uE242'",
+          "line": 53,
+          "exported": true
+        },
+        {
+          "name": "LELAND_FLAG_16TH_DOWN",
+          "value": "'\\uE243'",
+          "line": 54,
+          "exported": true
+        },
+        {
+          "name": "LELAND_FLAG_32ND_UP",
+          "value": "'\\uE244'",
+          "line": 55,
+          "exported": true
+        },
+        {
+          "name": "LELAND_FLAG_32ND_DOWN",
+          "value": "'\\uE245'",
+          "line": 56,
+          "exported": true
+        },
+        {
+          "name": "LELAND_AUGMENTATION_DOT",
+          "value": "'\\uE1E7'",
+          "line": 59,
+          "exported": true
+        },
+        {
+          "name": "LELAND_REPEAT_DOT",
+          "value": "'\\uE044'",
+          "line": 63,
+          "exported": true
+        },
+        {
+          "name": "LELAND_TIME_SIG",
+          "value": "{\n  0: '\\uE080', 1: '\\uE081', 2: '\\uE082', 3: '\\uE083', 4: '\\uE084',\n  5: '\\uE085', 6: '\\uE086', 7: ",
+          "line": 67,
+          "exported": true
+        },
+        {
+          "name": "LELAND_TIME_SIG_COMMON",
+          "value": "'\\uE08A'",
+          "line": 71,
+          "exported": true
+        },
+        {
+          "name": "LELAND_TIME_SIG_CUT_COMMON",
+          "value": "'\\uE08B'",
+          "line": 72,
+          "exported": true
+        },
+        {
+          "name": "LELAND_DYNAMIC_P",
+          "value": "'\\uE520'",
+          "line": 76,
+          "exported": true
+        },
+        {
+          "name": "LELAND_DYNAMIC_F",
+          "value": "'\\uE522'",
+          "line": 78,
+          "exported": true
+        },
+        {
+          "name": "LELAND_DYNAMIC_M",
+          "value": "'\\uE521'",
+          "line": 80,
+          "exported": true
+        },
+        {
+          "name": "LELAND_DYNAMIC_R",
+          "value": "'\\uE523'",
+          "line": 82,
+          "exported": true
+        },
+        {
+          "name": "LELAND_DYNAMIC_S",
+          "value": "'\\uE524'",
+          "line": 84,
+          "exported": true
+        },
+        {
+          "name": "LELAND_DYNAMIC_Z",
+          "value": "'\\uE525'",
+          "line": 86,
+          "exported": true
+        },
+        {
+          "name": "LELAND_DYNAMIC_N",
+          "value": "'\\uE526'",
+          "line": 88,
+          "exported": true
+        },
+        {
+          "name": "LELAND_FONT",
+          "value": "'Leland, Bravura, serif'",
+          "line": 91,
+          "exported": true
+        },
+        {
+          "name": "LELAND_TEXT_FONT",
+          "value": "'LelandText, Leland, serif'",
+          "line": 92,
+          "exported": true
+        },
+        {
+          "name": "EDWIN_FONT",
+          "value": "'\"",
+          "line": 93,
+          "exported": true
+        },
+        {
+          "name": "ENGRAVING",
+          "value": "{\n  staffLineThickness:     0.11,\n  stemThickness:          0.10,\n  beamThickness:          0.50,\n  ",
+          "line": 124,
+          "exported": true
+        }
+      ],
+      "classes": [],
+      "interfaces": [],
+      "type_aliases": [],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 125,
+          "values": [
+            "0.11"
+          ],
+          "context": "staffLineThickness:     0.11,"
+        },
+        {
+          "line": 126,
+          "values": [
+            "0.10"
+          ],
+          "context": "stemThickness:          0.10,"
+        },
+        {
+          "line": 127,
+          "values": [
+            "0.50"
+          ],
+          "context": "beamThickness:          0.50,"
+        },
+        {
+          "line": 128,
+          "values": [
+            "0.25"
+          ],
+          "context": "beamSpacing:            0.25,"
+        },
+        {
+          "line": 129,
+          "values": [
+            "0.16"
+          ],
+          "context": "legerLineThickness:     0.16,"
+        },
+        {
+          "line": 130,
+          "values": [
+            "0.35"
+          ],
+          "context": "legerLineExtension:     0.35,"
+        },
+        {
+          "line": 131,
+          "values": [
+            "0.18"
+          ],
+          "context": "thinBarlineThickness:   0.18,"
+        },
+        {
+          "line": 132,
+          "values": [
+            "0.55"
+          ],
+          "context": "thickBarlineThickness:  0.55,"
+        },
+        {
+          "line": 133,
+          "values": [
+            "0.37"
+          ],
+          "context": "barlineSeparation:      0.37,"
+        },
+        {
+          "line": 134,
+          "values": [
+            "0.07"
+          ],
+          "context": "slurEndpointThickness:  0.07,"
+        },
+        {
+          "line": 135,
+          "values": [
+            "0.21"
+          ],
+          "context": "slurMidpointThickness:  0.21,"
+        },
+        {
+          "line": 136,
+          "values": [
+            "0.07"
+          ],
+          "context": "tieEndpointThickness:   0.07,"
+        },
+        {
+          "line": 137,
+          "values": [
+            "0.21"
+          ],
+          "context": "tieMidpointThickness:   0.21,"
+        },
+        {
+          "line": 138,
+          "values": [
+            "0.10"
+          ],
+          "context": "tupletBracketThickness: 0.10,"
+        },
+        {
+          "line": 139,
+          "values": [
+            "0.37"
+          ],
+          "context": "repeatBarlineDotSep:    0.37,"
+        }
+      ]
+    },
+    {
+      "file": "index.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\glyphs/index.ts",
+      "exists": true,
+      "line_count": 46,
+      "functions": [],
+      "constants": [],
+      "classes": [],
+      "interfaces": [],
+      "type_aliases": [],
+      "enums": [],
+      "magic_numbers": []
+    },
+    {
+      "file": "anchors.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\bravura/anchors.ts",
+      "exists": true,
+      "line_count": 188,
+      "functions": [
+        {
+          "name": "getNoteheadAnchor",
+          "line": 137,
+          "signature": "export function getNoteheadAnchor(glyphName: string): GlyphAnchor {",
+          "exported": true
+        },
+        {
+          "name": "anchorToPx",
+          "line": 149,
+          "signature": "export function anchorToPx(",
+          "exported": true
+        },
+        {
+          "name": "stemAttachX",
+          "line": 164,
+          "signature": "export function stemAttachX(glyphName: string, stemUp: boolean, spatiumPx: number): number {",
+          "exported": true
+        },
+        {
+          "name": "stemAttachY",
+          "line": 182,
+          "signature": "export function stemAttachY(glyphName: string, stemUp: boolean, spatiumPx: number): number {",
+          "exported": true
+        }
+      ],
+      "constants": [
+        {
+          "name": "NOTEHEAD_ANCHORS",
+          "value": "{\n  // Standard filled notehead (quarter, eighth, ...)\n  // Bravura: stemUpSE=[1.18, -0.168], stemDo",
+          "line": 44,
+          "exported": true
+        },
+        {
+          "name": "FLAG_ANCHORS",
+          "value": "{\n  flag8thUp:   { cutOutNW: [0, 0] }",
+          "line": 88,
+          "exported": true
+        },
+        {
+          "name": "ACCIDENTAL_WIDTHS_SP",
+          "value": "{\n  sharp:               1.0,\n  flat:                0.65,\n  natural:             0.9,\n  'double-sha",
+          "line": 104,
+          "exported": true
+        },
+        {
+          "name": "ACCIDENTAL_HEIGHTS_SP",
+          "value": "{\n  sharp:               3.0,\n  flat:                3.5,\n  natural:             3.0,\n  'double-shar",
+          "line": 118,
+          "exported": true
+        }
+      ],
+      "classes": [],
+      "interfaces": [
+        {
+          "name": "GlyphAnchor",
+          "line": 19,
+          "exported": true
+        }
+      ],
+      "type_aliases": [],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 48,
+          "values": [
+            "1.18",
+            "-0.168"
+          ],
+          "context": "stemUpNW:   [1.18, -0.168],   // x=right edge; y in screen = noteY + 0.168sp (below center)"
+        },
+        {
+          "line": 49,
+          "values": [
+            "0.168"
+          ],
+          "context": "stemDownSW: [0.0,   0.168],   // x=left edge;  y in screen = noteY - 0.168sp (above center)"
+        },
+        {
+          "line": 55,
+          "values": [
+            "1.18",
+            "-0.14"
+          ],
+          "context": "stemUpNW:   [1.18, -0.14],"
+        },
+        {
+          "line": 56,
+          "values": [
+            "0.14"
+          ],
+          "context": "stemDownSW: [0.0,   0.14],"
+        },
+        {
+          "line": 67,
+          "values": [
+            "-0.168",
+            "0.168"
+          ],
+          "context": "stemUpNW:   [-0.168,  0.168],"
+        },
+        {
+          "line": 68,
+          "values": [
+            "-0.168",
+            "-0.168"
+          ],
+          "context": "stemDownSW: [-0.168, -0.168],"
+        },
+        {
+          "line": 74,
+          "values": [
+            "-0.5"
+          ],
+          "context": "stemDownSW: [0, -0.5],"
+        },
+        {
+          "line": 80,
+          "values": [
+            "-0.5"
+          ],
+          "context": "stemDownSW: [0, -0.5],"
+        },
+        {
+          "line": 106,
+          "values": [
+            "0.65"
+          ],
+          "context": "flat:                0.65,"
+        },
+        {
+          "line": 107,
+          "values": [
+            "0.9"
+          ],
+          "context": "natural:             0.9,"
+        },
+        {
+          "line": 108,
+          "values": [
+            "1.1"
+          ],
+          "context": "'double-sharp':      1.1,"
+        },
+        {
+          "line": 109,
+          "values": [
+            "1.4"
+          ],
+          "context": "'double-flat':       1.4,"
+        },
+        {
+          "line": 111,
+          "values": [
+            "0.65"
+          ],
+          "context": "'courtesy-flat':     0.65,"
+        },
+        {
+          "line": 112,
+          "values": [
+            "0.9"
+          ],
+          "context": "'courtesy-natural':  0.9,"
+        },
+        {
+          "line": 119,
+          "values": [
+            "3.0"
+          ],
+          "context": "sharp:               3.0,"
+        },
+        {
+          "line": 120,
+          "values": [
+            "3.5"
+          ],
+          "context": "flat:                3.5,"
+        },
+        {
+          "line": 121,
+          "values": [
+            "3.0"
+          ],
+          "context": "natural:             3.0,"
+        },
+        {
+          "line": 122,
+          "values": [
+            "1.5"
+          ],
+          "context": "'double-sharp':      1.5,"
+        },
+        {
+          "line": 123,
+          "values": [
+            "3.5"
+          ],
+          "context": "'double-flat':       3.5,"
+        },
+        {
+          "line": 124,
+          "values": [
+            "3.0"
+          ],
+          "context": "'courtesy-sharp':    3.0,"
+        },
+        {
+          "line": 125,
+          "values": [
+            "3.5"
+          ],
+          "context": "'courtesy-flat':     3.5,"
+        },
+        {
+          "line": 126,
+          "values": [
+            "3.0"
+          ],
+          "context": "'courtesy-natural':  3.0,"
+        },
+        {
+          "line": 167,
+          "values": [
+            "1.18",
+            "-0.168"
+          ],
+          "context": "? (anchor.stemUpNW   ?? [1.18, -0.168])[0]"
+        },
+        {
+          "line": 168,
+          "values": [
+            "0.168"
+          ],
+          "context": ": (anchor.stemDownSW ?? [0.0,   0.168])[0]"
+        },
+        {
+          "line": 185,
+          "values": [
+            "1.18",
+            "-0.168"
+          ],
+          "context": "? anchorToPx(anchor.stemUpNW   ?? [1.18, -0.168], spatiumPx)"
+        },
+        {
+          "line": 186,
+          "values": [
+            "0.168"
+          ],
+          "context": ": anchorToPx(anchor.stemDownSW ?? [0.0,   0.168], spatiumPx)"
+        }
+      ]
+    },
+    {
+      "file": "types.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\types.ts",
+      "exists": true,
+      "line_count": 494,
+      "functions": [],
+      "constants": [],
+      "classes": [],
+      "interfaces": [
+        {
+          "name": "RenderedScore",
+          "line": 13,
+          "exported": true
+        },
+        {
+          "name": "ScoreRenderMetadata",
+          "line": 22,
+          "exported": true
+        },
+        {
+          "name": "DOMRectLike",
+          "line": 32,
+          "exported": true
+        },
+        {
+          "name": "RenderedPage",
+          "line": 47,
+          "exported": true
+        },
+        {
+          "name": "RenderedSystem",
+          "line": 58,
+          "exported": true
+        },
+        {
+          "name": "RenderedStaff",
+          "line": 74,
+          "exported": true
+        },
+        {
+          "name": "RenderedMeasure",
+          "line": 90,
+          "exported": true
+        },
+        {
+          "name": "RenderedNote",
+          "line": 127,
+          "exported": true
+        },
+        {
+          "name": "RenderedLedgerLine",
+          "line": 203,
+          "exported": true
+        },
+        {
+          "name": "RenderedChordSymbol",
+          "line": 213,
+          "exported": true
+        },
+        {
+          "name": "RenderedBeam",
+          "line": 226,
+          "exported": true
+        },
+        {
+          "name": "BeamSegment",
+          "line": 239,
+          "exported": true
+        },
+        {
+          "name": "RenderedBarline",
+          "line": 250,
+          "exported": true
+        },
+        {
+          "name": "RenderedTie",
+          "line": 273,
+          "exported": true
+        },
+        {
+          "name": "RenderedSlur",
+          "line": 288,
+          "exported": true
+        },
+        {
+          "name": "BezierArc",
+          "line": 297,
+          "exported": true
+        },
+        {
+          "name": "RenderedKeySignature",
+          "line": 312,
+          "exported": true
+        },
+        {
+          "name": "RenderedTimeSignature",
+          "line": 325,
+          "exported": true
+        },
+        {
+          "name": "RenderedClefSymbol",
+          "line": 340,
+          "exported": true
+        },
+        {
+          "name": "RenderedDynamic",
+          "line": 352,
+          "exported": true
+        },
+        {
+          "name": "RenderedArticulation",
+          "line": 366,
+          "exported": true
+        },
+        {
+          "name": "RenderedOrnament",
+          "line": 388,
+          "exported": true
+        },
+        {
+          "name": "RenderedHairpin",
+          "line": 411,
+          "exported": true
+        },
+        {
+          "name": "RenderedTuplet",
+          "line": 425,
+          "exported": true
+        },
+        {
+          "name": "TupletBracket",
+          "line": 437,
+          "exported": true
+        },
+        {
+          "name": "RenderedVolta",
+          "line": 450,
+          "exported": true
+        },
+        {
+          "name": "RenderOptions",
+          "line": 463,
+          "exported": true
+        },
+        {
+          "name": "RenderResult",
+          "line": 485,
+          "exported": true
+        }
+      ],
+      "type_aliases": [
+        {
+          "name": "ClefType",
+          "line": 84,
+          "exported": true
+        },
+        {
+          "name": "NoteheadType",
+          "line": 184,
+          "exported": true
+        },
+        {
+          "name": "AccidentalType",
+          "line": 193,
+          "exported": true
+        },
+        {
+          "name": "BarlineType",
+          "line": 257,
+          "exported": true
+        },
+        {
+          "name": "ArticulationType",
+          "line": 374,
+          "exported": true
+        },
+        {
+          "name": "OrnamentType",
+          "line": 396,
+          "exported": true
+        }
+      ],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 131,
+          "values": [
+            "1.5"
+          ],
+          "context": "beat: number              // beat within measure (1.0, 1.5, 2.0, ...)"
+        },
+        {
+          "line": 464,
+          "values": [
+            "794"
+          ],
+          "context": "/** Page width in px (default: 794 = A4 portrait @96dpi) */"
+        },
+        {
+          "line": 466,
+          "values": [
+            "1123"
+          ],
+          "context": "/** Page height in px (default: 1123 = A4 portrait @96dpi) */"
+        },
+        {
+          "line": 470,
+          "values": [
+            "48"
+          ],
+          "context": "/** Page margins in px (default: 48) */"
+        },
+        {
+          "line": 475,
+          "values": [
+            "6.0"
+          ],
+          "context": "/** Spacing between staves within a system, in sp (default: 6.0) */"
+        },
+        {
+          "line": 477,
+          "values": [
+            "8.0"
+          ],
+          "context": "/** Spacing between systems, in sp (default: 8.0) */"
+        }
+      ]
+    },
+    {
+      "file": "spatium.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\spatium.ts",
+      "exists": true,
+      "line_count": 66,
+      "functions": [
+        {
+          "name": "spToPx",
+          "line": 26,
+          "signature": "export function spToPx(sp: Sp, spatiumPx: Px): Px {",
+          "exported": true
+        },
+        {
+          "name": "pxToSp",
+          "line": 35,
+          "signature": "export function pxToSp(px: Px, spatiumPx: Px): Sp {",
+          "exported": true
+        },
+        {
+          "name": "lineToY",
+          "line": 52,
+          "signature": "export function lineToY(staffLine: number, staffTopPx: Px, spatiumPx: Px): Px {",
+          "exported": true
+        }
+      ],
+      "constants": [
+        {
+          "name": "DEFAULT_SPATIUM_MM",
+          "value": "1.75",
+          "line": 19,
+          "exported": true
+        },
+        {
+          "name": "STAFF_HEIGHT_SP",
+          "value": "4.0",
+          "line": 60,
+          "exported": true
+        },
+        {
+          "name": "MIDDLE_LINE",
+          "value": "4",
+          "line": 66,
+          "exported": true
+        }
+      ],
+      "classes": [],
+      "interfaces": [],
+      "type_aliases": [
+        {
+          "name": "Sp",
+          "line": 13,
+          "exported": true
+        },
+        {
+          "name": "Px",
+          "line": 16,
+          "exported": true
+        }
+      ],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 19,
+          "values": [
+            "1.75"
+          ],
+          "context": "export const DEFAULT_SPATIUM_MM = 1.75"
+        },
+        {
+          "line": 60,
+          "values": [
+            "4.0"
+          ],
+          "context": "export const STAFF_HEIGHT_SP: Sp = 4.0"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_functions": 37,
+    "total_constants": 67,
+    "total_classes": 1,
+    "total_interfaces": 31,
+    "total_type_aliases": 9,
+    "total_enums": 0
+  }
+}

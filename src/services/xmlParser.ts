@@ -70,6 +70,7 @@ export function parseMusicXml(xmlString: string): NoteMap {
     // Parse notes — iterate children in order so <backup>/<forward> are processed correctly.
     // This fixes multi-staff scores where <backup> rewinds time between staves.
     let currentBeat = 1
+    let chordStartBeat = 1  // beat of the first note in the current chord group
     Array.from(measureEl.children).forEach((child) => {
       const tag = child.tagName
 
@@ -90,12 +91,7 @@ export function parseMusicXml(xmlString: string): NoteMap {
       if (tag !== 'note') return
       const noteEl = child as Element
 
-      // Only process staff 1 (melody / treble clef) for playback
       const staffNum = parseInt(noteEl.querySelector('staff')?.textContent || '1')
-      if (staffNum !== 1) {
-        // Still advance beat for staff-1 tracking isn't needed here — backup handles it
-        return
-      }
 
       if (noteEl.querySelector('rest')) {
         const durEl = noteEl.querySelector('duration')
@@ -116,11 +112,19 @@ export function parseMusicXml(xmlString: string): NoteMap {
       const voiceEl = noteEl.querySelector('voice')
       const fingerEl = noteEl.querySelector('fingering')
       const chord = !!noteEl.querySelector('chord')
+      // For chord notes (2nd, 3rd…), reuse the beat of the first note in the group.
+      // Without this, currentBeat has already been advanced by the previous note,
+      // causing wrong beat values and ID collisions with later notes.
+      if (!chord) chordStartBeat = currentBeat
 
       const alterStr = alter === 1 ? '#' : alter === -1 ? 'b' : alter === 2 ? '##' : ''
       const pitch = `${step}${alterStr}${octave}`
 
-      const id = `note-m${num}b${Math.round(currentBeat * 100)}-${step}${octave}`
+      // Staff-1 IDs keep original format (backward compatible with saved annotations).
+      // Bass staff (2+) gets a -s{N} suffix to prevent collisions.
+      const id = staffNum === 1
+        ? `note-m${num}b${Math.round(chordStartBeat * 100)}-${step}${octave}`
+        : `note-m${num}b${Math.round(chordStartBeat * 100)}-${step}${octave}-s${staffNum}`
 
       const noteData: NoteData = {
         id,
@@ -131,7 +135,7 @@ export function parseMusicXml(xmlString: string): NoteMap {
         duration: dur,
         type: typeEl?.textContent || 'quarter',
         measureNum: num,
-        beat: currentBeat,
+        beat: chordStartBeat,
         voice: parseInt(voiceEl?.textContent || '1'),
         staff: staffNum,
         fingering: fingerEl?.textContent || undefined,

@@ -3,8 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { useLayerStore } from '../../store/layerStore'
 import { useAnnotationStore } from '../../store/annotationStore'
 import { useSelectionStore } from '../../store/selectionStore'
+import { useAnnotationBrowserStore } from '../../store/annotationBrowserStore'
 import { LAYERS } from '../../constants/layers'
 import { ColorPalette } from '../stylus/ColorPalette'
+import { AnnotationBrowser } from './AnnotationBrowser'
 import { v4 as uuid } from 'uuid'
 import type { LayerId } from '../../types/annotation'
 import './LeftPanel.css'
@@ -17,6 +19,7 @@ export function LeftPanel() {
   const labelHistory = useAnnotationStore(s => s.labelHistory)
   const quickTags = labelHistory.slice(0, 6)
 
+  const { browsingLayer, setBrowsingLayer } = useAnnotationBrowserStore()
   const [expanded, setExpanded] = useState<Set<LayerId>>(new Set())
 
   const toggleExpand = (id: LayerId) => {
@@ -57,19 +60,24 @@ export function LeftPanel() {
 
             return (
               <li key={layer.id} className="layer-item">
-                <div className="layer-row">
-                  <button
-                    className={`layer-toggle ${isVisible ? 'active' : ''}`}
+                <div
+                  className={`layer-row ${browsingLayer === layer.id ? 'browsing' : ''}`}
+                  style={{ '--layer-color': layer.color } as React.CSSProperties}
+                >
+                  <span
+                    className={`layer-checkbox ${isVisible ? 'checked' : ''}`}
+                    style={isVisible ? { background: layer.color, borderColor: layer.color } : {}}
                     onClick={() => toggle(layer.id as LayerId)}
-                    style={{ '--layer-color': layer.color } as React.CSSProperties}
                     title={isVisible ? t('layers.hide') : t('layers.show')}
+                  />
+
+                  <span
+                    className={`layer-label-btn ${isVisible ? 'active' : ''}`}
+                    onClick={() => setBrowsingLayer(layer.id as LayerId)}
+                    title={lang === 'he' ? 'עיין בתיוגים' : 'Browse annotations'}
                   >
-                    <span
-                      className={`layer-checkbox ${isVisible ? 'checked' : ''}`}
-                      style={isVisible ? { background: layer.color, borderColor: layer.color } : {}}
-                    />
-                    <span className="layer-label">{t(`layers.${layer.id}`)}</span>
-                  </button>
+                    {t(`layers.${layer.id}`)}
+                  </span>
 
                   {hasLegend && (
                     <button
@@ -81,6 +89,10 @@ export function LeftPanel() {
                     </button>
                   )}
                 </div>
+
+                {browsingLayer === layer.id && (
+                  <AnnotationBrowser layerId={layer.id as LayerId} />
+                )}
 
                 {isExpanded && hasLegend && (
                   <div className="layer-legend">

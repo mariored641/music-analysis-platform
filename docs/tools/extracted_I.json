@@ -1,0 +1,666 @@
+{
+  "session": "I",
+  "files": [
+    {
+      "file": "chordLayout.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\chordLayout.ts",
+      "exists": true,
+      "line_count": 315,
+      "functions": [
+        {
+          "name": "layoutChords1",
+          "line": 58,
+          "signature": "export function layoutChords1(notes: ChordNote[], spatiumPx: Px): void {",
+          "exported": true
+        },
+        {
+          "name": "detectAndFlipCluster",
+          "line": 93,
+          "signature": "function detectAndFlipCluster(",
+          "exported": false
+        },
+        {
+          "name": "layoutAccidentals",
+          "line": 176,
+          "signature": "export function layoutAccidentals(notes: ChordNote[]): AccidentalSlot[] {",
+          "exported": true
+        },
+        {
+          "name": "accidentalXForColumn",
+          "line": 240,
+          "signature": "export function accidentalXForColumn(",
+          "exported": true
+        },
+        {
+          "name": "maxAccWidthSp",
+          "line": 265,
+          "signature": "export function maxAccWidthSp(accTypes: string[]): number {",
+          "exported": true
+        },
+        {
+          "name": "computeChordBBox",
+          "line": 288,
+          "signature": "export function computeChordBBox(params: {",
+          "exported": true
+        }
+      ],
+      "constants": [
+        {
+          "name": "ACC_HEIGHTS_SP",
+          "value": "{\n  sharp:               2.8,\n  flat:                3.2,\n  natural:             2.8,\n  'double-shar",
+          "line": 142,
+          "exported": false
+        },
+        {
+          "name": "ACC_WIDTHS_SP",
+          "value": "{\n  sharp:               1.0,\n  flat:                0.65,\n  natural:             0.9,\n  'double-sha",
+          "line": 154,
+          "exported": false
+        },
+        {
+          "name": "slots",
+          "value": "[]",
+          "line": 188,
+          "exported": false
+        }
+      ],
+      "classes": [],
+      "interfaces": [
+        {
+          "name": "ChordNote",
+          "line": 24,
+          "exported": true
+        },
+        {
+          "name": "AccidentalSlot",
+          "line": 132,
+          "exported": true
+        },
+        {
+          "name": "ChordBBox",
+          "line": 273,
+          "exported": true
+        }
+      ],
+      "type_aliases": [],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 143,
+          "values": [
+            "2.8"
+          ],
+          "context": "sharp:               2.8,"
+        },
+        {
+          "line": 144,
+          "values": [
+            "3.2"
+          ],
+          "context": "flat:                3.2,"
+        },
+        {
+          "line": 145,
+          "values": [
+            "2.8"
+          ],
+          "context": "natural:             2.8,"
+        },
+        {
+          "line": 146,
+          "values": [
+            "1.4"
+          ],
+          "context": "'double-sharp':      1.4,"
+        },
+        {
+          "line": 147,
+          "values": [
+            "3.2"
+          ],
+          "context": "'double-flat':       3.2,"
+        },
+        {
+          "line": 148,
+          "values": [
+            "2.8"
+          ],
+          "context": "'courtesy-sharp':    2.8,"
+        },
+        {
+          "line": 149,
+          "values": [
+            "3.2"
+          ],
+          "context": "'courtesy-flat':     3.2,"
+        },
+        {
+          "line": 150,
+          "values": [
+            "2.8"
+          ],
+          "context": "'courtesy-natural':  2.8,"
+        },
+        {
+          "line": 156,
+          "values": [
+            "0.65"
+          ],
+          "context": "flat:                0.65,"
+        },
+        {
+          "line": 157,
+          "values": [
+            "0.9"
+          ],
+          "context": "natural:             0.9,"
+        },
+        {
+          "line": 158,
+          "values": [
+            "1.1"
+          ],
+          "context": "'double-sharp':      1.1,"
+        },
+        {
+          "line": 159,
+          "values": [
+            "1.4"
+          ],
+          "context": "'double-flat':       1.4,"
+        },
+        {
+          "line": 161,
+          "values": [
+            "0.65"
+          ],
+          "context": "'courtesy-flat':     0.65,"
+        },
+        {
+          "line": 162,
+          "values": [
+            "0.9"
+          ],
+          "context": "'courtesy-natural':  0.9,"
+        },
+        {
+          "line": 192,
+          "values": [
+            "2.8"
+          ],
+          "context": "const heightSp = ACC_HEIGHTS_SP[accType] ?? 2.8"
+        }
+      ]
+    },
+    {
+      "file": "LayoutChords.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\engine/layout/LayoutChords.ts",
+      "exists": true,
+      "line_count": 202,
+      "functions": [
+        {
+          "name": "layoutChords3Accidentals",
+          "line": 97,
+          "signature": "export function layoutChords3Accidentals(",
+          "exported": true
+        },
+        {
+          "name": "noteNeedsMirror",
+          "line": 173,
+          "signature": "export function noteNeedsMirror(",
+          "exported": true
+        },
+        {
+          "name": "dotYAdjust",
+          "line": 199,
+          "signature": "export function dotYAdjust(staffLine: number, _sp: number): number {",
+          "exported": true
+        }
+      ],
+      "constants": [
+        {
+          "name": "SPACING_MULTIPLIER",
+          "value": "1.2",
+          "line": 44,
+          "exported": true
+        }
+      ],
+      "classes": [],
+      "interfaces": [
+        {
+          "name": "AccidentalInput",
+          "line": 56,
+          "exported": true
+        },
+        {
+          "name": "AccidentalXResult",
+          "line": 66,
+          "exported": true
+        }
+      ],
+      "type_aliases": [],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 31,
+          "values": [
+            "0.25"
+          ],
+          "context": "export const ACC_NOTE_DIST_SP: number = Sid.accidentalNoteDistance   // 0.25"
+        },
+        {
+          "line": 38,
+          "values": [
+            "0.22"
+          ],
+          "context": "export const ACC_ACC_DIST_SP: number = Sid.accidentalDistance        // 0.22"
+        },
+        {
+          "line": 44,
+          "values": [
+            "1.2"
+          ],
+          "context": "export const SPACING_MULTIPLIER = 1.2"
+        },
+        {
+          "line": 201,
+          "values": [
+            "-0.5"
+          ],
+          "context": "return (staffLine % 2 === 0) ? -0.5 : 0  // in staff-spaces"
+        }
+      ]
+    },
+    {
+      "file": "Note.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\engine/libmscore/Note.ts",
+      "exists": true,
+      "line_count": 186,
+      "functions": [
+        {
+          "name": "pitchToStaffLine",
+          "line": 82,
+          "signature": "export function pitchToStaffLine(step: string, octave: number, clef: string): number {",
+          "exported": true
+        },
+        {
+          "name": "noteY",
+          "line": 102,
+          "signature": "export function noteY(staffLine: number, staffTopPx: Px, sp: Px): Px {",
+          "exported": true
+        },
+        {
+          "name": "stemUp",
+          "line": 123,
+          "signature": "export function stemUp(staffLine: number, voice: number, isMultiVoice: boolean): boolean {",
+          "exported": true
+        },
+        {
+          "name": "hasStem",
+          "line": 137,
+          "signature": "export function hasStem(type: NoteheadType): boolean {",
+          "exported": true
+        },
+        {
+          "name": "layoutNote",
+          "line": 169,
+          "signature": "export function layoutNote(",
+          "exported": true
+        }
+      ],
+      "constants": [
+        {
+          "name": "NOTEHEAD_RX_SP",
+          "value": "0.59",
+          "line": 25,
+          "exported": true
+        },
+        {
+          "name": "NOTEHEAD_RY_SP",
+          "value": "0.36",
+          "line": 32,
+          "exported": true
+        },
+        {
+          "name": "CLEF_OFFSET",
+          "value": "{\n  treble:     38,   // G4 on line 2 → C4 at line 10 (below staff)\n  bass:       26,   // F3 on lin",
+          "line": 70,
+          "exported": false
+        },
+        {
+          "name": "STEP_TO_DIATONIC",
+          "value": "{\n  C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6,\n}",
+          "line": 78,
+          "exported": false
+        }
+      ],
+      "classes": [],
+      "interfaces": [
+        {
+          "name": "NoteLayout",
+          "line": 145,
+          "exported": true
+        }
+      ],
+      "type_aliases": [
+        {
+          "name": "NoteheadType",
+          "line": 133,
+          "exported": true
+        }
+      ],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 25,
+          "values": [
+            "0.59"
+          ],
+          "context": "export const NOTEHEAD_RX_SP = 0.59"
+        },
+        {
+          "line": 32,
+          "values": [
+            "0.36"
+          ],
+          "context": "export const NOTEHEAD_RY_SP = 0.36"
+        },
+        {
+          "line": 46,
+          "values": [
+            "0.65"
+          ],
+          "context": "export const DOT_DOT_DIST_SP: number = Sid.dotDotDistance     // 0.65"
+        },
+        {
+          "line": 71,
+          "values": [
+            "38"
+          ],
+          "context": "treble:     38,   // G4 on line 2 → C4 at line 10 (below staff)"
+        },
+        {
+          "line": 72,
+          "values": [
+            "26"
+          ],
+          "context": "bass:       26,   // F3 on line 6 → C4 at line -2 (above staff)"
+        },
+        {
+          "line": 74,
+          "values": [
+            "30"
+          ],
+          "context": "tenor:      30,   // C4 at line 6"
+        },
+        {
+          "line": 75,
+          "values": [
+            "38"
+          ],
+          "context": "percussion: 38,"
+        }
+      ]
+    },
+    {
+      "file": "Stem.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\engine/libmscore/Stem.ts",
+      "exists": true,
+      "line_count": 94,
+      "functions": [
+        {
+          "name": "layoutStem",
+          "line": 66,
+          "signature": "export function layoutStem(",
+          "exported": true
+        }
+      ],
+      "constants": [],
+      "classes": [],
+      "interfaces": [
+        {
+          "name": "StemLayout",
+          "line": 33,
+          "exported": true
+        }
+      ],
+      "type_aliases": [],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 21,
+          "values": [
+            "3.5"
+          ],
+          "context": "export const STEM_LENGTH_SP: number = Sid.stemLength           // 3.5"
+        },
+        {
+          "line": 27,
+          "values": [
+            "0.10"
+          ],
+          "context": "export const STEM_WIDTH_SP: number = Sid.stemWidth             // 0.10"
+        }
+      ]
+    },
+    {
+      "file": "Hook.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\engine/libmscore/Hook.ts",
+      "exists": true,
+      "line_count": 99,
+      "functions": [
+        {
+          "name": "hookGlyph",
+          "line": 44,
+          "signature": "export function hookGlyph(index: HookIndex): string | null {",
+          "exported": true
+        },
+        {
+          "name": "durationToHookIndex",
+          "line": 52,
+          "signature": "export function durationToHookIndex(type: string, stemUp: boolean): HookIndex {",
+          "exported": true
+        },
+        {
+          "name": "layoutHook",
+          "line": 85,
+          "signature": "export function layoutHook(",
+          "exported": true
+        }
+      ],
+      "constants": [
+        {
+          "name": "HOOK_GLYPH",
+          "value": "{\n  // stem-up flags (positive index)\n  1: '\\u{E240}",
+          "line": 27,
+          "exported": false
+        },
+        {
+          "name": "baseIndex",
+          "value": "{\n    'eighth': 1,\n    '16th':   2,\n    '32nd':   3,\n    '64th':   4,\n    '128th':  5,\n  }",
+          "line": 53,
+          "exported": false
+        }
+      ],
+      "classes": [],
+      "interfaces": [
+        {
+          "name": "HookLayout",
+          "line": 69,
+          "exported": true
+        }
+      ],
+      "type_aliases": [
+        {
+          "name": "HookIndex",
+          "line": 21,
+          "exported": true
+        }
+      ],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 38,
+          "values": [
+            "-3"
+          ],
+          "context": "[-3]: '\\u{E245}',  // flag32ndDown    — U+E245"
+        },
+        {
+          "line": 39,
+          "values": [
+            "-4"
+          ],
+          "context": "[-4]: '\\u{E247}',  // flag64thDown    — U+E247"
+        },
+        {
+          "line": 40,
+          "values": [
+            "-5"
+          ],
+          "context": "[-5]: '\\u{E249}',  // flag128thDown   — U+E249"
+        }
+      ]
+    },
+    {
+      "file": "LayoutBeams.ts",
+      "full_path": "C:\\Users\\DELL\\Documents\\MAP - Music Analysis Platform\\src\\renderer\\engine/layout/LayoutBeams.ts",
+      "exists": true,
+      "line_count": 254,
+      "functions": [
+        {
+          "name": "beamDistPx",
+          "line": 47,
+          "signature": "export function beamDistPx(sp: number, mag = 1.0): number {",
+          "exported": true
+        },
+        {
+          "name": "getMaxSlope",
+          "line": 109,
+          "signature": "export function getMaxSlope(startX: number, endX: number, sp: number): number {",
+          "exported": true
+        },
+        {
+          "name": "computeBeamSlope",
+          "line": 145,
+          "signature": "export function computeBeamSlope(",
+          "exported": true
+        },
+        {
+          "name": "layoutBeam",
+          "line": 190,
+          "signature": "export function layoutBeam(chords: BeamChord[], sp: number): BeamGeometry | null {",
+          "exported": true
+        },
+        {
+          "name": "secondaryBeamY",
+          "line": 245,
+          "signature": "export function secondaryBeamY(",
+          "exported": true
+        }
+      ],
+      "constants": [
+        {
+          "name": "BEAM_SPACING_QS",
+          "value": "3",
+          "line": 41,
+          "exported": true
+        },
+        {
+          "name": "MAX_SLOPES",
+          "value": "[0, 1, 2, 3, 4, 5, 6, 7]",
+          "line": 56,
+          "exported": true
+        }
+      ],
+      "classes": [],
+      "interfaces": [
+        {
+          "name": "BeamChord",
+          "line": 62,
+          "exported": true
+        },
+        {
+          "name": "BeamGeometry",
+          "line": 75,
+          "exported": true
+        }
+      ],
+      "type_aliases": [],
+      "enums": [],
+      "magic_numbers": [
+        {
+          "line": 33,
+          "values": [
+            "1.1"
+          ],
+          "context": "export const BEAM_MIN_LEN_SP: number = Sid.beamMinLen   // 1.1"
+        },
+        {
+          "line": 48,
+          "values": [
+            "4.0"
+          ],
+          "context": "return (BEAM_SPACING_QS / 4.0) * sp * mag"
+        },
+        {
+          "line": 111,
+          "values": [
+            "3.0"
+          ],
+          "context": "if (beamWidth < 3.0)  return MAX_SLOPES[1]"
+        },
+        {
+          "line": 112,
+          "values": [
+            "5.0"
+          ],
+          "context": "if (beamWidth < 5.0)  return MAX_SLOPES[2]"
+        },
+        {
+          "line": 113,
+          "values": [
+            "7.5"
+          ],
+          "context": "if (beamWidth < 7.5)  return MAX_SLOPES[3]"
+        },
+        {
+          "line": 114,
+          "values": [
+            "10.0"
+          ],
+          "context": "if (beamWidth < 10.0) return MAX_SLOPES[4]"
+        },
+        {
+          "line": 115,
+          "values": [
+            "15.0"
+          ],
+          "context": "if (beamWidth < 15.0) return MAX_SLOPES[5]"
+        },
+        {
+          "line": 116,
+          "values": [
+            "20.0"
+          ],
+          "context": "if (beamWidth < 20.0) return MAX_SLOPES[6]"
+        },
+        {
+          "line": 251,
+          "values": [
+            "778"
+          ],
+          "context": "const upValue = stemUp ? -1 : 1   // C++: beam.cpp:778 — upValue = _up ? -1 : 1"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_functions": 23,
+    "total_constants": 12,
+    "total_classes": 0,
+    "total_interfaces": 10,
+    "total_type_aliases": 2,
+    "total_enums": 0
+  }
+}
