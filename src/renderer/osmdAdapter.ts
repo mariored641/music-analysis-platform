@@ -7,9 +7,10 @@
  * buildOSMDElementMap() extracts coordinates from OSMD's GraphicSheet
  * to populate MAP's elementMap + toVrv/fromVrv ID maps.
  *
- * Note matching uses POSITIONAL matching (not ID/pitch matching) because:
- * - MAP's beat offsets (currentBeat starts at 1, backup can go negative) differ from OSMD's
- * - Both renderers produce exactly 643 non-rest notes for DONNALEE.XML in the same order
+ * Note matching uses PITCH-BASED matching: each OSMD notehead is matched
+ * to the noteMap entry with the same (measure, step, octave, staff) and
+ * closest beat value. This is robust against chord ordering differences
+ * and count mismatches between OSMD and xmlParser.
  */
 
 import { OpenSheetMusicDisplay, IOSMDOptions } from 'opensheetmusicdisplay'
@@ -19,7 +20,7 @@ import type { NoteMap } from '../types/score'
 interface VFGraphicalNote {
   sourceNote: {
     isRest: () => boolean
-    Pitch: { fundamentalNote: number; octave: number }  // fundamentalNote: 0=C..6=B (NoteEnum)
+    Pitch: { fundamentalNote: number; octave: number }  // fundamentalNote: chromatic (C=0,D=2,E=4,F=5,G=7,A=9,B=11)
     ParentStaff: { Id: number }                          // 1-based staff number
     SourceMeasure: { measureListIndex: number }          // 0-based measure index
     ParentStaffEntry: { Timestamp: { RealValue: number } }  // whole notes from measure start
@@ -98,8 +99,11 @@ function parseNoteMapId(id: string): { measure: number; beat: number; staff: num
   }
 }
 
-// OSMD NoteEnum → step letter (C=0, D=1, E=2, F=3, G=4, A=5, B=6)
-const STEP_LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
+// OSMD NoteEnum → step letter. Values are chromatic semitone offsets from C:
+// C=0, D=2, E=4, F=5, G=7, A=9, B=11 (NOT sequential 0–6)
+const NOTE_ENUM_TO_STEP: Record<number, string> = {
+  0: 'C', 2: 'D', 4: 'E', 5: 'F', 7: 'G', 9: 'A', 11: 'B',
+}
 // OSMD internal octave + OctaveXmlDiff = XML octave (middle C: OSMD oct 1, XML oct 4)
 const OCTAVE_XML_DIFF = 3
 
@@ -132,7 +136,7 @@ export function locateNoteheadInOSMD(
               if (heads[i] === svgEl) {
                 const src = gNote.sourceNote
                 const stepIdx = src.Pitch.fundamentalNote
-                const step = STEP_LETTERS[stepIdx] ?? 'C'
+                const step = NOTE_ENUM_TO_STEP[stepIdx] ?? 'C'
                 const octave = src.Pitch.octave + OCTAVE_XML_DIFF
                 const measureNum = src.SourceMeasure.measureListIndex + 1  // 0→1-based
                 const beat = 1 + (src.ParentStaffEntry.Timestamp.RealValue * 4)  // whole notes→quarter, 1-based
@@ -165,10 +169,10 @@ export function buildNoteMapIdFromOSMD(
 /**
  * Build elementMap + toVrv/fromVrv from OSMD's GraphicSheet.
  *
- * Uses POSITIONAL matching: sorts MAP noteMap IDs by (measure, beat),
- * collects OSMD non-rest notes in GraphicSheet traversal order,
- * then zips them 1:1 by index. Both sets have identical note counts
- * (643 for DONNALEE.XML) because they render the same score.
+ * Uses PITCH-BASED matching: for each OSMD notehead, extracts musical info
+ * (measure, step, octave, staff, beat) from sourceNote and looks up the
+ * corresponding noteMap ID. When multiple noteMap entries share the same
+ * pitch key (same note repeated in same measure), picks the closest beat.
  */
 export function buildOSMDElementMap(
   container: Element,
@@ -244,7 +248,7 @@ export function buildOSMDElementMap(
     elementMap.set(id, { id, measureNum: index + 1, bbox, staffBboxes })
   }
 
-  // ── 2. Build toVrv/fromVrv via POSITIONAL matching ───────────────────────
+  // ── 2. Build toVrv/fromVrv via PITCH-BASED matching ──────────────────────
   if (!osmdInstance) {
     console.warn('buildOSMDElementMap: no OSMD instance')
     return { elementMap, toVrv, fromVrv }
@@ -256,34 +260,36 @@ export function buildOSMDElementMap(
     return { elementMap, toVrv, fromVrv }
   }
 
-  // ── 2a. Sorted MAP noteMap IDs (by measure, then staff, then beat) ────
-  const sortedMapIds = [...noteMap.notes.keys()].sort((a, b) => {
-    const pa = parseNoteMapId(a)
-    const pb = parseNoteMapId(b)
-    if (pa.measure !== pb.measure) return pa.measure - pb.measure
-    if (pa.staff !== pb.staff) return pa.staff - pb.staff
-    return pa.beat - pb.beat
-  })
+  // ── 2a. Build pitch index from noteMap ────────────────────────────────
+  // Key: "m{measure}-{step}{octave}" (staff-agnostic — OSMD staff IDs don't
+  // reliably match XML <staff> numbers, so we match by pitch+measure only
+  // and use beat proximity to disambiguate repeated pitches)
+  const pitchIndex = new Map<string, string[]>()
+  for (const [id, note] of noteMap.notes) {
+    const key = `m${note.measureNum}-${note.step}${note.octave}`
+    const arr = pitchIndex.get(key)
+    if (arr) arr.push(id)
+    else pitchIndex.set(key, [id])
+  }
 
-  // ── 2b. Collect OSMD non-rest notes — treble first, then bass per measure
-  //
-  // Deduplication: some OSMD score situations (unison notes across voices,
-  // cross-staff notation, Sibelius multi-voice exports) cause the same
-  // SVG notehead element to appear multiple times in the GraphicSheet
-  // traversal. We deduplicate by element reference so each visible notehead
-  // is matched exactly once.
+  // ── 2b. Collect OSMD non-rest notes with musical info ───────────────────
   const measureList: OSMDMeasure[][] = graphic.MeasureList
-  const osmdNotes: Array<{ svgEl: SVGElement }> = []
+  interface OSMDNoteInfo {
+    svgEl: SVGElement
+    measureNum: number
+    step: string
+    octave: number
+    staff: number
+    beat: number   // 1-based quarter-note position
+  }
+  const osmdNotes: OSMDNoteInfo[] = []
   const seenSvgEls = new Set<SVGElement>()
 
-  /** Collect non-rest noteheads from a single OSMD staff measure */
+  /** Collect non-rest noteheads with sourceNote info from a single OSMD staff measure */
   function collectStaffNotes(measure: OSMDMeasure | undefined) {
     if (!measure?.staffEntries) return
     for (const staffEntry of measure.staffEntries) {
       for (const gve of staffEntry.graphicalVoiceEntries) {
-        // For chord notes, getNoteheadSVGs() returns ALL noteheads of the chord for each note.
-        // Use the note's index within the gve (chord) to select the correct notehead.
-        // Example: 4-note chord — note[0]→heads[0], note[1]→heads[1], etc.
         for (let ni = 0; ni < gve.notes.length; ni++) {
           const gNote = gve.notes[ni] as VFGraphicalNote
           if (gNote.sourceNote.isRest()) continue
@@ -291,9 +297,19 @@ export function buildOSMDElementMap(
           if (!noteheads || noteheads.length === 0) continue
           const svgEl = noteheads[Math.min(ni, noteheads.length - 1)]
           if (!(svgEl instanceof SVGElement)) continue
-          if (seenSvgEls.has(svgEl)) continue   // deduplicate true duplicates (cross-staff, unisons across voices)
+          if (seenSvgEls.has(svgEl)) continue
           seenSvgEls.add(svgEl)
-          osmdNotes.push({ svgEl })
+
+          const src = gNote.sourceNote
+          const stepIdx = src.Pitch.fundamentalNote
+          osmdNotes.push({
+            svgEl,
+            measureNum: src.SourceMeasure.measureListIndex + 1,
+            step: NOTE_ENUM_TO_STEP[stepIdx] ?? 'C',
+            octave: src.Pitch.octave + OCTAVE_XML_DIFF,
+            staff: src.ParentStaff.Id,
+            beat: 1 + (src.ParentStaffEntry.Timestamp.RealValue * 4),
+          })
         }
       }
     }
@@ -302,33 +318,67 @@ export function buildOSMDElementMap(
   for (let mi = 0; mi < measureList.length; mi++) {
     const measureRow = measureList[mi]
     if (!measureRow || measureRow.length === 0) continue
-    // Staff 0 (treble) first, then staff 1 (bass) — matching noteMap sort order
     collectStaffNotes(measureRow[0])
     if (measureRow.length > 1) collectStaffNotes(measureRow[1])
   }
 
-  // ── 2c. Zip by position ──────────────────────────────────────────────────
-  const minLen = Math.min(sortedMapIds.length, osmdNotes.length)
+  // ── 2c. Match by pitch key + closest beat ───────────────────────────────
+  const usedNoteMapIds = new Set<string>()
+  let matched = 0
+  let unmatched = 0
 
-  for (let i = 0; i < minLen; i++) {
-    const noteMapId = sortedMapIds[i]
-    const { svgEl } = osmdNotes[i]
+  for (let i = 0; i < osmdNotes.length; i++) {
+    const info = osmdNotes[i]
+    const pitchKey = `m${info.measureNum}-${info.step}${info.octave}`
 
-    // Stamp stable IDs on the SVG notehead element
+    const candidates = pitchIndex.get(pitchKey)
+    if (!candidates || candidates.length === 0) {
+      unmatched++
+      continue
+    }
+
+    // Pick the candidate with closest beat, preferring same-staff matches.
+    // Staff penalty ensures that when a pitch exists on both staves,
+    // we match treble→treble and bass→bass first. Cross-staff matches
+    // are still possible when OSMD staff IDs don't match XML <staff>.
+    const osBeat = Math.round(info.beat * 100)
+    const STAFF_PENALTY = 10000  // large enough to always prefer same-staff
+    let bestId: string | null = null
+    let bestScore = Infinity
+    for (const id of candidates) {
+      if (usedNoteMapIds.has(id)) continue
+      const parsed = parseNoteMapId(id)
+      const beatDist = Math.abs(parsed.beat - osBeat)
+      // Check if noteMap staff matches OSMD staff
+      const noteStaff = parsed.staff
+      const staffMismatch = noteStaff !== info.staff ? STAFF_PENALTY : 0
+      const score = beatDist + staffMismatch
+      if (score < bestScore) {
+        bestScore = score
+        bestId = id
+      }
+    }
+
+    if (!bestId) {
+      unmatched++
+      continue
+    }
+
+    usedNoteMapIds.add(bestId)
+
     const svgId = `osmd-${i}`
-    svgEl.id = svgId
-    svgEl.setAttribute('data-notemap-id', noteMapId)
-    svgEl.classList.add('note')
+    info.svgEl.id = svgId
+    info.svgEl.setAttribute('data-notemap-id', bestId)
+    info.svgEl.classList.add('note')
 
-    toVrv.set(noteMapId, svgId)
-    fromVrv.set(svgId, noteMapId)
+    toVrv.set(bestId, svgId)
+    fromVrv.set(svgId, bestId)
+    matched++
   }
 
   console.log(
-    `buildOSMDElementMap: ${elementMap.size} measures, ${minLen} notes matched` +
-    (sortedMapIds.length !== osmdNotes.length
-      ? ` (MAP=${sortedMapIds.length} OSMD=${osmdNotes.length} — mismatch!)`
-      : ''),
+    `buildOSMDElementMap: ${elementMap.size} measures, ${matched} notes matched` +
+    (unmatched > 0 ? ` (${unmatched} OSMD notes unmatched)` : ''),
   )
 
   return { elementMap, toVrv, fromVrv }

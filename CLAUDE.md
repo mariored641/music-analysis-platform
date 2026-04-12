@@ -53,7 +53,7 @@ Three-panel fixed layout:
 import { renderWithOSMD, buildOSMDElementMap, locateNoteheadInOSMD, buildNoteMapIdFromOSMD } from '../../renderer/osmdAdapter'
 ```
 
-**OSMD element mapping:** `buildOSMDElementMap(container, noteMap)` — positional matching (sort noteMap IDs by measure+beat, traverse GraphicSheet, zip 1:1). Stamps `id=osmd-N`, `data-notemap-id`, `.note` class on each notehead SVG.
+**OSMD element mapping:** `buildOSMDElementMap(container, noteMap)` — pitch-based matching (for each OSMD notehead, extract measure+step+octave from sourceNote, look up in noteMap by pitch key, pick closest beat). Stamps `id=osmd-N`, `data-notemap-id`, `.note` class on each notehead SVG. **OSMD NoteEnum uses chromatic values** (C=0, D=2, E=4, F=5, G=7, A=9, B=11), mapped via `NOTE_ENUM_TO_STEP`.
 
 **CSS selectors (OSMD):** `g.vf-measure` (measures), `g.vf-notehead` (note heads) — VexFlow-prefixed classes.
 
