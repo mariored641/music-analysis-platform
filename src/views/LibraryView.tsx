@@ -11,6 +11,34 @@ import { LibraryCard } from '../components/library/LibraryCard'
 import i18n from '../i18n/index'
 import './LibraryView.css'
 
+// Extract XML string from an MXL (compressed MusicXML) file using JSZip (bundled with OSMD)
+async function extractXmlFromMxl(arrayBuffer: ArrayBuffer): Promise<string> {
+  const JSZip = (await import('jszip')).default
+  const zip = await JSZip.loadAsync(arrayBuffer)
+
+  // MXL spec: META-INF/container.xml lists the rootfile path
+  const containerFile = zip.file('META-INF/container.xml')
+  if (!containerFile) throw new Error('Invalid MXL: missing META-INF/container.xml')
+
+  const containerXml = await containerFile.async('string')
+  const match = containerXml.match(/full-path="([^"]+\.xml)"/i)
+  if (!match) throw new Error('Invalid MXL: cannot find rootfile in container.xml')
+
+  const rootFile = zip.file(match[1])
+  if (!rootFile) throw new Error(`Invalid MXL: rootfile "${match[1]}" not found in archive`)
+
+  return rootFile.async('string')
+}
+
+// Read a music file (XML or MXL) and return the XML string
+async function readMusicFile(file: File): Promise<string> {
+  if (file.name.toLowerCase().endsWith('.mxl')) {
+    const buf = await file.arrayBuffer()
+    return extractXmlFromMxl(buf)
+  }
+  return file.text()
+}
+
 type SortKey = 'title' | 'composer' | 'genre' | 'lastModified' | 'lastOpened' | 'dateAdded'
 
 interface MetaFormState {
@@ -69,7 +97,7 @@ export function LibraryView() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    const text = await file.text()
+    const text = await readMusicFile(file)
     const noteMap = parseMusicXml(text)
     setPendingXml(text)
     setPendingFileName(file.name)
@@ -219,7 +247,7 @@ export function LibraryView() {
         <input
           ref={fileInputRef}
           type="file"
-          accept=".xml,.musicxml"
+          accept=".xml,.musicxml,.mxl"
           style={{ display: 'none' }}
           onChange={handleFileChange}
         />
