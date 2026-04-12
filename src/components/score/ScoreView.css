@@ -93,3 +93,42 @@
 .btn-open-score:hover {
   background: rgba(124, 106, 247, 0.1);
 }
+
+/* Hover — gold (NoghenMadid style) */
+.vrv-svg g.note:hover .notehead use,
+.vrv-svg g.note:hover .notehead path,
+.vrv-svg g.note:hover .notehead text {
+  fill: gold;
+  stroke: gold;
+  stroke-opacity: 0.5;
+  paint-order: stroke;
+  cursor: pointer;
+}
+
+/* Selected note — pink highlight (NoghenMadid style) */
+.vrv-svg g.note.selected-note .notehead use,
+.vrv-svg g.note.selected-note .notehead path,
+.vrv-svg g.note.selected-note .notehead text {
+  fill: pink !important;
+  stroke: pink !important;
+  stroke-opacity: 0.5;
+  paint-order: stroke;
+}
+
+/* OSMD: selected-note on vf-notehead group → styles child path */
+.vrv-svg .selected-note path {
+  fill: pink;
+  stroke-opacity: 50%;
+  stroke: pink;
+  paint-order: stroke;
+}
+
+/* OSMD: hover on mapped noteheads only (rests also render as g.vf-notehead but aren't clickable) */
+.vrv-svg g.vf-notehead[data-notemap-id]:hover path,
+.vrv-svg g.vf-notehead.note:hover path {
+  fill: gold;
+  stroke-opacity: 50%;
+  stroke: gold;
+  paint-order: stroke;
+  cursor: pointer;
+}

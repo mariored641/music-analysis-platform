@@ -19,6 +19,10 @@ import type { NoteMap } from '../types/score'
 interface VFGraphicalNote {
   sourceNote: {
     isRest: () => boolean
+    Pitch: { fundamentalNote: number; octave: number }  // fundamentalNote: 0=C..6=B (NoteEnum)
+    ParentStaff: { Id: number }                          // 1-based staff number
+    SourceMeasure: { measureListIndex: number }          // 0-based measure index
+    ParentStaffEntry: { Timestamp: { RealValue: number } }  // whole notes from measure start
   }
   getNoteheadSVGs: () => SVGElement[]
 }
@@ -80,15 +84,82 @@ export async function renderWithOSMD(
 }
 
 /**
- * Parse a noteMapId like "note-m3b-100-G5" → { measure: 3, beat: -100 }
- * Used for sorting MAP notes into score order.
+ * Parse a noteMapId like "note-m3b-100-G5" or "note-m3b100-C3-s2"
+ * → { measure: 3, beat: -100, staff: 1 } or { measure: 3, beat: 100, staff: 2 }
  */
-function parseNoteMapId(id: string): { measure: number; beat: number } {
-  // Format: note-m{M}b{B}-{Step}{Octave}
-  // B can be negative, e.g. "note-m3b-100-G5"
+function parseNoteMapId(id: string): { measure: number; beat: number; staff: number } {
   const m = id.match(/^note-m(\d+)b(-?\d+)-/)
-  if (!m) return { measure: 0, beat: 0 }
-  return { measure: parseInt(m[1], 10), beat: parseInt(m[2], 10) }
+  if (!m) return { measure: 0, beat: 0, staff: 1 }
+  const staffMatch = id.match(/-s(\d+)$/)
+  return {
+    measure: parseInt(m[1], 10),
+    beat: parseInt(m[2], 10),
+    staff: staffMatch ? parseInt(staffMatch[1], 10) : 1,
+  }
+}
+
+// OSMD NoteEnum → step letter (C=0, D=1, E=2, F=3, G=4, A=5, B=6)
+const STEP_LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
+// OSMD internal octave + OctaveXmlDiff = XML octave (middle C: OSMD oct 1, XML oct 4)
+const OCTAVE_XML_DIFF = 3
+
+/**
+ * Reverse-lookup: find a clicked SVG notehead in OSMD's GraphicSheet.
+ * Returns musical info needed to construct a noteMap ID, or null if not found.
+ */
+export function locateNoteheadInOSMD(
+  svgEl: SVGElement,
+): { measureNum: number; beat: number; step: string; octave: number; staff: number } | null {
+  if (!osmdInstance) return null
+
+  const graphic = (osmdInstance as any).GraphicSheet
+  if (!graphic?.MeasureList) return null
+
+  const measureList: OSMDMeasure[][] = graphic.MeasureList
+
+  for (const measureRow of measureList) {
+    if (!measureRow) continue
+    for (const measure of measureRow) {
+      if (!measure?.staffEntries) continue
+      for (const staffEntry of measure.staffEntries) {
+        for (const gve of staffEntry.graphicalVoiceEntries) {
+          for (const gNote of gve.notes as VFGraphicalNote[]) {
+            if (gNote.sourceNote.isRest()) continue
+            const heads = gNote.getNoteheadSVGs()
+            if (!heads || heads.length === 0) continue
+            for (let i = 0; i < heads.length; i++) {
+              if (!(heads[i] instanceof SVGElement)) continue
+              if (heads[i] === svgEl) {
+                const src = gNote.sourceNote
+                const stepIdx = src.Pitch.fundamentalNote
+                const step = STEP_LETTERS[stepIdx] ?? 'C'
+                const octave = src.Pitch.octave + OCTAVE_XML_DIFF
+                const measureNum = src.SourceMeasure.measureListIndex + 1  // 0→1-based
+                const beat = 1 + (src.ParentStaffEntry.Timestamp.RealValue * 4)  // whole notes→quarter, 1-based
+                const staff = src.ParentStaff.Id
+                return { measureNum, beat, step, octave, staff }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return null
+}
+
+/**
+ * Construct a noteMap ID from OSMD musical info.
+ * Format matches xmlParser.ts: note-m{N}b{beat*100}-{Step}{Oct}[-s{staff}]
+ */
+export function buildNoteMapIdFromOSMD(
+  info: { measureNum: number; beat: number; step: string; octave: number; staff: number },
+): string {
+  const beatEncoded = Math.round(info.beat * 100)
+  if (info.staff === 1) {
+    return `note-m${info.measureNum}b${beatEncoded}-${info.step}${info.octave}`
+  }
+  return `note-m${info.measureNum}b${beatEncoded}-${info.step}${info.octave}-s${info.staff}`
 }
 
 /**
@@ -113,43 +184,65 @@ export function buildOSMDElementMap(
 
   const containerRect = container.getBoundingClientRect()
 
-  // ── 1. Build elementMap from SVG DOM (treble staff only) ─────────────────
+  // ── 1. Build elementMap from SVG DOM (both staves) ───────────────────────
   //
   // OSMD renders 2 × vf-measure per musical measure (treble + bass).
-  // Treble stafflines have IDs ending in "-1" (e.g. "vexflow-renderer-1").
-  // We filter to those to get exactly 100 measure entries for DONNALEE.XML.
+  // Treble stafflines have IDs ending in "-1", bass in "-2".
+  // We pair them by index to produce one elementMap entry per musical measure
+  // with staffBboxes = [trebleBbox, bassBbox].
   //
   const allMeasureEls = Array.from(container.querySelectorAll('g.vf-measure'))
 
-  // Filter to treble staff: parent staffline ID ends with "-1"
-  const trebleMeasureEls = allMeasureEls.filter(el => {
-    const stafflineEl = el.parentElement
-    if (!stafflineEl) return false
-    const id = stafflineEl.id ?? ''
-    return id.endsWith('-1')
-  })
+  const trebleMeasureEls: Element[] = []
+  const bassMeasureEls: Element[] = []
+  for (const el of allMeasureEls) {
+    const parentId = el.parentElement?.id ?? ''
+    if (parentId.endsWith('-1')) trebleMeasureEls.push(el)
+    else if (parentId.endsWith('-2')) bassMeasureEls.push(el)
+  }
 
-  // Fallback: if filtering yielded nothing (single-staff score), use all
-  const measureEls = trebleMeasureEls.length > 0 ? trebleMeasureEls : allMeasureEls
+  // Single-staff fallback: no staffline IDs or no bass → use all measures as treble-only
+  const hasBassStaff = bassMeasureEls.length > 0
+  const effectiveTreble = trebleMeasureEls.length > 0 ? trebleMeasureEls : allMeasureEls
+  const measureCount = effectiveTreble.length
 
-  measureEls.forEach((el, index) => {
-    const absBox = el.getBoundingClientRect()
-    if (absBox.width === 0) return
+  for (let index = 0; index < measureCount; index++) {
+    const trebleEl = effectiveTreble[index]
+    const trebleBox = trebleEl.getBoundingClientRect()
+    if (trebleBox.width === 0) continue
 
-    const bbox = new DOMRect(
-      absBox.left - containerRect.left,
-      absBox.top - containerRect.top,
-      absBox.width,
-      absBox.height,
+    const tBbox = new DOMRect(
+      trebleBox.left - containerRect.left,
+      trebleBox.top - containerRect.top,
+      trebleBox.width,
+      trebleBox.height,
     )
 
-    // staffBboxes: use the measure bbox itself (OSMD doesn't expose separate staffline
-    // bboxes per measure in the DOM — the .staffline wraps the whole system row)
-    const staffBboxes = [bbox]
+    const staffBboxes: DOMRect[] = [tBbox]
+
+    if (hasBassStaff && index < bassMeasureEls.length) {
+      const bassBox = bassMeasureEls[index].getBoundingClientRect()
+      if (bassBox.width > 0) {
+        const bBbox = new DOMRect(
+          bassBox.left - containerRect.left,
+          bassBox.top - containerRect.top,
+          bassBox.width,
+          bassBox.height,
+        )
+        staffBboxes.push(bBbox)
+      }
+    }
+
+    // Union bbox encompassing all staves
+    const allLeft = Math.min(...staffBboxes.map(b => b.left))
+    const allTop = Math.min(...staffBboxes.map(b => b.top))
+    const allRight = Math.max(...staffBboxes.map(b => b.right))
+    const allBottom = Math.max(...staffBboxes.map(b => b.bottom))
+    const bbox = new DOMRect(allLeft, allTop, allRight - allLeft, allBottom - allTop)
 
     const id = `measure-${index}`
     elementMap.set(id, { id, measureNum: index + 1, bbox, staffBboxes })
-  })
+  }
 
   // ── 2. Build toVrv/fromVrv via POSITIONAL matching ───────────────────────
   if (!osmdInstance) {
@@ -163,41 +256,55 @@ export function buildOSMDElementMap(
     return { elementMap, toVrv, fromVrv }
   }
 
-  // ── 2a. Sorted MAP noteMap IDs ───────────────────────────────────────────
+  // ── 2a. Sorted MAP noteMap IDs (by measure, then staff, then beat) ────
   const sortedMapIds = [...noteMap.notes.keys()].sort((a, b) => {
     const pa = parseNoteMapId(a)
     const pb = parseNoteMapId(b)
     if (pa.measure !== pb.measure) return pa.measure - pb.measure
+    if (pa.staff !== pb.staff) return pa.staff - pb.staff
     return pa.beat - pb.beat
   })
 
-  // ── 2b. Collect OSMD non-rest notes in traversal order ──────────────────
+  // ── 2b. Collect OSMD non-rest notes — treble first, then bass per measure
+  //
+  // Deduplication: some OSMD score situations (unison notes across voices,
+  // cross-staff notation, Sibelius multi-voice exports) cause the same
+  // SVG notehead element to appear multiple times in the GraphicSheet
+  // traversal. We deduplicate by element reference so each visible notehead
+  // is matched exactly once.
   const measureList: OSMDMeasure[][] = graphic.MeasureList
   const osmdNotes: Array<{ svgEl: SVGElement }> = []
+  const seenSvgEls = new Set<SVGElement>()
 
-  for (let mi = 0; mi < measureList.length; mi++) {
-    const measureRow = measureList[mi]
-    if (!measureRow || measureRow.length === 0) continue
-
-    // Staff 0 only (treble) — matches MAP's staff-1 filter in xmlParser
-    const measure = measureRow[0]
-    if (!measure?.staffEntries) continue
-
+  /** Collect non-rest noteheads from a single OSMD staff measure */
+  function collectStaffNotes(measure: OSMDMeasure | undefined) {
+    if (!measure?.staffEntries) return
     for (const staffEntry of measure.staffEntries) {
       for (const gve of staffEntry.graphicalVoiceEntries) {
-        for (const gNote of gve.notes as VFGraphicalNote[]) {
+        // For chord notes, getNoteheadSVGs() returns ALL noteheads of the chord for each note.
+        // Use the note's index within the gve (chord) to select the correct notehead.
+        // Example: 4-note chord — note[0]→heads[0], note[1]→heads[1], etc.
+        for (let ni = 0; ni < gve.notes.length; ni++) {
+          const gNote = gve.notes[ni] as VFGraphicalNote
           if (gNote.sourceNote.isRest()) continue
-
           const noteheads = gNote.getNoteheadSVGs()
           if (!noteheads || noteheads.length === 0) continue
-
-          const svgEl = noteheads[0]
+          const svgEl = noteheads[Math.min(ni, noteheads.length - 1)]
           if (!(svgEl instanceof SVGElement)) continue
-
+          if (seenSvgEls.has(svgEl)) continue   // deduplicate true duplicates (cross-staff, unisons across voices)
+          seenSvgEls.add(svgEl)
           osmdNotes.push({ svgEl })
         }
       }
     }
+  }
+
+  for (let mi = 0; mi < measureList.length; mi++) {
+    const measureRow = measureList[mi]
+    if (!measureRow || measureRow.length === 0) continue
+    // Staff 0 (treble) first, then staff 1 (bass) — matching noteMap sort order
+    collectStaffNotes(measureRow[0])
+    if (measureRow.length > 1) collectStaffNotes(measureRow[1])
   }
 
   // ── 2c. Zip by position ──────────────────────────────────────────────────

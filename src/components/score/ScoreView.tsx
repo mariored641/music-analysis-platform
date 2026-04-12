@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { parseMusicXml, parseHarmonies, type HarmonyItem } from '../../services/xmlParser'
 import { saveFile, loadFile } from '../../services/storageService'
 import { renderScore } from '../../renderer/index'
-import { renderWithOSMD, buildOSMDElementMap } from '../../renderer/osmdAdapter'
+import { renderWithOSMD, buildOSMDElementMap, locateNoteheadInOSMD, buildNoteMapIdFromOSMD } from '../../renderer/osmdAdapter'
 import { AnnotationOverlay } from './AnnotationOverlay'
 import { HarmonyOverlay } from './HarmonyOverlay'
 import { FormalStrip } from './FormalStrip'
@@ -24,7 +24,7 @@ const useOSMDRenderer = new URLSearchParams(window.location.search).get('rendere
 
 // Renderer-agnostic CSS selectors — OSMD uses vf-* prefixed VexFlow classes
 const SEL_MEASURE = useOSMDRenderer ? 'g.vf-measure' : 'g.measure'
-const SEL_NOTE = useOSMDRenderer ? '.note' : 'g.note'
+const SEL_NOTE = useOSMDRenderer ? 'g.vf-notehead' : 'g.note'
 
 // Decompress MXL (zipped MusicXML) to XML string
 async function extractXmlFromFile(file: File): Promise<string> {
@@ -325,9 +325,10 @@ export function ScoreView() {
       renderWithOSMD(xml, container)
         .then(() => {
           if (key !== renderKeyRef.current) return
-          // OSMD rendered into container directly — no svgContent needed
-          // Set a sentinel value so the elementMap effect fires
-          setSvgContent('__osmd__')
+          // OSMD rendered into container directly — no svgContent needed.
+          // Use a unique sentinel per render so the elementMap effect always fires,
+          // even when two different pieces are loaded back-to-back.
+          setSvgContent(`__osmd__${key}`)
           setRendering(false)
         })
         .catch((e: any) => {
@@ -543,13 +544,33 @@ export function ScoreView() {
 
     container.querySelectorAll(SEL_NOTE).forEach(noteEl => {
       const bbox = noteEl.getBoundingClientRect()
-      if (lassoIntersects(bbox, lassoRect) && noteEl.id) {
-        // Translate Verovio ID → noteMap ID (stable, renderer-agnostic)
-        hitNoteIds.push(fromVrvRef.current.get(noteEl.id) ?? noteEl.id)
+      // For OSMD: read stable noteMapId directly from data-notemap-id attribute.
+      // Falls back to reverse-lookup via GraphicSheet for unstamped noteheads.
+      // For native renderer: translate via fromVrv map.
+      let nmId: string | null | undefined = useOSMDRenderer
+        ? noteEl.getAttribute('data-notemap-id')
+        : (fromVrvRef.current.get(noteEl.id) ?? noteEl.id)
+      if (!nmId && useOSMDRenderer) {
+        const info = locateNoteheadInOSMD(noteEl as SVGElement)
+        if (info) {
+          const candidateId = buildNoteMapIdFromOSMD(info)
+          if (noteMap?.notes.has(candidateId)) {
+            nmId = candidateId
+            noteEl.setAttribute('data-notemap-id', candidateId)
+          }
+        }
+      }
+      if (!lassoIntersects(bbox, lassoRect) || !nmId) return
+      hitNoteIds.push(nmId)
+      // Measure number from noteMapId (e.g. "note-m5b300-E4" → 5) for OSMD grand staff,
+      // where DOM has 2× g.vf-measure elements (treble + bass).
+      const mMatch = nmId.match(/^note-m(\d+)/)
+      const measureNum = mMatch ? parseInt(mMatch[1], 10) : (() => {
         const measureEl = noteEl.closest(SEL_MEASURE)
         const idx = measureEl ? allMeasures.indexOf(measureEl) : -1
-        if (idx >= 0) hitMeasureNums.push(idx + 1)
-      }
+        return idx >= 0 ? idx + 1 : 1
+      })()
+      hitMeasureNums.push(measureNum)
     })
 
     if (hitNoteIds.length > 0) {
@@ -584,8 +605,18 @@ export function ScoreView() {
   const handleScoreClick = useCallback((e: React.MouseEvent) => {
     if (didDragRef.current) return
 
-    // Helper to get measure number from an element
+    // Helper to get measure number from an element.
+    // For OSMD grand staff, document has 2× g.vf-measure (treble + bass),
+    // so DOM index for bass = 100–199 for a 100-measure score. Instead, read
+    // the measure number from the noteMapId when available.
     const getMeasureNum = (el: Element): number => {
+      if (useOSMDRenderer) {
+        const nmId = fromVrvRef.current.get(el.id)
+        if (nmId) {
+          const m = nmId.match(/^note-m(\d+)/)
+          if (m) return parseInt(m[1], 10)
+        }
+      }
       const allMeasures = Array.from(document.querySelectorAll(SEL_MEASURE))
       const measureEl = el.closest(SEL_MEASURE) as Element | null
       const idx = measureEl ? allMeasures.indexOf(measureEl) : -1
@@ -602,8 +633,26 @@ export function ScoreView() {
     // Note click — Ctrl toggles, plain click replaces, no context menu
     const noteEl = (e.target as Element).closest?.(SEL_NOTE) as SVGGElement | null
     if (noteEl && !e.shiftKey) {
+      // For OSMD: read noteMapId from data-notemap-id stamped by buildOSMDElementMap.
+      // Falls back to fromVrv for native renderer. If no noteMapId found, try reverse-lookup
+      // through OSMD's GraphicSheet (catches notes missed by the positional zip).
+      let noteMapId: string | null | undefined = useOSMDRenderer
+        ? (noteEl.getAttribute('data-notemap-id') ?? fromVrvRef.current.get(noteEl.id))
+        : (fromVrvRef.current.get(noteEl.id) ?? noteEl.id)
+      if (!noteMapId && useOSMDRenderer) {
+        const info = locateNoteheadInOSMD(noteEl)
+        if (info) {
+          const candidateId = buildNoteMapIdFromOSMD(info)
+          if (noteMap?.notes.has(candidateId)) {
+            noteMapId = candidateId
+            noteEl.setAttribute('data-notemap-id', candidateId)  // stamp for future fast-path
+          }
+        }
+      }
+      if (!noteMapId) {
+        // Unmatched notehead (rest, grace note, etc.) — treat as empty-space click
+      } else {
       const measureNum = getMeasureNum(noteEl)
-      const noteMapId = fromVrvRef.current.get(noteEl.id) ?? noteEl.id
 
       if (e.ctrlKey) {
         // Ctrl+click: toggle note in/out of selection
@@ -628,6 +677,7 @@ export function ScoreView() {
 
       setSelection({ type: 'note', measureStart: measureNum, measureEnd: measureNum, noteIds: [noteMapId], anchorMeasure: measureNum, anchorNoteId: noteMapId })
       return
+      } // end else (matched notehead)
     }
 
     // SVG element (dynamics, articulation, hairpin, etc.) → color picker
