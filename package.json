@@ -29,6 +29,8 @@
     "i18next": "^25.0.0",
     "idb": "^8.0.3",
     "immer": "^11.1.4",
+    "jszip": "^3.10.1",
+    "opensheetmusicdisplay": "^1.9.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-i18next": "^16.0.0",
