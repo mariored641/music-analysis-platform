@@ -15,12 +15,12 @@ import { AnnotationOverlay } from './AnnotationOverlay'
 import { HarmonyOverlay } from './HarmonyOverlay'
 import { FormalStrip } from './FormalStrip'
 import { FreehandCanvas } from './FreehandCanvas'
-import { SelectionOverlay } from './SelectionOverlay'
+import type { NoteMap } from '../../types/score'
 import { ContextMenu } from '../menus/ContextMenu'
 import './ScoreView.css'
 
-// Check URL param for renderer switching: ?renderer=osmd
-const useOSMDRenderer = new URLSearchParams(window.location.search).get('renderer') === 'osmd'
+// OSMD is the default renderer. Use ?renderer=native to force the native renderer.
+const useOSMDRenderer = new URLSearchParams(window.location.search).get('renderer') !== 'native'
 
 // Renderer-agnostic CSS selectors — OSMD uses vf-* prefixed VexFlow classes
 const SEL_MEASURE = useOSMDRenderer ? 'g.vf-measure' : 'g.measure'
@@ -111,6 +111,15 @@ function findMeasureAtPoint(
     }
   }
   return null
+}
+
+// Get all noteMap IDs in a measure range (for converting measure clicks → note selection)
+function getNoteIdsInRange(noteMap: NoteMap | null, start: number, end: number): string[] {
+  if (!noteMap) return []
+  return Array.from(noteMap.notes.values())
+    .filter(n => n.measureNum >= start && n.measureNum <= end && n.step !== 'R')
+    .sort((a, b) => a.measureNum - b.measureNum || a.beat - b.beat)
+    .map(n => n.id)
 }
 
 function lassoIntersects(
@@ -243,7 +252,7 @@ function clearNoteColors(container: Element) {
 export function ScoreView() {
   const { t } = useTranslation()
   const { xmlString, metadata } = useScoreStore()
-  const { selection, setSelection, showContextMenu, hideContextMenu } = useSelectionStore()
+  const { selection, setSelection, clearSelection, showContextMenu, hideContextMenu } = useSelectionStore()
   const scrollToMeasure = useSelectionStore(s => s.scrollToMeasure)
   const setScrollToMeasure = useSelectionStore(s => s.setScrollToMeasure)
   const visible = useLayerStore(s => s.visible)
@@ -399,6 +408,19 @@ export function ScoreView() {
     })
   }, [svgContent, noteMap]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Sync selection → CSS classes on SVG note elements (NoghenMadid-style pink highlight)
+  useEffect(() => {
+    const container = scoreRef.current?.querySelector('.vrv-svg')
+    if (!container) return
+    container.querySelectorAll('.selected-note').forEach(el => el.classList.remove('selected-note'))
+    if (!selection?.noteIds?.length) return
+    for (const noteId of selection.noteIds) {
+      const vrvId = toVrv.get(noteId) ?? noteId
+      const el = document.getElementById(vrvId)
+      if (el) el.classList.add('selected-note')
+    }
+  }, [selection, toVrv])
+
   // Reapply note colors + svg element colors when layer/annotations change
   useEffect(() => {
     if (!scoreRef.current) return
@@ -533,13 +555,21 @@ export function ScoreView() {
     if (hitNoteIds.length > 0) {
       const minM = Math.min(...hitMeasureNums)
       const maxM = Math.max(...hitMeasureNums)
-      setSelection({ type: 'notes', measureStart: minM, measureEnd: maxM, noteIds: hitNoteIds, anchorMeasure: minM })
-      showContextMenu(drag.currentX, drag.currentY)
-    } else {
+      // Ctrl+lasso: merge with existing selection
+      if (e.ctrlKey) {
+        const current = useSelectionStore.getState().selection
+        const existingIds = current?.noteIds ?? []
+        const merged = [...existingIds, ...hitNoteIds.filter(id => !existingIds.includes(id))]
+        const allMNums = [...(current ? [current.measureStart, current.measureEnd] : []), minM, maxM]
+        setSelection({ type: 'notes', measureStart: Math.min(...allMNums), measureEnd: Math.max(...allMNums), noteIds: merged, anchorMeasure: Math.min(...allMNums) })
+      } else {
+        setSelection({ type: 'notes', measureStart: minM, measureEnd: maxM, noteIds: hitNoteIds, anchorMeasure: minM })
+      }
+    } else if (!e.ctrlKey) {
       setSelection(null)
       hideContextMenu()
     }
-  }, [setSelection, showContextMenu, hideContextMenu])
+  }, [setSelection, hideContextMenu])
 
   const handleMouseLeave = useCallback(() => {
     dragStartRef.current = null
@@ -554,36 +584,54 @@ export function ScoreView() {
   const handleScoreClick = useCallback((e: React.MouseEvent) => {
     if (didDragRef.current) return
 
+    // Helper to get measure number from an element
+    const getMeasureNum = (el: Element): number => {
+      const allMeasures = Array.from(document.querySelectorAll(SEL_MEASURE))
+      const measureEl = el.closest(SEL_MEASURE) as Element | null
+      const idx = measureEl ? allMeasures.indexOf(measureEl) : -1
+      return idx >= 0 ? idx + 1 : 1
+    }
+
     // Harmony/chord symbol click (native renderer: <text class="harmony">)
     const harmEl = (e.target as Element).closest?.('text.harmony') as SVGTextElement | null
-    if (harmEl && !e.shiftKey) {
-      const allMeasures = Array.from(document.querySelectorAll(SEL_MEASURE))
-      const measureEl = harmEl.closest(SEL_MEASURE) as Element | null
-      const measureIndex = measureEl ? allMeasures.indexOf(measureEl) : -1
-      const measureNum = measureIndex >= 0 ? measureIndex + 1 : 1
-      setSelection({ type: 'note', measureStart: measureNum, measureEnd: measureNum, noteIds: [harmEl.id], anchorMeasure: measureNum })
-      showContextMenu(e.clientX, e.clientY)
+    if (harmEl && !e.shiftKey && !e.ctrlKey) {
+      setSelection({ type: 'note', measureStart: getMeasureNum(harmEl), measureEnd: getMeasureNum(harmEl), noteIds: [harmEl.id], anchorMeasure: getMeasureNum(harmEl) })
       return
     }
 
-    // Note click
+    // Note click — Ctrl toggles, plain click replaces, no context menu
     const noteEl = (e.target as Element).closest?.(SEL_NOTE) as SVGGElement | null
     if (noteEl && !e.shiftKey) {
-      const allMeasures = Array.from(document.querySelectorAll(SEL_MEASURE))
-      const measureEl = noteEl.closest(SEL_MEASURE) as Element | null
-      const measureIndex = measureEl ? allMeasures.indexOf(measureEl) : -1
-      const measureNum = measureIndex >= 0 ? measureIndex + 1 : 1
-      // Translate Verovio ID → noteMap ID
+      const measureNum = getMeasureNum(noteEl)
       const noteMapId = fromVrvRef.current.get(noteEl.id) ?? noteEl.id
+
+      if (e.ctrlKey) {
+        // Ctrl+click: toggle note in/out of selection
+        const current = useSelectionStore.getState().selection
+        const existingIds = current?.noteIds ?? []
+        if (existingIds.includes(noteMapId)) {
+          const newIds = existingIds.filter(id => id !== noteMapId)
+          if (newIds.length === 0) { clearSelection(); return }
+          const measures = newIds.map(id => {
+            const n = noteMap?.notes.get(id); return n ? n.measureNum : measureNum
+          })
+          setSelection({ type: newIds.length === 1 ? 'note' : 'notes', measureStart: Math.min(...measures), measureEnd: Math.max(...measures), noteIds: newIds, anchorMeasure: Math.min(...measures) })
+        } else {
+          const merged = [...existingIds, noteMapId]
+          const measures = merged.map(id => {
+            const n = noteMap?.notes.get(id); return n ? n.measureNum : measureNum
+          })
+          setSelection({ type: 'notes', measureStart: Math.min(...measures), measureEnd: Math.max(...measures), noteIds: merged, anchorMeasure: Math.min(...measures) })
+        }
+        return
+      }
+
       setSelection({ type: 'note', measureStart: measureNum, measureEnd: measureNum, noteIds: [noteMapId], anchorMeasure: measureNum, anchorNoteId: noteMapId })
-      showContextMenu(e.clientX, e.clientY)
       return
     }
 
     // SVG element (dynamics, articulation, hairpin, etc.) → color picker
-    // Runs AFTER note/harmony checks. Proximity-based (SVG_HIT_PADDING px) so thin
-    // elements like hairpins are easy to hit. Notes/measures take priority.
-    if (!e.shiftKey && scoreRef.current) {
+    if (!e.shiftKey && !e.ctrlKey && scoreRef.current) {
       const vrvContainer = scoreRef.current.querySelector('.vrv-svg')
       if (vrvContainer) {
         const svgColorEl = findNearbyColorableElement(e.clientX, e.clientY, vrvContainer)
@@ -601,37 +649,56 @@ export function ScoreView() {
     }
 
     const cRect = scoreRef.current?.getBoundingClientRect()
-    if (!cRect) { hideContextMenu(); setSelection(null); return }
+    if (!cRect) { hideContextMenu(); clearSelection(); return }
     const hit = findMeasureAtPoint(e.clientX, e.clientY, elementMap, cRect)
     if (!hit) {
       hideContextMenu()
-      setSelection(null)
+      clearSelection()
       return
     }
-    const { measureNum, staffIndex } = hit
+    const { measureNum } = hit
 
+    // Shift+click: extend note range from anchor to clicked measure
     if (e.shiftKey && selection) {
       const anchor = selection.anchorMeasure ?? selection.measureStart
       const minM = Math.min(anchor, measureNum)
       const maxM = Math.max(anchor, measureNum)
-      setSelection({ type: 'measures', measureStart: minM, measureEnd: maxM, noteIds: [], anchorMeasure: anchor, staffIndex: selection.staffIndex ?? staffIndex })
-      showContextMenu(e.clientX, e.clientY)
+      const ids = getNoteIdsInRange(noteMap, minM, maxM)
+      if (ids.length > 0) {
+        setSelection({ type: 'notes', measureStart: minM, measureEnd: maxM, noteIds: ids, anchorMeasure: anchor })
+      }
       return
     }
 
-    setSelection({ type: 'measure', measureStart: measureNum, measureEnd: measureNum, noteIds: [], anchorMeasure: measureNum, staffIndex })
-    showContextMenu(e.clientX, e.clientY)
-  }, [selection, setSelection, showContextMenu, hideContextMenu, elementMap])
+    // Click empty area in measure → select all notes in that measure
+    const ids = getNoteIdsInRange(noteMap, measureNum, measureNum)
+    if (ids.length > 0) {
+      setSelection({ type: ids.length === 1 ? 'note' : 'notes', measureStart: measureNum, measureEnd: measureNum, noteIds: ids, anchorMeasure: measureNum })
+    } else {
+      clearSelection()
+      hideContextMenu()
+    }
+  }, [selection, setSelection, clearSelection, hideContextMenu, elementMap, noteMap])
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
-    const cRect = scoreRef.current?.getBoundingClientRect()
-    if (!cRect) return
-    const hit = findMeasureAtPoint(e.clientX, e.clientY, elementMap, cRect)
-    if (!hit) return
-    setSelection({ type: 'measure', measureStart: hit.measureNum, measureEnd: hit.measureNum, noteIds: [], anchorMeasure: hit.measureNum, staffIndex: hit.staffIndex })
-    showContextMenu(e.clientX, e.clientY)
-  }, [setSelection, showContextMenu, elementMap])
+    const currentSelection = useSelectionStore.getState().selection
+    if (currentSelection) {
+      // Selection exists — just open context menu without changing selection
+      showContextMenu(e.clientX, e.clientY)
+    } else {
+      // No selection — select all notes in measure at click point, then show menu
+      const cRect = scoreRef.current?.getBoundingClientRect()
+      if (!cRect) return
+      const hit = findMeasureAtPoint(e.clientX, e.clientY, elementMap, cRect)
+      if (!hit) return
+      const ids = getNoteIdsInRange(noteMap, hit.measureNum, hit.measureNum)
+      if (ids.length > 0) {
+        setSelection({ type: ids.length === 1 ? 'note' : 'notes', measureStart: hit.measureNum, measureEnd: hit.measureNum, noteIds: ids, anchorMeasure: hit.measureNum })
+      }
+      showContextMenu(e.clientX, e.clientY)
+    }
+  }, [setSelection, showContextMenu, elementMap, noteMap])
 
   if (!xmlString) {
     return (
@@ -671,15 +738,6 @@ export function ScoreView() {
               containerRef={scoreRef}
               scrollRef={scrollRef}
               playbackMeasure={highlightedMeasure}
-              toVrv={toVrv}
-            />
-          )}
-          {svgContent && (
-            <SelectionOverlay
-              selection={selection}
-              elementMap={elementMap}
-              containerRef={scoreRef}
-              scrollRef={scrollRef}
               toVrv={toVrv}
             />
           )}
