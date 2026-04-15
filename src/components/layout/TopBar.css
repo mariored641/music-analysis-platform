@@ -3,8 +3,8 @@
   align-items: center;
   justify-content: space-between;
   height: 48px;
-  background: #1a1a2e;
-  border-bottom: 1px solid #2d2d4e;
+  background: var(--bg-main);
+  border-bottom: 1px solid var(--border);
   padding: 0 12px;
   flex-shrink: 0;
   gap: 8px;
@@ -21,9 +21,9 @@
 
 .btn-back-library {
   background: none;
-  border: 1px solid #2d2d4e;
+  border: 1px solid var(--border);
   border-radius: 6px;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: 16px;
   padding: 3px 8px;
   cursor: pointer;
@@ -33,15 +33,15 @@
 }
 
 .btn-back-library:hover {
-  background: #2d2d4e;
-  color: #e2e8f0;
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 .topbar-logo {
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 2px;
-  color: #7c6af7;
+  color: var(--accent);
   flex-shrink: 0;
 }
 
@@ -56,7 +56,7 @@
 .topbar-title {
   font-size: 14px;
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -65,14 +65,14 @@
 
 .topbar-composer {
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 
 .topbar-badge {
   font-size: 11px;
-  background: #2d2d4e;
-  color: #94a3b8;
+  background: var(--bg-button);
+  color: var(--text-secondary);
   padding: 2px 6px;
   border-radius: 4px;
   white-space: nowrap;
@@ -91,8 +91,8 @@
   border-radius: 4px;
 }
 
-.save-status.saved { color: #22c55e; }
-.save-status.unsaved { color: #f59e0b; }
+.save-status.saved { color: var(--success); }
+.save-status.unsaved { color: var(--warn); }
 
 .transport-group {
   display: flex;
@@ -105,22 +105,22 @@
   align-items: center;
   gap: 4px;
   padding: 5px 8px;
-  border: 1px solid #2d2d4e;
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: #16213e;
-  color: #e2e8f0;
+  background: var(--bg-button);
+  color: var(--text-primary);
   font-size: 12px;
   cursor: pointer;
   transition: background 0.15s;
 }
 
-.btn-stop:hover { background: #3a1a1a; border-color: #ef4444; color: #fca5a5; }
+.btn-stop:hover { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
 
-.btn-loop:hover { background: #1a2a3a; }
+.btn-loop:hover { background: var(--bg-hover); }
 .btn-loop.active {
-  background: #1a3a2a;
-  border-color: #22c55e;
-  color: #4ade80;
+  background: rgba(45, 138, 78, 0.08);
+  border-color: var(--success);
+  color: var(--success);
 }
 
 .btn-play, .btn-export, .btn-lang, .btn-scripts, .btn-sync {
@@ -128,33 +128,33 @@
   align-items: center;
   gap: 4px;
   padding: 5px 10px;
-  border: 1px solid #2d2d4e;
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: #16213e;
-  color: #e2e8f0;
+  background: var(--bg-button);
+  color: var(--text-primary);
   font-size: 12px;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .btn-play:hover, .btn-export:hover, .btn-lang:hover, .btn-scripts:hover, .btn-sync:hover {
-  background: #2d2d4e;
+  background: var(--bg-hover);
 }
 
 .btn-scripts.active {
-  background: #1e3a5f;
-  border-color: #3b82f6;
+  background: var(--accent-light);
+  border-color: var(--accent);
 }
 
 .btn-play.active {
-  background: #1e3a5f;
-  border-color: #3b82f6;
-  color: #60a5fa;
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .btn-play.paused {
-  border-color: #f59e0b;
-  color: #fbbf24;
+  border-color: var(--warn);
+  color: var(--warn);
 }
 
 /* Sync folder button states */
@@ -165,22 +165,22 @@
   white-space: nowrap;
 }
 .btn-sync.active {
-  background: #14291a;
-  border-color: #22c55e;
-  color: #4ade80;
+  background: rgba(45, 138, 78, 0.06);
+  border-color: var(--success);
+  color: var(--success);
 }
 .btn-sync.stale {
-  border-color: #f59e0b;
-  color: #fbbf24;
+  border-color: var(--warn);
+  color: var(--warn);
 }
 
 .tempo-input {
   width: 48px;
   padding: 4px 6px;
-  border: 1px solid #2d2d4e;
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: #16213e;
-  color: #e2e8f0;
+  background: var(--bg-input);
+  color: var(--text-primary);
   font-size: 12px;
   text-align: center;
   -moz-appearance: textfield;

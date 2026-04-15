@@ -268,6 +268,8 @@ export function ScoreView() {
 
   const scoreRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+  // Tracks cycling through co-located noteheads (same pixel, multiple notes)
+  const colocatedCycleRef = useRef<{ svgId: string; group: string[]; idx: number } | null>(null)
   const [svgContent, setSvgContent] = useState<string>('')
   const [rendering, setRendering] = useState(false)
   const [scoreError, setScoreError] = useState<string | null>(null)
@@ -631,7 +633,32 @@ export function ScoreView() {
     }
 
     // Note click — Ctrl toggles, plain click replaces, no context menu
-    const noteEl = (e.target as Element).closest?.(SEL_NOTE) as SVGGElement | null
+    let noteEl = (e.target as Element).closest?.(SEL_NOTE) as SVGGElement | null
+
+    // If the clicked notehead has no data-notemap-id (unmapped rest or grace note),
+    // search nearby noteheads for the closest mapped one.
+    if (noteEl && useOSMDRenderer && !noteEl.getAttribute('data-notemap-id') && scoreRef.current) {
+      const vrvContainer = scoreRef.current.querySelector('.vrv-svg')
+      if (vrvContainer) {
+        const SEARCH_RADIUS = 15
+        const allHeads = vrvContainer.querySelectorAll('g.vf-notehead[data-notemap-id]')
+        let bestEl: SVGGElement | null = null
+        let bestDist = SEARCH_RADIUS
+        for (const head of allHeads) {
+          const bbox = head.getBoundingClientRect()
+          const cx = bbox.left + bbox.width / 2
+          const cy = bbox.top + bbox.height / 2
+          if (Math.abs(cx - e.clientX) > SEARCH_RADIUS || Math.abs(cy - e.clientY) > SEARCH_RADIUS) continue
+          const dist = Math.hypot(cx - e.clientX, cy - e.clientY)
+          if (dist < bestDist) {
+            bestDist = dist
+            bestEl = head as SVGGElement
+          }
+        }
+        if (bestEl) noteEl = bestEl
+      }
+    }
+
     if (noteEl && !e.shiftKey) {
       // For OSMD: read noteMapId from data-notemap-id stamped by buildOSMDElementMap.
       // Falls back to fromVrv for native renderer. If no noteMapId found, try reverse-lookup
@@ -649,6 +676,49 @@ export function ScoreView() {
           }
         }
       }
+      // ── Co-located cycling ──────────────────────────────────────────────────
+      // When multiple noteheads share the same pixel (OSMD renders them stacked),
+      // cycle through them on repeated clicks so every note stays accessible.
+      if (noteMapId && useOSMDRenderer && scoreRef.current && !e.ctrlKey && !e.shiftKey) {
+        const vrvContainer = scoreRef.current.querySelector('.vrv-svg')
+        if (vrvContainer) {
+          const clickedBbox = noteEl.getBoundingClientRect()
+          const ccx = clickedBbox.left + clickedBbox.width / 2
+          const ccy = clickedBbox.top + clickedBbox.height / 2
+          const allHeads = vrvContainer.querySelectorAll('g.vf-notehead[data-notemap-id]')
+          const coGroup: string[] = []
+          for (const head of allHeads) {
+            const b = head.getBoundingClientRect()
+            const hcx = b.left + b.width / 2
+            const hcy = b.top + b.height / 2
+            if (Math.abs(hcx - ccx) < 3 && Math.abs(hcy - ccy) < 3) {
+              const nmId = head.getAttribute('data-notemap-id')
+              if (nmId) coGroup.push(nmId)
+            }
+          }
+          if (coGroup.length > 1) {
+            // Sort by beat (ascending) for consistent order
+            coGroup.sort((a, b) => {
+              const beatA = parseInt(a.match(/b(-?\d+)/)?.[1] ?? '0', 10)
+              const beatB = parseInt(b.match(/b(-?\d+)/)?.[1] ?? '0', 10)
+              return beatA - beatB
+            })
+            const prev = colocatedCycleRef.current
+            let idx = 0
+            if (prev && prev.svgId === noteEl.id) {
+              // Same position clicked again — advance only if last co-located note is still selected
+              const curSel = useSelectionStore.getState().selection
+              const prevStillSelected = curSel?.noteIds?.some(id => prev.group.includes(id))
+              if (prevStillSelected) idx = (prev.idx + 1) % coGroup.length
+            }
+            noteMapId = coGroup[idx]
+            colocatedCycleRef.current = { svgId: noteEl.id, group: coGroup, idx }
+          } else {
+            colocatedCycleRef.current = null
+          }
+        }
+      }
+
       if (!noteMapId) {
         // Unmatched notehead (rest, grace note, etc.) — treat as empty-space click
       } else {

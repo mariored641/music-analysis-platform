@@ -2,8 +2,8 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #0f0f23;
-  color: #e2e8f0;
+  background: var(--bg-main);
+  color: var(--text-primary);
   overflow: hidden;
 }
 
@@ -14,8 +14,8 @@
   justify-content: space-between;
   padding: 0 28px;
   height: 52px;
-  background: #12122a;
-  border-bottom: 1px solid #1e1e3e;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 
@@ -29,12 +29,12 @@
   font-size: 20px;
   font-weight: 700;
   letter-spacing: 2px;
-  color: #6c7be0;
+  color: var(--accent);
 }
 
 .library-subtitle {
   font-size: 13px;
-  color: #4a5568;
+  color: var(--text-muted);
 }
 
 .library-header-right {
@@ -43,9 +43,9 @@
 }
 
 .btn-lang {
-  background: #1e2040;
-  border: 1px solid #2d2d4e;
-  color: #94a3b8;
+  background: var(--bg-button);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 12px;
@@ -53,8 +53,8 @@
 }
 
 .btn-lang:hover {
-  background: #2d2d4e;
-  color: #e2e8f0;
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 /* Toolbar */
@@ -71,17 +71,17 @@
   flex: 1;
   min-width: 160px;
   max-width: 320px;
-  background: #16213e;
-  border: 1px solid #2d2d4e;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 7px 12px;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-size: 13px;
   outline: none;
 }
 
 .library-search:focus {
-  border-color: #5b6ec8;
+  border-color: var(--accent);
 }
 
 .library-toolbar-filters {
@@ -91,23 +91,23 @@
 }
 
 .library-select {
-  background: #16213e;
-  border: 1px solid #2d2d4e;
+  background: var(--bg-button);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 6px 10px;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: 12px;
   cursor: pointer;
   outline: none;
 }
 
 .library-select:focus {
-  border-color: #5b6ec8;
+  border-color: var(--accent);
 }
 
 .btn-add-piece {
   margin-left: auto;
-  background: #3b4cca;
+  background: var(--accent);
   border: none;
   border-radius: 8px;
   padding: 8px 18px;
@@ -120,7 +120,7 @@
 }
 
 .btn-add-piece:hover {
-  background: #4c5fd6;
+  background: var(--accent-hover);
 }
 
 [dir="rtl"] .btn-add-piece {
@@ -146,7 +146,7 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  color: #2d2d4e;
+  color: var(--text-hint);
   padding: 80px 0;
   font-size: 14px;
 }
@@ -160,7 +160,7 @@
 .library-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.35);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -168,8 +168,8 @@
 }
 
 .library-modal {
-  background: #16213e;
-  border: 1px solid #2d2d4e;
+  background: var(--bg-dropdown);
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 28px;
   width: 420px;
@@ -177,12 +177,13 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  box-shadow: 0 16px 48px var(--shadow-heavy);
 }
 
 .library-modal-title {
   font-size: 16px;
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 .library-modal-fields {
@@ -203,18 +204,18 @@
 
 .library-modal-fields span {
   font-size: 11px;
-  color: #64748b;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .library-modal-fields input,
 .library-modal-fields textarea {
-  background: #0f1830;
-  border: 1px solid #2d2d4e;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
   border-radius: 7px;
   padding: 7px 10px;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-size: 13px;
   outline: none;
   resize: vertical;
@@ -223,7 +224,7 @@
 
 .library-modal-fields input:focus,
 .library-modal-fields textarea:focus {
-  border-color: #5b6ec8;
+  border-color: var(--accent);
 }
 
 .library-modal-actions {
@@ -233,21 +234,21 @@
 }
 
 .btn-cancel {
-  background: #1e2040;
-  border: 1px solid #2d2d4e;
+  background: var(--bg-button);
+  border: 1px solid var(--border);
   border-radius: 7px;
   padding: 8px 16px;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: 13px;
   cursor: pointer;
 }
 
 .btn-cancel:hover {
-  background: #2d2d4e;
+  background: var(--bg-hover);
 }
 
 .btn-confirm {
-  background: #3b4cca;
+  background: var(--accent);
   border: none;
   border-radius: 7px;
   padding: 8px 20px;
@@ -258,5 +259,5 @@
 }
 
 .btn-confirm:hover {
-  background: #4c5fd6;
+  background: var(--accent-hover);
 }

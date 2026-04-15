@@ -1,6 +1,6 @@
 .annotation-browser {
   margin: 2px 0 4px 8px;
-  border-left: 1.5px solid var(--ab-color, #6366f1);
+  border-left: 1.5px solid var(--ab-color, var(--accent));
   padding-left: 6px;
   max-height: 240px;
   overflow-y: auto;
@@ -9,7 +9,7 @@
 
 .ab-empty {
   font-size: 10px;
-  color: #475569;
+  color: var(--text-secondary);
   padding: 4px 0;
   font-style: italic;
 }
@@ -26,7 +26,7 @@
 .ab-header-text {
   font-size: 10px;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .ab-checkbox {
@@ -34,7 +34,7 @@
   height: 11px;
   margin: 0;
   cursor: pointer;
-  accent-color: var(--ab-color, #6366f1);
+  accent-color: var(--ab-color, var(--accent));
   flex-shrink: 0;
 }
 
@@ -61,7 +61,7 @@
 .ab-group-label {
   font-size: 9.5px;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -78,16 +78,16 @@
 }
 
 .ab-chip:hover {
-  background: #1e1e3a;
+  background: var(--bg-hover);
 }
 
 .ab-chip.checked {
-  background: rgba(99, 102, 241, 0.1);
+  background: var(--accent-light);
 }
 
 .ab-chip-text {
   font-size: 9.5px;
-  color: #64748b;
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -95,7 +95,7 @@
 }
 
 .ab-chip-text:hover {
-  color: #94a3b8;
+  color: var(--text-primary);
   text-decoration: underline;
 }
 
@@ -104,29 +104,29 @@
   display: flex;
   gap: 4px;
   padding: 4px 0 2px;
-  border-top: 1px solid #1e1e3a;
+  border-top: 1px solid var(--border-light);
   margin-top: 3px;
 }
 
 .ab-action-btn {
   font-size: 9.5px;
   padding: 2px 6px;
-  border: 1px solid #2d2d4e;
+  border: 1px solid var(--border);
   border-radius: 4px;
-  background: #1a1a2e;
-  color: #94a3b8;
+  background: var(--bg-main);
+  color: var(--text-secondary);
   cursor: pointer;
   white-space: nowrap;
 }
 
 .ab-action-btn:hover {
-  background: #2d2d4e;
-  color: #e2e8f0;
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 .ab-delete:hover {
-  border-color: #ef4444;
-  color: #ef4444;
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
 .ab-color-wrap {

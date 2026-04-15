@@ -2,8 +2,8 @@
   display: flex;
   align-items: center;
   height: 24px;
-  background: #0f0f23;
-  border-top: 1px solid #1e1e3a;
+  background: var(--bg-status);
+  border-top: 1px solid var(--border-light);
   padding: 0 10px;
   gap: 0;
   flex-shrink: 0;
@@ -12,15 +12,15 @@
 
 .status-item {
   font-size: 11px;
-  color: #4a5568;
+  color: var(--text-muted);
   white-space: nowrap;
   padding: 0 6px;
 }
 
-.status-item.status-warn { color: #f59e0b; }
+.status-item.status-warn { color: var(--warn); }
 
 .status-separator {
-  color: #1e1e3a;
+  color: var(--border);
   font-size: 11px;
 }
 
@@ -28,7 +28,7 @@
 
 .status-hint {
   font-size: 10px;
-  color: #2d2d4e;
+  color: var(--text-hint);
   white-space: nowrap;
   padding: 0 4px;
   letter-spacing: 0.3px;
@@ -37,9 +37,9 @@
 .status-chord-btn {
   font-size: 11px;
   font-family: inherit;
-  color: #a78bfa;
+  color: var(--accent);
   background: transparent;
-  border: 1px solid #4c1d9540;
+  border: 1px solid var(--accent-border);
   border-radius: 3px;
   padding: 0 5px;
   height: 16px;
@@ -49,7 +49,106 @@
   transition: background 0.1s, border-color 0.1s;
 }
 .status-chord-btn:hover {
-  background: #4c1d9520;
-  border-color: #a78bfa;
-  color: #c4b5fd;
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent-hover);
+}
+
+/* Notes hover tooltip */
+.status-notes-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.status-extra-badge {
+  font-size: 10px;
+  color: var(--text-secondary);
+  padding: 0 4px;
+  cursor: default;
+}
+
+.status-notes-popover {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-dropdown);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  white-space: nowrap;
+  z-index: 200;
+  box-shadow: 0 4px 16px var(--shadow-heavy);
+  margin-bottom: 4px;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.status-notes-wrap:hover .status-notes-popover {
+  display: flex;
+}
+
+.status-note-entry {
+  font-size: 11px;
+  color: var(--text-primary);
+  padding: 1px 4px;
+}
+
+/* Chord dropdown */
+.status-chord-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.status-chord-alt-toggle {
+  font-size: 9px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+}
+.status-chord-alt-toggle:hover {
+  color: var(--accent);
+}
+
+.status-chord-dropdown {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  background: var(--bg-dropdown);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px;
+  z-index: 200;
+  box-shadow: 0 4px 16px var(--shadow-heavy);
+  margin-bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.status-chord-dropdown-item {
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  padding: 3px 8px;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.status-chord-dropdown-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }

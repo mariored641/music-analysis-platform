@@ -1,7 +1,7 @@
 .formal-strip {
   height: 22px;
-  background: #1e1e3a;
-  border-bottom: 1px solid #2d2d4e;
+  background: var(--bg-status);
+  border-bottom: 1px solid var(--border);
   position: relative;
   flex-shrink: 0;
   overflow: hidden;

@@ -376,9 +376,40 @@ export function buildOSMDElementMap(
     matched++
   }
 
+  // ── 2d. Merge co-located noteheads ──────────────────────────────────────
+  // When two voices share the same pitch at the same position, OSMD renders
+  // separate SVG noteheads at the same pixel. Only the topmost is clickable.
+  // Redirect the bottom one's toVrv to the top element so selection highlight
+  // always appears on the visible element.
+  const positionMap = new Map<string, { svgId: string; noteMapId: string; idx: number }[]>()
+  for (let i = 0; i < osmdNotes.length; i++) {
+    const info = osmdNotes[i]
+    const svgId = info.svgEl.id
+    if (!svgId) continue
+    const bbox = info.svgEl.getBoundingClientRect()
+    // Round to 3px grid for grouping — catches near-overlaps from cross-staff notation
+    const posKey = `${Math.round(bbox.left / 3) * 3},${Math.round(bbox.top / 3) * 3}`
+    if (!positionMap.has(posKey)) positionMap.set(posKey, [])
+    const noteMapId = info.svgEl.getAttribute('data-notemap-id')
+    if (noteMapId) positionMap.get(posKey)!.push({ svgId, noteMapId, idx: i })
+  }
+  let colocated = 0
+  for (const [, group] of positionMap) {
+    if (group.length < 2) continue
+    // The last element in the group is rendered on top (later in DOM = higher z-order)
+    const topEntry = group[group.length - 1]
+    for (let g = 0; g < group.length - 1; g++) {
+      const bottom = group[g]
+      // Redirect bottom's toVrv to the top element
+      toVrv.set(bottom.noteMapId, topEntry.svgId)
+      colocated++
+    }
+  }
+
   console.log(
     `buildOSMDElementMap: ${elementMap.size} measures, ${matched} notes matched` +
-    (unmatched > 0 ? ` (${unmatched} OSMD notes unmatched)` : ''),
+    (unmatched > 0 ? ` (${unmatched} OSMD notes unmatched)` : '') +
+    (colocated > 0 ? ` (${colocated} co-located redirected)` : ''),
   )
 
   return { elementMap, toVrv, fromVrv }

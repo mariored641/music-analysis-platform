@@ -285,19 +285,22 @@ interface ShapeProps {
   melodyColors?: Record<string, string>
 }
 
+// ── Harmony guide-line Y offsets ──────────────────────────────────────────────
+const HARMONY_CHORD_LINE_OFFSET = -28   // chord symbol default Y above staffTop
+const HARMONY_RN_LINE_OFFSET    = -14   // Roman numeral line (smaller gap)
+const SNAP_THRESHOLD = 6                // snap within 6px of guide line
+
 // ── HarmonyShape ──────────────────────────────────────────────────────────────
 
 function HarmonyShape({ annotation, elementMap, containerRect, toVrv, onDragEnd, onHover, onLeave, isSelected, onSelect, selectedAnchor, onSelectAnchor }: ShapeProps) {
   const ann = annotation as HarmonyAnnotation
   const layer = LAYER_MAP.get('harmony')!
-  const { offset, handleMouseDown } = useDrag(ann.visualOffset, off => onDragEnd(ann.id, off))
 
   const chordText  = ann.chordSymbol || ''
   const rnText     = ann.scaleDegree || ''
   const cadenceText = ann.cadenceType || ''
   const primaryText = chordText || rnText || cadenceText
   if (!primaryText) return null
-  // Show RN below chord symbol when both are present
   const showRn = !!(chordText && rnText)
 
   const anchorNoteId = ann.noteIds?.[0]
@@ -316,11 +319,48 @@ function HarmonyShape({ annotation, elementMap, containerRect, toVrv, onDragEnd,
   }
   if (anchorX === null || staffTopY === null) return null
 
+  // Guide line Y positions (absolute)
+  const chordLineY = staffTopY + HARMONY_CHORD_LINE_OFFSET
+  const rnLineY    = staffTopY + HARMONY_RN_LINE_OFFSET
+
+  // Default base Y: chord line for chord symbol, or push up more when stacked
+  const defaultBaseY = showRn ? chordLineY - 2 : chordLineY
+
+  // Snap-on-drag-end: snap Y to chord guide line if within threshold
+  const handleSnapDragEnd = useCallback((off: { x: number; y: number }) => {
+    const finalY = defaultBaseY + off.y
+    const distToChordLine = Math.abs(finalY - chordLineY)
+    const snappedY = distToChordLine <= SNAP_THRESHOLD
+      ? chordLineY - defaultBaseY  // offset that puts text exactly on chord line
+      : off.y
+    onDragEnd(ann.id, { x: off.x, y: snappedY })
+  }, [defaultBaseY, chordLineY, onDragEnd, ann.id])
+
+  const { offset, handleMouseDown } = useDrag(ann.visualOffset, handleSnapDragEnd)
+
   const textX = anchorX + offset.x
-  // When stacked, push both lines higher so the block clears the staff
-  const baseY  = showRn ? staffTopY - 30 : staffTopY - 18
-  const textY  = baseY + offset.y
+  const textY = defaultBaseY + offset.y
   const anchorActive = isSelected && selectedAnchor === 'start'
+
+  // Row X range for guide lines (full system width)
+  const rowXRange = getRowXRange(
+    Array.from({ length: (ann.measureEnd ?? ann.measureStart) - ann.measureStart + 1 }, (_, i) => ann.measureStart + i),
+    elementMap, containerRect
+  )
+
+  // Get full row extent for the guide line
+  const fullRowX = (() => {
+    // Find all measures on the same system row
+    const measuresOnRow: number[] = []
+    elementMap.forEach((el, key) => {
+      if (el.staffBboxes.length === 0) return
+      if (Math.abs(el.staffBboxes[0].top - staffTopY) < 60) {
+        const mIdx = parseInt(key.replace('measure-', ''))
+        measuresOnRow.push(mIdx + 1)
+      }
+    })
+    return getRowXRange(measuresOnRow, elementMap, containerRect)
+  })()
 
   return (
     <g
@@ -341,6 +381,25 @@ function HarmonyShape({ annotation, elementMap, containerRect, toVrv, onDragEnd,
       onMouseEnter={e => onHover(e.clientX, e.clientY, getTooltipText(ann))}
       onMouseLeave={onLeave}
     >
+      {/* Guide lines — visible when this harmony annotation is selected */}
+      {isSelected && fullRowX && (
+        <>
+          <line
+            x1={fullRowX.left} y1={chordLineY}
+            x2={fullRowX.right} y2={chordLineY}
+            stroke={layer.color} strokeWidth="0.5"
+            strokeDasharray="4,4" opacity="0.25"
+            style={{ pointerEvents: 'none' }}
+          />
+          <line
+            x1={fullRowX.left} y1={rnLineY}
+            x2={fullRowX.right} y2={rnLineY}
+            stroke={layer.color} strokeWidth="0.5"
+            strokeDasharray="2,3" opacity="0.18"
+            style={{ pointerEvents: 'none' }}
+          />
+        </>
+      )}
       {isSelected && anchorNoteY !== null && (
         <line
           x1={textX} y1={textY + 4}

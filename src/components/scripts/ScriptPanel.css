@@ -3,10 +3,10 @@
   top: calc(100% + 4px);
   right: 0;
   width: 280px;
-  background: #1a1a2e;
-  border: 1px solid #2d2d4e;
+  background: var(--bg-dropdown);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 24px var(--shadow-heavy);
   z-index: 500;
   overflow: hidden;
 }
@@ -22,8 +22,8 @@
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
-  color: #64748b;
-  border-bottom: 1px solid #2d2d4e;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
 }
 
 .script-panel-list {
@@ -37,8 +37,8 @@
   padding: 10px 12px;
   background: transparent;
   border: none;
-  border-bottom: 1px solid #1e2240;
-  color: #e2e8f0;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
   cursor: pointer;
   text-align: left;
   transition: background 0.12s;
@@ -53,11 +53,11 @@
 }
 
 .script-item:hover {
-  background: #252545;
+  background: var(--bg-hover);
 }
 
 .script-item.active {
-  background: #1a2a3e;
+  background: var(--accent-light);
 }
 
 .script-item-name {
@@ -66,32 +66,32 @@
   gap: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--text-primary);
   margin-bottom: 3px;
 }
 
 .script-item.active .script-item-name {
-  color: #60a5fa;
+  color: var(--accent);
 }
 
 .script-active-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #22c55e;
+  background: var(--success);
   flex-shrink: 0;
 }
 
 .script-item-desc {
   font-size: 11px;
-  color: #64748b;
+  color: var(--text-secondary);
   line-height: 1.4;
 }
 
 .script-status-msg {
   padding: 8px 12px;
   font-size: 12px;
-  color: #22c55e;
-  border-top: 1px solid #2d2d4e;
-  background: #111827;
+  color: var(--success);
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
 }

@@ -11,10 +11,10 @@
 
 .palette-mode-btn {
   flex: 1;
-  background: #1e1e3a;
-  border: 1px solid #2d2d4e;
+  background: var(--bg-button);
+  border: 1px solid var(--border);
   border-radius: 4px;
-  color: #9ca3af;
+  color: var(--text-secondary);
   font-size: 10px;
   padding: 3px 6px;
   cursor: pointer;
@@ -23,8 +23,8 @@
 }
 
 .palette-mode-btn:hover {
-  background: #2d2d4e;
-  color: #e2e8f0;
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 .palette-mode-btn.active {
@@ -33,7 +33,7 @@
 }
 
 .palette-mode-btn.active.erase {
-  background: #ef4444;
+  background: var(--danger);
 }
 
 .palette-circles {
@@ -65,7 +65,7 @@
 }
 
 .palette-circle-wrap.active .palette-circle {
-  border-color: #e2e8f0;
+  border-color: var(--text-primary);
   transform: scale(1.1);
 }
 
@@ -77,8 +77,8 @@
   height: 12px;
   border-radius: 50%;
   border: none;
-  background: #374151;
-  color: #9ca3af;
+  background: var(--border);
+  color: var(--text-secondary);
   font-size: 9px;
   line-height: 1;
   cursor: pointer;
@@ -95,7 +95,7 @@
 }
 
 .palette-remove:hover {
-  background: #ef4444;
+  background: var(--danger);
   color: #fff;
 }
 
@@ -103,9 +103,9 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 1.5px dashed #374151;
+  border: 1.5px dashed var(--border);
   background: transparent;
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 14px;
   line-height: 1;
   cursor: pointer;
@@ -118,15 +118,15 @@
 }
 
 .palette-add:hover {
-  border-color: #6b7280;
-  color: #9ca3af;
+  border-color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 /* Popover */
 .palette-popover {
   margin-top: 8px;
-  background: #1a1a2e;
-  border: 1px solid #2d2d4e;
+  background: var(--bg-dropdown);
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 8px;
   display: flex;
@@ -142,7 +142,7 @@
 
 .popover-label {
   font-size: 10px;
-  color: #64748b;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -158,17 +158,17 @@
 
 .popover-range {
   width: 100%;
-  accent-color: #7c6af7;
+  accent-color: var(--accent);
   height: 4px;
   cursor: pointer;
 }
 
 .popover-text-input {
   width: 100%;
-  background: #12122a;
-  border: 1px solid #2d2d4e;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
   border-radius: 4px;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-size: 11px;
   padding: 3px 6px;
   outline: none;
@@ -176,15 +176,15 @@
 }
 
 .popover-text-input:focus {
-  border-color: #4a5568;
+  border-color: var(--accent);
 }
 
 .popover-select {
   width: 100%;
-  background: #12122a;
-  border: 1px solid #2d2d4e;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
   border-radius: 4px;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-size: 11px;
   padding: 3px 6px;
   outline: none;
@@ -192,5 +192,5 @@
 }
 
 .popover-select:focus {
-  border-color: #4a5568;
+  border-color: var(--accent);
 }
