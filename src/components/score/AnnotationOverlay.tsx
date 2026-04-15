@@ -365,6 +365,10 @@ function HarmonyShape({ annotation, elementMap, containerRect, toVrv, onDragEnd,
   return (
     <g
       style={{ cursor: 'move', pointerEvents: 'all' }}
+      onDoubleClick={e => {
+        e.stopPropagation()
+        onDragEnd(ann.id, { x: 0, y: 0 })
+      }}
       onMouseDown={e => {
         handleMouseDown(e)
         onSelect(ann.id)
