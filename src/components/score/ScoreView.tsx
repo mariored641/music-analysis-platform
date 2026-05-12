@@ -122,17 +122,6 @@ function getNoteIdsInRange(noteMap: NoteMap | null, start: number, end: number):
     .map(n => n.id)
 }
 
-function lassoIntersects(
-  bbox: DOMRect,
-  lasso: { left: number; top: number; right: number; bottom: number }
-): boolean {
-  return (
-    bbox.left   < lasso.right  &&
-    bbox.right  > lasso.left   &&
-    bbox.top    < lasso.bottom &&
-    bbox.bottom > lasso.top
-  )
-}
 
 
 // SVG element classes that can be colored by clicking
@@ -270,6 +259,12 @@ export function ScoreView() {
   const scrollRef = useRef<HTMLDivElement>(null)
   // Tracks cycling through co-located noteheads (same pixel, multiple notes)
   const colocatedCycleRef = useRef<{ svgId: string; group: string[]; idx: number } | null>(null)
+  // Container-relative bboxes for every notehead, rebuilt after each render.
+  // Used by drag-lasso hit-test to avoid 643× getBoundingClientRect() per drag.
+  type NoteBBox = { l: number; t: number; r: number; b: number; m: number }
+  const noteBboxCacheRef = useRef<Map<string, NoteBBox>>(new Map())
+  // Tracks which notes currently have .selected-note class — for diff updates
+  const prevSelectedRef = useRef<Set<string>>(new Set())
   const [svgContent, setSvgContent] = useState<string>('')
   const [rendering, setRendering] = useState(false)
   const [scoreError, setScoreError] = useState<string | null>(null)
@@ -400,6 +395,25 @@ export function ScoreView() {
       setToVrv(toVrvMap)
       fromVrvRef.current = fromVrvMap
 
+      // Build container-relative bbox cache for fast drag-lasso hit-test.
+      // Avoids 643× getBoundingClientRect() during every lasso end.
+      const containerRect = container.getBoundingClientRect()
+      const bboxCache = new Map<string, NoteBBox>()
+      container.querySelectorAll(SEL_NOTE).forEach(el => {
+        const nmId = useOSMDRenderer
+          ? el.getAttribute('data-notemap-id')
+          : el.id
+        if (!nmId) return
+        const b = (el as Element).getBoundingClientRect()
+        const l = b.left - containerRect.left
+        const t = b.top  - containerRect.top
+        // measure number derived from noteMapId (faster than DOM closest)
+        const mMatch = nmId.match(/^note-m(\d+)/)
+        const m = mMatch ? parseInt(mMatch[1], 10) : 1
+        bboxCache.set(nmId, { l, t, r: l + b.width, b: t + b.height, m })
+      })
+      noteBboxCacheRef.current = bboxCache
+
       // Read fresh state directly — avoids stale-closure issue when SVG re-renders
       const freshAnnotations = useAnnotationStore.getState().annotations
       const freshVisible = useLayerStore.getState().visible
@@ -411,17 +425,29 @@ export function ScoreView() {
     })
   }, [svgContent, noteMap]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Sync selection → CSS classes on SVG note elements (NoghenMadid-style pink highlight)
+  // Sync selection → CSS classes on SVG note elements (pink highlight).
+  // Diff against previously selected set so we only touch the elements that
+  // actually changed — avoids O(N) classList ops every selection change.
   useEffect(() => {
     const container = scoreRef.current?.querySelector('.vrv-svg')
     if (!container) return
-    container.querySelectorAll('.selected-note').forEach(el => el.classList.remove('selected-note'))
-    if (!selection?.noteIds?.length) return
-    for (const noteId of selection.noteIds) {
+    const prev = prevSelectedRef.current
+    const next = new Set<string>(selection?.noteIds ?? [])
+    // Remove class from notes no longer selected
+    prev.forEach(noteId => {
+      if (next.has(noteId)) return
+      const vrvId = toVrv.get(noteId) ?? noteId
+      const el = document.getElementById(vrvId)
+      if (el) el.classList.remove('selected-note')
+    })
+    // Add class to newly-selected notes
+    next.forEach(noteId => {
+      if (prev.has(noteId)) return
       const vrvId = toVrv.get(noteId) ?? noteId
       const el = document.getElementById(vrvId)
       if (el) el.classList.add('selected-note')
-    }
+    })
+    prevSelectedRef.current = next
   }, [selection, toVrv])
 
   // Reapply note colors + svg element colors when layer/annotations change
@@ -530,68 +556,49 @@ export function ScoreView() {
 
     if (!didDragRef.current || !drag) return
 
-    const lassoRect = {
-      left:   Math.min(drag.startX, drag.currentX),
-      top:    Math.min(drag.startY, drag.currentY),
-      right:  Math.max(drag.startX, drag.currentX),
-      bottom: Math.max(drag.startY, drag.currentY),
-    }
-
     const container = scoreRef.current?.querySelector('.vrv-svg')
     if (!container) return
 
-    const allMeasures = Array.from(container.querySelectorAll(SEL_MEASURE))
+    // Convert lasso rect (client coords) → container-relative coords once,
+    // then test against the prebuilt bbox cache instead of querying the DOM.
+    const cr = (container as Element).getBoundingClientRect()
+    const lx1 = Math.min(drag.startX, drag.currentX) - cr.left
+    const ly1 = Math.min(drag.startY, drag.currentY) - cr.top
+    const lx2 = Math.max(drag.startX, drag.currentX) - cr.left
+    const ly2 = Math.max(drag.startY, drag.currentY) - cr.top
+
     const hitNoteIds: string[] = []
     const hitMeasureNums: number[] = []
-
-    container.querySelectorAll(SEL_NOTE).forEach(noteEl => {
-      const bbox = noteEl.getBoundingClientRect()
-      // For OSMD: read stable noteMapId directly from data-notemap-id attribute.
-      // Falls back to reverse-lookup via GraphicSheet for unstamped noteheads.
-      // For native renderer: translate via fromVrv map.
-      let nmId: string | null | undefined = useOSMDRenderer
-        ? noteEl.getAttribute('data-notemap-id')
-        : (fromVrvRef.current.get(noteEl.id) ?? noteEl.id)
-      if (!nmId && useOSMDRenderer) {
-        const info = locateNoteheadInOSMD(noteEl as SVGElement)
-        if (info) {
-          const candidateId = buildNoteMapIdFromOSMD(info)
-          if (noteMap?.notes.has(candidateId)) {
-            nmId = candidateId
-            noteEl.setAttribute('data-notemap-id', candidateId)
-          }
-        }
+    const cache = noteBboxCacheRef.current
+    cache.forEach((bb, nmId) => {
+      if (bb.l < lx2 && bb.r > lx1 && bb.t < ly2 && bb.b > ly1) {
+        hitNoteIds.push(nmId)
+        hitMeasureNums.push(bb.m)
       }
-      if (!lassoIntersects(bbox, lassoRect) || !nmId) return
-      hitNoteIds.push(nmId)
-      // Measure number from noteMapId (e.g. "note-m5b300-E4" → 5) for OSMD grand staff,
-      // where DOM has 2× g.vf-measure elements (treble + bass).
-      const mMatch = nmId.match(/^note-m(\d+)/)
-      const measureNum = mMatch ? parseInt(mMatch[1], 10) : (() => {
-        const measureEl = noteEl.closest(SEL_MEASURE)
-        const idx = measureEl ? allMeasures.indexOf(measureEl) : -1
-        return idx >= 0 ? idx + 1 : 1
-      })()
-      hitMeasureNums.push(measureNum)
     })
 
-    if (hitNoteIds.length > 0) {
-      const minM = Math.min(...hitMeasureNums)
-      const maxM = Math.max(...hitMeasureNums)
-      // Ctrl+lasso: merge with existing selection
-      if (e.ctrlKey) {
-        const current = useSelectionStore.getState().selection
-        const existingIds = current?.noteIds ?? []
-        const merged = [...existingIds, ...hitNoteIds.filter(id => !existingIds.includes(id))]
-        const allMNums = [...(current ? [current.measureStart, current.measureEnd] : []), minM, maxM]
-        setSelection({ type: 'notes', measureStart: Math.min(...allMNums), measureEnd: Math.max(...allMNums), noteIds: merged, anchorMeasure: Math.min(...allMNums) })
-      } else {
-        setSelection({ type: 'notes', measureStart: minM, measureEnd: maxM, noteIds: hitNoteIds, anchorMeasure: minM })
+    // Defer setSelection to next frame so the browser can finish painting the
+    // mouseup state before the re-render cascade (AnnotationOverlay, RightPanel).
+    const commitSelection = () => {
+      if (hitNoteIds.length > 0) {
+        const minM = Math.min(...hitMeasureNums)
+        const maxM = Math.max(...hitMeasureNums)
+        // Ctrl+lasso: merge with existing selection
+        if (e.ctrlKey) {
+          const current = useSelectionStore.getState().selection
+          const existingIds = current?.noteIds ?? []
+          const merged = [...existingIds, ...hitNoteIds.filter(id => !existingIds.includes(id))]
+          const allMNums = [...(current ? [current.measureStart, current.measureEnd] : []), minM, maxM]
+          setSelection({ type: 'notes', measureStart: Math.min(...allMNums), measureEnd: Math.max(...allMNums), noteIds: merged, anchorMeasure: Math.min(...allMNums) })
+        } else {
+          setSelection({ type: 'notes', measureStart: minM, measureEnd: maxM, noteIds: hitNoteIds, anchorMeasure: minM })
+        }
+      } else if (!e.ctrlKey) {
+        setSelection(null)
+        hideContextMenu()
       }
-    } else if (!e.ctrlKey) {
-      setSelection(null)
-      hideContextMenu()
     }
+    requestAnimationFrame(commitSelection)
   }, [setSelection, hideContextMenu])
 
   const handleMouseLeave = useCallback(() => {

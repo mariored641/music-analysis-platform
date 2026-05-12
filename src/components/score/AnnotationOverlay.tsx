@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef, type RefObject } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef, memo, type RefObject } from 'react'
 import type {
   Annotation, LayerId,
   HarmonyAnnotation, MelodyAnnotation, FormAnnotation,
@@ -843,6 +843,16 @@ function getAnnotationLabel(ann: Annotation): string {
   }
 }
 
+// Memoized shape variants — only re-render when their own props change.
+// All callback props (handleDragEnd, handleHover, etc.) are stabilized in
+// AnnotationOverlay with useCallback so shallow compare actually wins.
+const HarmonyShapeMemo = memo(HarmonyShape)
+const MelodyShapeMemo  = memo(MelodyShape)
+const MotifShapeMemo   = memo(MotifShape)
+const FormShapeMemo    = memo(FormShape)
+const LabelShapeMemo   = memo(LabelShape)
+const DefaultShapeMemo = memo(DefaultShape)
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function AnnotationOverlay({ annotations, visible, elementMap, containerRef, scrollRef, playbackMeasure, toVrv }: Props) {
@@ -853,7 +863,24 @@ export function AnnotationOverlay({ annotations, visible, elementMap, containerR
   const updateAnnotation = useAnnotationStore(s => s.updateAnnotation)
   const noteMap = useScoreStore(s => s.noteMap)
   const legendColors = useLayerStore(s => s.legendColors)
-  const melodyColors = getEffectiveMelodyColors(legendColors)
+  // memo so shape components with React.memo can skip re-render when colors didn't change
+  const melodyColors = useMemo(() => getEffectiveMelodyColors(legendColors), [legendColors])
+
+  // Stable callback refs — let React.memo on shape components actually skip renders
+  const handleDragEnd = useCallback((id: string, offset: { x: number; y: number }) => {
+    updateAnnotation(id, { visualOffset: offset })
+  }, [updateAnnotation])
+  const handleHover = useCallback((x: number, y: number, text: string) => {
+    setTooltip({ x, y, text })
+  }, [])
+  const handleLeave = useCallback(() => setTooltip(null), [])
+  const handleSelect = useCallback((id: string) => {
+    setSelectedAnnId(id)
+    setSelectedAnchor(null)
+  }, [])
+  const handleSelectAnchor = useCallback((side: AnchorSide) => {
+    setSelectedAnchor(side)
+  }, [])
 
   // Refs for stale-closure-safe keyboard handler
   const selectedAnnIdRef  = useRef<string | null>(null)
@@ -951,13 +978,13 @@ export function AnnotationOverlay({ annotations, visible, elementMap, containerR
     elementMap,
     containerRect,
     toVrv: resolvedToVrv,
-    onDragEnd: (id, offset) => updateAnnotation(id, { visualOffset: offset }),
-    onHover: (x, y, text) => setTooltip({ x, y, text }),
-    onLeave: () => setTooltip(null),
+    onDragEnd: handleDragEnd,
+    onHover: handleHover,
+    onLeave: handleLeave,
     isSelected: selectedAnnId === ann.id,
-    onSelect: id => { setSelectedAnnId(id); setSelectedAnchor(null) },
+    onSelect: handleSelect,
     selectedAnchor: selectedAnnId === ann.id ? selectedAnchor : null,
-    onSelectAnchor: side => setSelectedAnchor(side),
+    onSelectAnchor: handleSelectAnchor,
     melodyColors,
   })
 
@@ -980,12 +1007,12 @@ export function AnnotationOverlay({ annotations, visible, elementMap, containerR
           if (ann.layer === 'noteColor' || ann.layer === 'svgColor' || ann.layer === 'freehand') return null
           const props = shapeProps(ann)
           switch (ann.layer) {
-            case 'harmony': return <HarmonyShape key={ann.id} {...props} />
-            case 'melody':  return <MelodyShape  key={ann.id} {...props} />
-            case 'motif':   return <MotifShape   key={ann.id} {...props} />
-            case 'form':    return <FormShape    key={ann.id} {...props} />
-            case 'labels':  return <LabelShape   key={ann.id} {...props} />
-            default:        return <DefaultShape key={ann.id} {...props} />
+            case 'harmony': return <HarmonyShapeMemo key={ann.id} {...props} />
+            case 'melody':  return <MelodyShapeMemo  key={ann.id} {...props} />
+            case 'motif':   return <MotifShapeMemo   key={ann.id} {...props} />
+            case 'form':    return <FormShapeMemo    key={ann.id} {...props} />
+            case 'labels':  return <LabelShapeMemo   key={ann.id} {...props} />
+            default:        return <DefaultShapeMemo key={ann.id} {...props} />
           }
         })}
       </svg>

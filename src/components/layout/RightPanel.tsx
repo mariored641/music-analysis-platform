@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelectionStore } from '../../store/selectionStore'
 import { useScoreStore } from '../../store/scoreStore'
@@ -15,14 +15,19 @@ export function RightPanel() {
   const selection = useSelectionStore(s => s.selection)
   const noteMap = useScoreStore(s => s.noteMap)
   const annotations = useAnnotationStore(s => s.annotations)
-  const { removeAnnotation } = useAnnotationStore()
+  const removeAnnotation = useAnnotationStore(s => s.removeAnnotation)
 
-  const annotationList = Object.values(annotations)
-  const openQuestions = annotationList.filter(a => (a as any).isQuestion).length
-
-  const selNoteIdSet = new Set(selection?.noteIds ?? [])
-  const selectionAnnotations = selection
-    ? annotationList.filter(a => {
+  // Memo the heavy derivations so a 100-note lasso doesn't refilter on every re-render
+  const annotationList = useMemo(() => Object.values(annotations), [annotations])
+  const openQuestions = useMemo(
+    () => annotationList.filter(a => (a as any).isQuestion).length,
+    [annotationList]
+  )
+  const selectionAnnotations = useMemo(() => {
+    if (!selection) return []
+    const selNoteIdSet = new Set(selection.noteIds ?? [])
+    return annotationList
+      .filter(a => {
         const inRange =
           a.measureStart <= (selection.measureEnd ?? selection.measureStart) &&
           (a.measureEnd ?? a.measureStart) >= selection.measureStart
@@ -31,8 +36,9 @@ export function RightPanel() {
           return (a as any).noteIds?.some((id: string) => selNoteIdSet.has(id)) ?? false
         }
         return true
-      }).sort((a, b) => a.measureStart - b.measureStart)
-    : []
+      })
+      .sort((a, b) => a.measureStart - b.measureStart)
+  }, [annotationList, selection])
 
   const measureData = selection && noteMap
     ? noteMap.measures.get(selection.measureStart)
