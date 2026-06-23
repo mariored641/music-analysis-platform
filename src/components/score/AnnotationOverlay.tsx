@@ -905,11 +905,23 @@ export function AnnotationOverlay({ annotations, visible, elementMap, containerR
   useEffect(() => {
     const el = scrollRef?.current
     if (!el) return
+    // rAF-throttled — native scroll events can fire far more often than the
+    // display refreshes, and each update re-renders every annotation shape
+    // (each of which calls getBoundingClientRect()). Capping to one update
+    // per frame avoids layout-thrashing during scroll.
+    let rafId: number | null = null
     const onScroll = () => {
-      if (containerRef.current) setContainerRect(containerRef.current.getBoundingClientRect())
+      if (rafId !== null) return
+      rafId = requestAnimationFrame(() => {
+        rafId = null
+        if (containerRef.current) setContainerRect(containerRef.current.getBoundingClientRect())
+      })
     }
     el.addEventListener('scroll', onScroll, { passive: true })
-    return () => el.removeEventListener('scroll', onScroll)
+    return () => {
+      el.removeEventListener('scroll', onScroll)
+      if (rafId !== null) cancelAnimationFrame(rafId)
+    }
   }, [scrollRef, containerRef])
 
   useEffect(() => {

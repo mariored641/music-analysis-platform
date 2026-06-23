@@ -647,22 +647,26 @@ export function ScoreView() {
     if (noteEl && useOSMDRenderer && !noteEl.getAttribute('data-notemap-id') && scoreRef.current) {
       const vrvContainer = scoreRef.current.querySelector('.vrv-svg')
       if (vrvContainer) {
+        // Use the prebuilt bbox cache (container-relative) instead of scanning every
+        // notehead with getBoundingClientRect() — same layout-thrashing fix as below.
         const SEARCH_RADIUS = 15
-        const allHeads = vrvContainer.querySelectorAll('g.vf-notehead[data-notemap-id]')
-        let bestEl: SVGGElement | null = null
+        const cr = (vrvContainer as Element).getBoundingClientRect()
+        const cx0 = e.clientX - cr.left
+        const cy0 = e.clientY - cr.top
+        let bestId: string | null = null
         let bestDist = SEARCH_RADIUS
-        for (const head of allHeads) {
-          const bbox = head.getBoundingClientRect()
-          const cx = bbox.left + bbox.width / 2
-          const cy = bbox.top + bbox.height / 2
-          if (Math.abs(cx - e.clientX) > SEARCH_RADIUS || Math.abs(cy - e.clientY) > SEARCH_RADIUS) continue
-          const dist = Math.hypot(cx - e.clientX, cy - e.clientY)
-          if (dist < bestDist) {
-            bestDist = dist
-            bestEl = head as SVGGElement
-          }
+        noteBboxCacheRef.current.forEach((bb, nmId) => {
+          const cx = (bb.l + bb.r) / 2
+          const cy = (bb.t + bb.b) / 2
+          if (Math.abs(cx - cx0) > SEARCH_RADIUS || Math.abs(cy - cy0) > SEARCH_RADIUS) return
+          const dist = Math.hypot(cx - cx0, cy - cy0)
+          if (dist < bestDist) { bestDist = dist; bestId = nmId }
+        })
+        if (bestId) {
+          const vrvId = toVrv.get(bestId)
+          const el = vrvId ? document.getElementById(vrvId) : null
+          if (el) noteEl = el as unknown as SVGGElement
         }
-        if (bestEl) noteEl = bestEl
       }
     }
 
@@ -686,23 +690,21 @@ export function ScoreView() {
       // ── Co-located cycling ──────────────────────────────────────────────────
       // When multiple noteheads share the same pixel (OSMD renders them stacked),
       // cycle through them on repeated clicks so every note stays accessible.
-      if (noteMapId && useOSMDRenderer && scoreRef.current && !e.ctrlKey && !e.shiftKey) {
-        const vrvContainer = scoreRef.current.querySelector('.vrv-svg')
-        if (vrvContainer) {
-          const clickedBbox = noteEl.getBoundingClientRect()
-          const ccx = clickedBbox.left + clickedBbox.width / 2
-          const ccy = clickedBbox.top + clickedBbox.height / 2
-          const allHeads = vrvContainer.querySelectorAll('g.vf-notehead[data-notemap-id]')
+      if (noteMapId && useOSMDRenderer && !e.ctrlKey && !e.shiftKey) {
+        // Use the prebuilt container-relative bbox cache instead of a live DOM scan —
+        // querySelectorAll + getBoundingClientRect() over every notehead on every click
+        // forces a full layout recompute of the whole score (very slow on dense pieces).
+        const cache = noteBboxCacheRef.current
+        const clicked = cache.get(noteMapId)
+        if (clicked) {
+          const ccx = (clicked.l + clicked.r) / 2
+          const ccy = (clicked.t + clicked.b) / 2
           const coGroup: string[] = []
-          for (const head of allHeads) {
-            const b = head.getBoundingClientRect()
-            const hcx = b.left + b.width / 2
-            const hcy = b.top + b.height / 2
-            if (Math.abs(hcx - ccx) < 3 && Math.abs(hcy - ccy) < 3) {
-              const nmId = head.getAttribute('data-notemap-id')
-              if (nmId) coGroup.push(nmId)
-            }
-          }
+          cache.forEach((bb, nmId) => {
+            const hcx = (bb.l + bb.r) / 2
+            const hcy = (bb.t + bb.b) / 2
+            if (Math.abs(hcx - ccx) < 3 && Math.abs(hcy - ccy) < 3) coGroup.push(nmId)
+          })
           if (coGroup.length > 1) {
             // Sort by beat (ascending) for consistent order
             coGroup.sort((a, b) => {

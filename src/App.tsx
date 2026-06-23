@@ -1,12 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import { TopBar } from './components/layout/TopBar'
 import { LeftPanel } from './components/layout/LeftPanel'
 import { RightPanel } from './components/layout/RightPanel'
 import { StatusBar } from './components/layout/StatusBar'
-import { ScoreView } from './components/score/ScoreView'
 import { LibraryView } from './views/LibraryView'
-import { RendererTestView } from './views/RendererTestView'
-import { AppTestView } from './views/AppTestView'
 import { useLibraryStore } from './store/libraryStore'
 import { useAutoSave } from './hooks/useAutoSave'
 import { useKeyboard } from './hooks/useKeyboard'
@@ -15,11 +12,19 @@ import { useRestoreSession } from './hooks/useRestoreSession'
 import i18n from './i18n/index'
 import './App.css'
 
+const ScoreView = lazy(() => import('./components/score/ScoreView').then(m => ({ default: m.ScoreView })))
+const RendererTestView = lazy(() => import('./views/RendererTestView').then(m => ({ default: m.RendererTestView })))
+const AppTestView = lazy(() => import('./views/AppTestView').then(m => ({ default: m.AppTestView })))
+
 export function App() {
   // Dev routes (no hooks needed)
-  if (window.location.pathname === '/renderer-test') return <RendererTestView />
+  if (window.location.pathname === '/renderer-test') {
+    return <Suspense fallback={null}><RendererTestView /></Suspense>
+  }
   // Layer 2 test: same fixtures rendered inside app CSS context (.vrv-svg / ScoreView.css)
-  if (window.location.pathname === '/app-test') return <AppTestView />
+  if (window.location.pathname === '/app-test') {
+    return <Suspense fallback={null}><AppTestView /></Suspense>
+  }
   return <MainApp />
 }
 
@@ -49,7 +54,9 @@ function MainApp() {
       <TopBar />
       <div className="app-body">
         <LeftPanel />
-        <ScoreView />
+        <Suspense fallback={<div className="score-loading">Loading score renderer…</div>}>
+          <ScoreView />
+        </Suspense>
         <RightPanel />
       </div>
       <StatusBar />
