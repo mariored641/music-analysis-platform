@@ -1,6 +1,6 @@
 /**
  * melodyColorScript.ts
- * Script 1 — Melody Role Coloring
+ * Script 1 — Melody Role Coloring (writes melody annotations: CT / PT / NT)
  *
  * Classification:
  *   CHORD_TONE    — note's PC is in the active chord
@@ -16,9 +16,9 @@
 import { parseChordSymbol, noteNameToPc } from './chordParser'
 import { parseHarmonies } from './xmlParser'
 import type { NoteMap, NoteData } from '../types/score'
-import type { HarmonyAnnotation, NoteColorAnnotation } from '../types/annotation'
+import type { HarmonyAnnotation, MelodyAnnotation, NoteFunction } from '../types/annotation'
 
-const SCRIPT_ID = 'melodyColor'
+export const SCRIPT_ID = 'melodyColor'
 
 function noteToMidi(note: NoteData): number {
   return note.octave * 12 + (note.alter ?? 0) + noteNameToPc(note.step)
@@ -33,6 +33,7 @@ interface ChordEvent {
 function buildChordTimeline(
   xmlString: string | null,
   harmonyAnnotations: HarmonyAnnotation[],
+  noteMap: NoteMap,
 ): ChordEvent[] {
   const events: ChordEvent[] = []
 
@@ -49,7 +50,11 @@ function buildChordTimeline(
     if (!ann.chordSymbol) continue
     const pcs = parseChordSymbol(ann.chordSymbol)
     if (!pcs) continue
-    events.push({ measureNum: ann.measureStart, beatFraction: 0, pitchClasses: pcs })
+    // User chords start at their anchor note (the chord's "real" position)
+    const anchor = ann.noteIds?.[0] ? noteMap.notes.get(ann.noteIds[0]) : undefined
+    const lengthQ = noteMap.measures.get(ann.measureStart)?.lengthQ ?? 4
+    const beatFraction = anchor ? (anchor.beat - 1) / lengthQ : 0
+    events.push({ measureNum: anchor?.measureNum ?? ann.measureStart, beatFraction, pitchClasses: pcs })
   }
 
   events.sort((a, b) => a.measureNum - b.measureNum || a.beatFraction - b.beatFraction)
@@ -74,8 +79,8 @@ export function runMelodyColorScript(
   noteMap: NoteMap,
   harmonyAnnotations: HarmonyAnnotation[],
   xmlString: string | null = null,
-): { annotations: NoteColorAnnotation[]; error?: string; count?: number } {
-  const timeline = buildChordTimeline(xmlString, harmonyAnnotations)
+): { annotations: MelodyAnnotation[]; error?: string; count?: number } {
+  const timeline = buildChordTimeline(xmlString, harmonyAnnotations, noteMap)
 
   if (timeline.length === 0) {
     return { annotations: [], error: 'NO_HARMONY' }
@@ -83,13 +88,13 @@ export function runMelodyColorScript(
 
   // Staff-1 notes only, no rests, no tied continuations
   const sortedNotes = Array.from(noteMap.notes.values())
-    .filter(n => n.staff === 1 && n.step !== 'R' && n.tied !== 'stop' && n.tied !== 'continue')
+    .filter(n => n.part === 0 && n.staff === 1 && !n.grace && n.tied !== 'stop' && n.tied !== 'continue')
     .sort((a, b) => a.measureNum - b.measureNum || a.beat - b.beat)
 
   // Pre-compute active chord PCs and chord-tone flag for each note
   const activePcsArr: (Set<number> | null)[] = sortedNotes.map(note => {
-    const beatsPerMeasure = noteMap.measures.get(note.measureNum)?.timeSignature?.beats ?? 4
-    const beatFraction = (note.beat - 1) / beatsPerMeasure
+    const lengthQ = noteMap.measures.get(note.measureNum)?.lengthQ ?? 4
+    const beatFraction = (note.beat - 1) / lengthQ
     return getActivePcs(note.measureNum, beatFraction, timeline)
   })
 
@@ -155,17 +160,18 @@ export function runMelodyColorScript(
   }
 
   // Build annotations (only classified notes)
-  const annotations: NoteColorAnnotation[] = []
+  const FN: Record<string, NoteFunction> = { CHORD_TONE: 'CT', PASSING_TONE: 'PT', NEIGHBOR_TONE: 'NT' }
+  const annotations: MelodyAnnotation[] = []
   for (let i = 0; i < sortedNotes.length; i++) {
     const ct = colorTypes[i]
     if (!ct) continue
     const note = sortedNotes[i]
     annotations.push({
       id: `script-${SCRIPT_ID}-${note.id}`,
-      layer: 'noteColor',
+      layer: 'melody',
       measureStart: note.measureNum,
       noteIds: [note.id],
-      colorType: ct as NoteColorAnnotation['colorType'],
+      noteFunction: FN[ct],
       scriptId: SCRIPT_ID,
       createdAt: Date.now(),
     })

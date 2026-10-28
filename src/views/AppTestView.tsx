@@ -18,7 +18,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { renderScore } from '../renderer/index'
 import { TEST_CASES, type TestCase } from '../../renderer-tests/test-cases'
-import '../components/score/ScoreView.css'
+import './AppTestView.css'
 
 function getUrlParam(key: string): string | null {
   return new URLSearchParams(window.location.search).get(key)

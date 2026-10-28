@@ -2,53 +2,60 @@ import { openDB, type IDBPDatabase } from 'idb'
 import type { Annotation } from '../types/annotation'
 import type { ResearchNote } from '../store/researchStore'
 
-interface MapDB {
-  files: {
-    key: string
-    value: {
-      id: string
-      xml: string
-      annotations: Record<string, Annotation>
-      researchNotes?: ResearchNote[]
-      savedAt: number
-    }
-  }
+export interface StoredPiece {
+  id: string
+  xml: string
+  annotations: Record<string, Annotation>
+  researchNotes?: ResearchNote[]
+  savedAt: number
 }
 
-let db: IDBPDatabase<MapDB> | null = null
+interface MapDB {
+  files: { key: string; value: StoredPiece }
+  kv: { key: string; value: unknown }
+}
 
-async function getDb() {
-  if (!db) {
-    db = await openDB<MapDB>('map-storage', 1, {
+let dbPromise: Promise<IDBPDatabase<MapDB>> | null = null
+
+function getDb() {
+  if (!dbPromise) {
+    dbPromise = openDB<MapDB>('map-storage', 2, {
       upgrade(db) {
-        db.createObjectStore('files', { keyPath: 'id' })
+        if (!db.objectStoreNames.contains('files')) db.createObjectStore('files', { keyPath: 'id' })
+        if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv')
       },
     })
   }
-  return db
+  return dbPromise
 }
 
 export async function saveFile(
   id: string,
   xml: string,
   annotations: Record<string, Annotation>,
-  researchNotes?: ResearchNote[]
+  researchNotes: ResearchNote[] = [],
+  savedAt = Date.now(),
 ) {
-  const database = await getDb()
-  await database.put('files', { id, xml, annotations, researchNotes, savedAt: Date.now() })
+  const db = await getDb()
+  await db.put('files', { id, xml, annotations, researchNotes, savedAt })
 }
 
-export async function loadFile(id: string) {
-  const database = await getDb()
-  return database.get('files', id)
-}
-
-export async function listFiles() {
-  const database = await getDb()
-  return database.getAll('files')
+export async function loadFile(id: string): Promise<StoredPiece | undefined> {
+  return (await getDb()).get('files', id)
 }
 
 export async function deleteFile(id: string) {
-  const database = await getDb()
-  await database.delete('files', id)
+  await (await getDb()).delete('files', id)
+}
+
+export async function kvGet<T>(key: string): Promise<T | undefined> {
+  return (await getDb()).get('kv', key) as Promise<T | undefined>
+}
+
+export async function kvSet(key: string, value: unknown) {
+  await (await getDb()).put('kv', value, key)
+}
+
+export async function kvDelete(key: string) {
+  await (await getDb()).delete('kv', key)
 }

@@ -1,106 +1,110 @@
 import { create } from 'zustand'
-import { immer } from 'zustand/middleware/immer'
 import type { Annotation } from '../types/annotation'
 
-interface AnnotationState {
-  annotations: Record<string, Annotation>
-  undoStack: Record<string, Annotation>[]
-  redoStack: Record<string, Annotation>[]
-  labelHistory: string[]  // for autocomplete
+type Record_ = Record<string, Annotation>
 
-  addAnnotation: (annotation: Annotation) => void
+interface AnnotationState {
+  annotations: Record_
+  undoStack: Record_[]
+  redoStack: Record_[]
+
+  addAnnotation: (a: Annotation) => void
+  addAnnotations: (list: Annotation[]) => void
   updateAnnotation: (id: string, patch: Partial<Annotation>) => void
+  updateAnnotations: (ids: string[], patch: Partial<Annotation>) => void
   removeAnnotation: (id: string) => void
   removeAnnotations: (ids: string[]) => void
-  updateAnnotations: (ids: string[], patch: Partial<Annotation>) => void
+  /** Apply several changes as a single undo step. */
+  transact: (fn: (draft: Record_) => void) => void
   undo: () => void
   redo: () => void
-  clearAll: () => void
-  loadAnnotations: (annotations: Record<string, Annotation>) => void
-  addToLabelHistory: (label: string) => void
+  loadAnnotations: (a: Record_) => void
 }
 
-const MAX_UNDO = 50
+const MAX_UNDO = 100
 
-export const useAnnotationStore = create<AnnotationState>()(
-  immer((set) => ({
+export const useAnnotationStore = create<AnnotationState>()((set, get) => {
+  /** Commit a new annotations record, pushing the previous one on the undo stack. */
+  const commit = (next: Record_) => {
+    const { annotations, undoStack } = get()
+    if (next === annotations) return
+    set({ annotations: next, undoStack: [...undoStack.slice(-MAX_UNDO + 1), annotations], redoStack: [] })
+  }
+
+  return {
     annotations: {},
     undoStack: [],
     redoStack: [],
-    labelHistory: [],
 
-    addAnnotation: (annotation) => set((state) => {
-      state.undoStack.push({ ...state.annotations })
-      if (state.undoStack.length > MAX_UNDO) state.undoStack.shift()
-      state.redoStack = []
-      state.annotations[annotation.id] = annotation
-    }),
+    addAnnotation: (a) => commit({ ...get().annotations, [a.id]: a }),
 
-    updateAnnotation: (id, patch) => set((state) => {
-      if (!state.annotations[id]) return
-      state.undoStack.push({ ...state.annotations })
-      if (state.undoStack.length > MAX_UNDO) state.undoStack.shift()
-      state.redoStack = []
-      Object.assign(state.annotations[id], patch)
-    }),
+    addAnnotations: (list) => {
+      if (list.length === 0) return
+      const next = { ...get().annotations }
+      for (const a of list) next[a.id] = a
+      commit(next)
+    },
 
-    removeAnnotation: (id) => set((state) => {
-      if (!state.annotations[id]) return
-      state.undoStack.push({ ...state.annotations })
-      if (state.undoStack.length > MAX_UNDO) state.undoStack.shift()
-      state.redoStack = []
-      delete state.annotations[id]
-    }),
+    updateAnnotation: (id, patch) => {
+      const cur = get().annotations[id]
+      if (!cur) return
+      commit({ ...get().annotations, [id]: { ...cur, ...patch } as Annotation })
+    },
 
-    removeAnnotations: (ids) => set((state) => {
-      const toDelete = ids.filter(id => state.annotations[id])
-      if (toDelete.length === 0) return
-      state.undoStack.push({ ...state.annotations })
-      if (state.undoStack.length > MAX_UNDO) state.undoStack.shift()
-      state.redoStack = []
-      for (const id of toDelete) delete state.annotations[id]
-    }),
+    updateAnnotations: (ids, patch) => {
+      const next = { ...get().annotations }
+      let changed = false
+      for (const id of ids) if (next[id]) { next[id] = { ...next[id], ...patch } as Annotation; changed = true }
+      if (changed) commit(next)
+    },
 
-    updateAnnotations: (ids, patch) => set((state) => {
-      const toUpdate = ids.filter(id => state.annotations[id])
-      if (toUpdate.length === 0) return
-      state.undoStack.push({ ...state.annotations })
-      if (state.undoStack.length > MAX_UNDO) state.undoStack.shift()
-      state.redoStack = []
-      for (const id of toUpdate) Object.assign(state.annotations[id], patch)
-    }),
+    removeAnnotation: (id) => {
+      if (!get().annotations[id]) return
+      const next = { ...get().annotations }
+      delete next[id]
+      commit(next)
+    },
 
-    undo: () => set((state) => {
-      const prev = state.undoStack.pop()
+    removeAnnotations: (ids) => {
+      const next = { ...get().annotations }
+      let changed = false
+      for (const id of ids) if (next[id]) { delete next[id]; changed = true }
+      if (changed) commit(next)
+    },
+
+    transact: (fn) => {
+      const next = { ...get().annotations }
+      fn(next)
+      commit(next)
+    },
+
+    undo: () => {
+      const { undoStack, redoStack, annotations } = get()
+      const prev = undoStack[undoStack.length - 1]
       if (!prev) return
-      state.redoStack.push({ ...state.annotations })
-      state.annotations = prev
-    }),
+      set({ annotations: prev, undoStack: undoStack.slice(0, -1), redoStack: [...redoStack, annotations] })
+    },
 
-    redo: () => set((state) => {
-      const next = state.redoStack.pop()
+    redo: () => {
+      const { undoStack, redoStack, annotations } = get()
+      const next = redoStack[redoStack.length - 1]
       if (!next) return
-      state.undoStack.push({ ...state.annotations })
-      state.annotations = next
-    }),
+      set({ annotations: next, redoStack: redoStack.slice(0, -1), undoStack: [...undoStack, annotations] })
+    },
 
-    clearAll: () => set((state) => {
-      state.undoStack.push({ ...state.annotations })
-      state.annotations = {}
-      state.redoStack = []
-    }),
+    loadAnnotations: (annotations) => set({ annotations, undoStack: [], redoStack: [] }),
+  }
+})
 
-    loadAnnotations: (annotations) => set((state) => {
-      state.annotations = annotations
-      state.undoStack = []
-      state.redoStack = []
-    }),
+// ── Free-text label history (autocomplete), shared across pieces ────────────
+const HISTORY_KEY = 'map-label-history'
 
-    addToLabelHistory: (label) => set((state) => {
-      const idx = state.labelHistory.indexOf(label)
-      if (idx !== -1) state.labelHistory.splice(idx, 1)
-      state.labelHistory.unshift(label)
-      if (state.labelHistory.length > 50) state.labelHistory.pop()
-    }),
-  }))
-)
+export function getLabelHistory(): string[] {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]') } catch { return [] }
+}
+
+export function pushLabelHistory(label: string) {
+  const list = getLabelHistory().filter(l => l !== label)
+  list.unshift(label)
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(0, 80))) } catch { /* storage full */ }
+}

@@ -1,51 +1,19 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useAnnotationStore } from '../store/annotationStore'
-import { useScoreStore } from '../store/scoreStore'
 import { useResearchStore } from '../store/researchStore'
-import { saveFile } from '../services/storageService'
-import { exportToAnalysisJson } from '../services/jsonExporter'
-import { writeSyncFile, hasSyncFolder } from '../services/syncService'
-import type { SyncData } from '../services/syncService'
+import { useWorkspaceStore } from '../store/workspaceStore'
+import { flushSave, scheduleSave } from '../services/pieceService'
 
-const DEBOUNCE_MS = 1500
-
+/** Save ~1s after any change to annotations or research notes; flush on leave. */
 export function useAutoSave() {
-  const annotations = useAnnotationStore(s => s.annotations)
-  const researchNotes = useResearchStore(s => s.notes)
-  const { xmlString, metadata, fileName, setDirty, setSaving, setLastSaved } = useScoreStore()
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
   useEffect(() => {
-    if (!xmlString || !metadata || !fileName) return
-
-    setDirty(true)
-
-    if (timerRef.current) clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(async () => {
-      setSaving(true)
-      try {
-        await saveFile(fileName, xmlString, annotations, researchNotes)
-        exportToAnalysisJson(xmlString, metadata, annotations)
-        setLastSaved(Date.now())
-
-        // Sync to folder if one is active
-        if (hasSyncFolder()) {
-          const syncData: SyncData = {
-            version: '1.0',
-            savedAt: new Date().toISOString(),
-            annotations,
-            researchNotes,
-          }
-          await writeSyncFile(fileName, syncData)
-        }
-      } catch (e) {
-        console.error('Auto-save failed:', e)
-        setSaving(false)
-      }
-    }, DEBOUNCE_MS)
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current)
-    }
-  }, [annotations, researchNotes, xmlString, metadata, fileName])
+    const onChange = () => { if (useWorkspaceStore.getState().pieceId) scheduleSave() }
+    const u1 = useAnnotationStore.subscribe((s, p) => { if (s.annotations !== p.annotations) onChange() })
+    const u2 = useResearchStore.subscribe((s, p) => { if (s.notes !== p.notes) onChange() })
+    const flush = () => { flushSave() }
+    const onVis = () => { if (document.visibilityState === 'hidden') flush() }
+    window.addEventListener('pagehide', flush)
+    document.addEventListener('visibilitychange', onVis)
+    return () => { u1(); u2(); window.removeEventListener('pagehide', flush); document.removeEventListener('visibilitychange', onVis) }
+  }, [])
 }

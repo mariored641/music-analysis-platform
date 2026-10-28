@@ -38,14 +38,17 @@ const CHROMATIC_DEGREE = [
 
 // ── Note lookup helper ────────────────────────────────────────────────────────
 
-/** Find staff-1 noteMap IDs at a given 1-based beat in a measure */
+/** Find the anchor note for a chord at a 1-based beat: the melody note at that
+ *  beat, else the nearest note in the measure (prefer later, then any staff). */
 function findNoteIdsAtBeat(noteMap: NoteMap, measureNum: number, beat: number): string[] {
   const measure = noteMap.measures.get(measureNum)
-  if (!measure) return []
-  const target = Math.round(beat * 100)
-  return measure.notes
-    .filter(n => Math.round(n.beat * 100) === target && n.staff === 1)
-    .map(n => n.id)
+  if (!measure || measure.notes.length === 0) return []
+  const exact = measure.notes.filter(n => Math.abs(n.beat - beat) < 0.01 && !n.grace)
+  const top = exact.find(n => n.part === 0 && n.staff === 1) ?? exact[0]
+  if (top) return [top.id]
+  const later = measure.notes.filter(n => n.beat > beat && !n.grace).sort((a, b) => a.beat - b.beat || a.globalStaff - b.globalStaff)
+  const pick = later[0] ?? measure.notes[measure.notes.length - 1]
+  return [pick.id]
 }
 
 // ── Key parsing ────────────────────────────────────────────────────────────────
@@ -223,10 +226,7 @@ function fromXmlHarmonies(
     const rn = computeRN(parsed.rootPc, parsed.quality, keyPc, mode)
     const fn = computeFunction(rn)
 
-    // Convert beatFraction (0–1) to 1-based beat for noteMap lookup
-    const beatsPerMeasure = noteMap.measures.get(item.measureNum)?.timeSignature?.beats ?? 4
-    const beat = 1 + item.beatFraction * beatsPerMeasure
-    const noteIds = findNoteIdsAtBeat(noteMap, item.measureNum, beat)
+    const noteIds = findNoteIdsAtBeat(noteMap, item.measureNum, item.beat)
 
     result.push({
       id: `rn-xml-m${item.measureNum}bf${Math.round(item.beatFraction * 1000)}`,
@@ -234,6 +234,7 @@ function fromXmlHarmonies(
       measureStart: item.measureNum,
       noteIds,
       chordSymbol: item.label,
+      xmlChord: true,
       scaleDegree: rn,
       function: fn,
       createdAt: Date.now(),

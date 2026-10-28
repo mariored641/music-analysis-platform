@@ -1,91 +1,58 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { LAYERS } from '../constants/layers'
 import type { LayerId } from '../types/annotation'
 
-type LayerVisibility = Record<LayerId, boolean>
+export type Visibility = Record<LayerId, boolean>
 
-interface LayerState {
-  visible: LayerVisibility
-  legendColors: Record<string, string>  // key: "layerId:itemIndex"
-  toggle: (id: LayerId) => void
-  setVisible: (id: LayerId, value: boolean) => void
-  setAll: (visible: boolean) => void
-  setLegendColor: (layerId: LayerId, itemIndex: number, color: string) => void
+const DEFAULT_VISIBLE: Visibility = {
+  harmony: true, melody: true, motif: true, form: true, texture: true,
+  labels: true, questions: true, color: true, freehand: true,
 }
 
-const defaults: LayerVisibility = {
-  harmony:   true,
-  melody:    true,
-  form:      true,
-  motif:     true,
-  labels:    true,
-  texture:   false,
-  freehand:  true,
-  noteColor: false,
-  svgColor:  true,
+interface LayerState {
+  visible: Visibility
+  /** Visibility before entering solo mode (null = not soloing) */
+  soloPrev: Visibility | null
+  soloLayer: LayerId | null
+  /** User color overrides: "melody:CT", "motif:A", "form:B", "harmony:chord" … */
+  colors: Record<string, string>
+
+  toggle: (id: LayerId) => void
+  setVisible: (id: LayerId, v: boolean) => void
+  solo: (id: LayerId) => void
+  showAll: () => void
+  setColor: (key: string, color: string | null) => void
 }
 
 export const useLayerStore = create<LayerState>()(
   persist(
-    (set) => ({
-      visible: defaults,
-      legendColors: {},
+    (set, get) => ({
+      visible: DEFAULT_VISIBLE,
+      soloPrev: null,
+      soloLayer: null,
+      colors: {},
 
-      toggle: (id) => set((s) => ({ visible: { ...s.visible, [id]: !s.visible[id] } })),
-      setVisible: (id, value) => set((s) => ({ visible: { ...s.visible, [id]: value } })),
-      setAll: (visible) => set((s) => ({
-        visible: Object.fromEntries(Object.keys(s.visible).map(k => [k, visible])) as LayerVisibility,
-      })),
-      setLegendColor: (layerId, itemIndex, color) => set((s) => ({
-        legendColors: { ...s.legendColors, [`${layerId}:${itemIndex}`]: color },
-      })),
+      toggle: (id) => set(s => ({ visible: { ...s.visible, [id]: !s.visible[id] }, soloLayer: null, soloPrev: null })),
+      setVisible: (id, v) => set(s => ({ visible: { ...s.visible, [id]: v } })),
+      solo: (id) => {
+        const { soloLayer, soloPrev, visible } = get()
+        if (soloLayer === id && soloPrev) { set({ visible: soloPrev, soloPrev: null, soloLayer: null }); return }
+        const only = Object.fromEntries(Object.keys(DEFAULT_VISIBLE).map(k => [k, k === id])) as Visibility
+        set({ visible: only, soloPrev: soloPrev ?? visible, soloLayer: id })
+      },
+      showAll: () => set({ visible: { ...DEFAULT_VISIBLE }, soloPrev: null, soloLayer: null }),
+      setColor: (key, color) => set(s => {
+        const colors = { ...s.colors }
+        if (color) colors[key] = color; else delete colors[key]
+        return { colors }
+      }),
     }),
-    { name: 'map-layer-visibility' }
-  )
+    {
+      name: 'map-layers-v2',
+      merge: (persisted, current) => {
+        const p = persisted as Partial<LayerState>
+        return { ...current, ...p, visible: { ...DEFAULT_VISIBLE, ...(p.visible ?? {}) } }
+      },
+    },
+  ),
 )
-
-/**
- * Returns the effective NOTE_COLORS map, overriding defaults with any user-defined
- * legend colors for the noteColor layer items that have a colorKey.
- */
-export function getEffectiveNoteColors(legendColors: Record<string, string>): Record<string, string> {
-  const noteColorLayer = LAYERS.find(l => l.id === 'noteColor')
-  const result: Record<string, string> = {
-    CHORD_TONE:    '#3b82f6',
-    PASSING_TONE:  '#a855f7',
-    NEIGHBOR_TONE: '#22c55e',
-  }
-  noteColorLayer?.legend?.forEach((item, i) => {
-    if (item.colorKey) {
-      const custom = legendColors[`noteColor:${i}`]
-      if (custom) result[item.colorKey] = custom
-    }
-  })
-  return result
-}
-
-/**
- * Returns the effective MELODY_COLORS map, overriding defaults with any user-defined
- * legend colors for the melody layer items that have a colorKey.
- */
-export function getEffectiveMelodyColors(legendColors: Record<string, string>): Record<string, string> {
-  const melodyLayer = LAYERS.find(l => l.id === 'melody')
-  const result: Record<string, string> = {
-    CT:  '#3b82f6',
-    PT:  '#a855f7',
-    NT:  '#22c55e',
-    SUS: '#f97316',
-    APP: '#f59e0b',
-    ESC: '#ec4899',
-    ANT: '#06b6d4',
-    PED: '#8b5cf6',
-  }
-  melodyLayer?.legend?.forEach((item, i) => {
-    if (item.colorKey) {
-      const custom = legendColors[`melody:${i}`]
-      if (custom) result[item.colorKey] = custom
-    }
-  })
-  return result
-}
