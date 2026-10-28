@@ -61,8 +61,8 @@ async function doRender(xml: string, host: HTMLDivElement): Promise<void> {
     osmdHost = host
     const rules = osmd.EngravingRules
     // Room above/below systems for chord symbols, numerals and form bars
-    rules.MinSkyBottomDistBetweenSystems = 9
-    rules.MinimumDistanceBetweenSystems = 9
+    rules.MinSkyBottomDistBetweenSystems = 14
+    rules.MinimumDistanceBetweenSystems = 12
     rules.PageTopMargin = 6
   }
   osmd.zoom = OSMD_ZOOM
@@ -102,6 +102,7 @@ function buildOsmd(host: HTMLDivElement, noteMap: NoteMap, origin: DOMRect, scal
   // DOM staff lines appear in the same order as OSMD's systems → staff lines, and each
   // contains its measures in order; OSMD tells us each measure's list index.
   const staffRects = new Map<number, Rect[]>()   // measure index (1-based) → staff rects
+  const contentRects = new Map<number, Rect[]>()
   const osmdLines: any[] = (osmd?.GraphicSheet?.MusicPages ?? []).flatMap((pg: any) => pg.MusicSystems.flatMap((sy: any) => sy.StaffLines))
   const lines = Array.from(host.querySelectorAll('g.staffline'))
   lines.forEach((line, k) => {
@@ -115,9 +116,26 @@ function buildOsmd(host: HTMLDivElement, noteMap: NoteMap, origin: DOMRect, scal
       const rect = flat.length ? union(flat) : relRect(gm, origin, scale)
       const arr = staffRects.get(idx + 1)
       if (arr) arr.push(rect); else staffRects.set(idx + 1, [rect])
+      const c = relRect(gm, origin, scale)
+      if (c.w > 0) contentRects.set(idx + 1, [...(contentRects.get(idx + 1) ?? []), c])
     })
   })
-  const { measures, systems } = assembleMeasures(staffRects)
+  const { measures, systems } = assembleMeasures(staffRects, contentRects)
+
+  // Printed words, chord symbols, 8va lines… live outside the measure groups; grow each
+  // system's content box to include the ones that belong to it so overlays stay clear.
+  for (const el of Array.from(host.querySelectorAll('g.staffline > *:not(.vf-measure):not(.vf-connector), svg > g.vf-text:not(.measure-number)'))) {
+    const r = relRect(el, origin, scale)
+    if (r.w <= 0 || r.h <= 0 || r.h > 120) continue
+    const cy = r.y + r.h / 2
+    let best: SystemBox | null = null, bestD = Infinity
+    for (const sy of systems) {
+      // things above a system (tempo words, 8va lines) usually belong to it, so weigh 'above' closer
+      const d = cy < sy.y ? (sy.y - cy) * 0.6 : cy > sy.y + sy.h ? cy - sy.y - sy.h : 0
+      if (d < bestD && r.x < sy.x + sy.w && r.x + r.w > sy.x) { bestD = d; best = sy }
+    }
+    if (best && bestD < 90) best.content = union([best.content, r])
+  }
 
   // ── Notes: OSMD graphical notes → noteMap IDs ──
   const byKey = new Map<string, string[]>()
@@ -234,24 +252,25 @@ function buildNative(host: HTMLDivElement, noteMap: NoteMap, origin: DOMRect, sc
   return { geometry: finish(width, height, measures, systems, notes, noteMap), noteEls, colorables: [] }
 }
 
-function assembleMeasures(staffRects: Map<number, Rect[]>) {
+function assembleMeasures(staffRects: Map<number, Rect[]>, contentRects?: Map<number, Rect[]>) {
   const nums = [...staffRects.keys()].sort((a, b) => a - b)
   const measures: MeasureBox[] = []
   const systems: SystemBox[] = []
   for (const num of nums) {
     const staves = staffRects.get(num)!.sort((a, b) => a.y - b.y)
     const box = union(staves)
+    const content = union([box, ...(contentRects?.get(num) ?? [])])
     let sys = systems[systems.length - 1]
     const prev = measures[measures.length - 1]
     // new system when the measure starts left of the previous one or moves down
     if (!sys || !prev || box.x < prev.x - 1 || Math.abs(box.y - prev.y) > 4) {
-      sys = { index: systems.length, first: num, last: num, ...box }
+      sys = { index: systems.length, first: num, last: num, ...box, content }
       systems.push(sys)
     } else {
       const u = union([sys, box])
-      Object.assign(sys, { x: u.x, y: u.y, w: u.w, h: u.h, last: num })
+      Object.assign(sys, { x: u.x, y: u.y, w: u.w, h: u.h, last: num, content: union([sys.content, content]) })
     }
-    measures[num - 1] = { ...box, num, staves, system: sys.index }
+    measures[num - 1] = { ...box, num, staves, content, system: sys.index }
   }
   return { measures, systems }
 }

@@ -57,6 +57,7 @@ input, select, textarea {
   outline: none;
   min-width: 0;
 }
+input:not([type]), input[type=text], textarea { unicode-bidi: plaintext; }
 input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 input[type=color] { padding: 0; width: 34px; height: 26px; border-radius: 6px; cursor: pointer; }
 input[type=checkbox] { accent-color: var(--accent); }
@@ -74,6 +75,7 @@ kbd {
 .mono { font-family: var(--font-mono); }
 .muted { color: var(--text-3); font-size: 12px; }
 .small { font-size: 11px; }
+.ellipsis, .ann-card-text, .legend-item span, .q-item span { unicode-bidi: plaintext; }
 .ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1; }
 .icon { flex-shrink: 0; display: block; }
 .count {

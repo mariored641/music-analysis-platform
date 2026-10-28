@@ -60,8 +60,8 @@ export function QuickTagBar({ scale, hidden }: { scale: number; hidden: boolean 
     anchor = {
       x0: first?.[0]?.x ?? g.measures[selection.measureStart - 1]?.x ?? 0,
       x1: first ? first[first.length - 1].x + 12 : (g.measures[selection.measureStart - 1]?.x ?? 0) + 40,
-      y0: Math.min(sys0?.y ?? 0, ...(first ?? []).map(n => n.y)) - 34,
-      y1: (sys1?.y ?? 0) + (sys1?.h ?? 0) + 30,
+      y0: Math.min(sys0?.content.y ?? 0, ...(first ?? []).map(n => n.y)) - 40,
+      y1: (sys1 ? sys1.content.y + sys1.content.h : 0) + 30,
     }
   }
   const isElement = selection.kind === 'element'

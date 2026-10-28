@@ -104,7 +104,7 @@ export function runMotifScript(
   // Build sorted note list (staff 1, no rests, no tied stops)
   const allNotes = Array.from(noteMap.notes.values())
     .filter(n => n.part === 0 && n.staff === 1 && !n.grace && n.tied !== 'stop' && n.tied !== 'continue')
-    .sort((a, b) => a.measureNum - b.measureNum || a.beat - b.beat)
+    .sort((a, b) => a.measureNum - b.measureNum || a.beat - b.beat || noteToMidi(b) - noteToMidi(a))
 
   const resultAnnotations: MotifAnnotation[] = []
   const found: Record<string, number> = {}
@@ -116,7 +116,7 @@ export function runMotifScript(
     const seedNotes = seedNoteIds
       .map(id => noteMap.notes.get(id))
       .filter((n): n is NoteData => !!n)
-      .sort((a, b) => a.measureNum - b.measureNum || a.beat - b.beat)
+      .sort((a, b) => a.measureNum - b.measureNum || a.beat - b.beat || noteToMidi(b) - noteToMidi(a))
 
     if (seedNotes.length < 2) continue
 

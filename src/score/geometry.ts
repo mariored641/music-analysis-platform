@@ -14,6 +14,7 @@ export interface NoteBox extends Rect {
 export interface MeasureBox extends Rect {
   num: number       // 1-based measure index
   staves: Rect[]    // staff-line rects, top → bottom
+  content: Rect     // everything drawn in the measure (notes, stems, beams, ledger lines)
   system: number
 }
 
@@ -21,6 +22,7 @@ export interface SystemBox extends Rect {
   index: number
   first: number     // first measure index in the system
   last: number
+  content: Rect     // union of the measures' content
 }
 
 export interface ScoreGeometry {
@@ -70,4 +72,17 @@ export function notesBySystem(g: ScoreGeometry, ids: string[]): NoteBox[][] {
     if (arr) arr.push(n); else groups.set(n.system, [n])
   }
   return [...groups.entries()].sort((a, b) => a[0] - b[0]).map(([, arr]) => arr.sort((a, b) => a.cx - b.cx))
+}
+
+/** Vertical lanes around a system where overlays go, clear of the music. */
+export function lanes(sys: SystemBox) {
+  const top = Math.min(sys.y, sys.content.y)
+  const bottom = Math.max(sys.y + sys.h, sys.content.y + sys.content.h)
+  return {
+    chord: top - 9,          // chord-symbol baseline
+    label: top - 34,         // label / question bracket line (above chords)
+    numeral: bottom + 18,    // roman numeral baseline
+    form: bottom + 46,       // form bar (its label sits just above it)
+    texture: bottom + 62,    // texture bar
+  }
 }
