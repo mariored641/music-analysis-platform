@@ -103,7 +103,7 @@ export function runMotifScript(
 
   // Build sorted note list (staff 1, no rests, no tied stops)
   const allNotes = Array.from(noteMap.notes.values())
-    .filter(n => n.staff === 1 && n.step !== 'R' && n.tied !== 'stop' && n.tied !== 'continue')
+    .filter(n => n.part === 0 && n.staff === 1 && !n.grace && n.tied !== 'stop' && n.tied !== 'continue')
     .sort((a, b) => a.measureNum - b.measureNum || a.beat - b.beat)
 
   const resultAnnotations: MotifAnnotation[] = []
@@ -123,24 +123,17 @@ export function runMotifScript(
     const motifIntervals = extractIntervals(seedNotes)
     const motifDurations = seedNotes.map(n => n.duration)
     const motifLen = seedNotes.length
-    const seedIdSet = new Set(seedNoteIds)
+    // Windows overlapping any hand-tagged occurrence of this motif are skipped
+    const seedIdSet = new Set(userMotifs.filter(m => m.label === label).flatMap(m => m.noteIds ?? []))
 
     let count = 0
-
-    // Re-emit the seed itself as confirmed original
-    resultAnnotations.push({
-      ...seedAnn,
-      id: `script-${SCRIPT_ID}-${label}-origin`,
-      variantType: 'original',
-      matchScore: 1,
-      scriptId: SCRIPT_ID,
-      createdAt: now,
-    })
+    let lastEnd = -1
 
     // Sliding window
     for (let start = 0; start <= allNotes.length - motifLen; start++) {
       const window = allNotes.slice(start, start + motifLen)
       if (window.some(n => seedIdSet.has(n.id))) continue
+      if (start <= lastEnd) continue  // no overlapping occurrences
 
       const windowIntervals = extractIntervals(window)
       const windowDurations = window.map(n => n.duration)
@@ -176,6 +169,7 @@ export function runMotifScript(
             createdAt: now,
           })
           count++
+          lastEnd = start + motifLen - 1
           break // don't double-count same window
         }
       }

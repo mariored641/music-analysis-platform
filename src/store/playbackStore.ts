@@ -2,51 +2,37 @@ import { create } from 'zustand'
 
 interface PlaybackState {
   isPlaying: boolean
-  isPaused: boolean    // true = transport suspended, part still alive
-  currentBeat: number
-  currentMeasure: number
+  isPaused: boolean
   tempo: number
-  startMeasure: number  // measure to begin from when pressing play
-  loopEnabled: boolean
-  loopStart: number | null
-  loopEnd: number | null
+  loop: boolean
+  currentMeasure: number | null
+  currentNoteIds: string[]
+  /** Increments on every play request so the engine knows to rebuild */
+  playSeq: number
 
-  // Core actions
-  setPlaying: (playing: boolean) => void    // backward compat (stop-on-false)
-  pausePlayback: () => void
-  resumePlayback: () => void
-  stopPlayback: () => void
-  setPosition: (measure: number, beat: number) => void
+  play: () => void
+  pause: () => void
+  resume: () => void
+  stop: () => void
   setTempo: (bpm: number) => void
-  setStartMeasure: (m: number) => void
-  setLoop: (start: number, end: number) => void
-  clearLoop: () => void
-  reset: () => void
+  setLoop: (v: boolean) => void
+  setCursor: (measure: number | null, noteIds: string[]) => void
 }
 
-export const usePlaybackStore = create<PlaybackState>((set) => ({
+export const usePlaybackStore = create<PlaybackState>()((set) => ({
   isPlaying: false,
   isPaused: false,
-  currentBeat: 0,
-  currentMeasure: 1,
   tempo: 120,
-  startMeasure: 1,
-  loopEnabled: false,
-  loopStart: null,
-  loopEnd: null,
+  loop: false,
+  currentMeasure: null,
+  currentNoteIds: [],
+  playSeq: 0,
 
-  // Start playing (clears isPaused)
-  setPlaying: (isPlaying) => set(isPlaying
-    ? { isPlaying: true, isPaused: false }
-    : { isPlaying: false, isPaused: false }
-  ),
-  pausePlayback: () => set({ isPlaying: false, isPaused: true }),
-  resumePlayback: () => set({ isPlaying: true, isPaused: false }),
-  stopPlayback: () => set({ isPlaying: false, isPaused: false, currentMeasure: 1, currentBeat: 0 }),
-  setPosition: (currentMeasure, currentBeat) => set({ currentMeasure, currentBeat }),
-  setTempo: (tempo) => set({ tempo }),
-  setStartMeasure: (startMeasure) => set({ startMeasure }),
-  setLoop: (loopStart, loopEnd) => set({ loopEnabled: true, loopStart, loopEnd }),
-  clearLoop: () => set({ loopEnabled: false, loopStart: null, loopEnd: null }),
-  reset: () => set({ isPlaying: false, isPaused: false, currentBeat: 0, currentMeasure: 1 }),
+  play: () => set(s => ({ isPlaying: true, isPaused: false, playSeq: s.playSeq + 1 })),
+  pause: () => set({ isPlaying: false, isPaused: true }),
+  resume: () => set({ isPlaying: true, isPaused: false }),
+  stop: () => set({ isPlaying: false, isPaused: false, currentMeasure: null, currentNoteIds: [] }),
+  setTempo: (tempo) => set({ tempo: Math.max(20, Math.min(400, Math.round(tempo))) }),
+  setLoop: (loop) => set({ loop }),
+  setCursor: (currentMeasure, currentNoteIds) => set({ currentMeasure, currentNoteIds }),
 }))

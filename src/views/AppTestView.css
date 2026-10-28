@@ -1,0 +1,3 @@
+/* Layer-2 renderer test: mirrors the score page styling of the app */
+.vrv-svg { display: block; width: 100%; line-height: 0; font-size: 0; }
+.vrv-svg svg { display: block; width: 100% !important; height: auto !important; background: white; margin-bottom: 8px; }

@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/*.png'],
+      includeAssets: ['icons/*.png', 'icons/*.svg'],
       workbox: {
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
@@ -16,8 +16,8 @@ export default defineConfig({
         name: 'Music Analysis Platform',
         short_name: 'MAP',
         description: 'Musicological analysis platform for MusicXML files',
-        theme_color: '#1a1a2e',
-        background_color: '#1a1a2e',
+        theme_color: '#c2410c',
+        background_color: '#f6f2eb',
         display: 'standalone',
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },

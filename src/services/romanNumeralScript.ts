@@ -38,14 +38,17 @@ const CHROMATIC_DEGREE = [
 
 // ── Note lookup helper ────────────────────────────────────────────────────────
 
-/** Find staff-1 noteMap IDs at a given 1-based beat in a measure */
+/** Find the anchor note for a chord at a 1-based beat: the melody note at that
+ *  beat, else the nearest note in the measure (prefer later, then any staff). */
 function findNoteIdsAtBeat(noteMap: NoteMap, measureNum: number, beat: number): string[] {
   const measure = noteMap.measures.get(measureNum)
-  if (!measure) return []
-  const target = Math.round(beat * 100)
-  return measure.notes
-    .filter(n => Math.round(n.beat * 100) === target && n.staff === 1)
-    .map(n => n.id)
+  if (!measure || measure.notes.length === 0) return []
+  const exact = measure.notes.filter(n => Math.abs(n.beat - beat) < 0.01 && !n.grace)
+  const top = exact.find(n => n.part === 0 && n.staff === 1) ?? exact[0]
+  if (top) return [top.id]
+  const later = measure.notes.filter(n => n.beat > beat && !n.grace).sort((a, b) => a.beat - b.beat || a.globalStaff - b.globalStaff)
+  const pick = later[0] ?? measure.notes[measure.notes.length - 1]
+  return [pick.id]
 }
 
 // ── Key parsing ────────────────────────────────────────────────────────────────
@@ -132,26 +135,35 @@ function computeRN(
   const scaleIntervals = mode === 'major' ? MAJOR_SCALE : MINOR_SCALE
   const scalePcs = scaleIntervals.map(iv => (keyPc + iv) % 12)
 
-  // 1) Secondary dominant: root is a P5 below a diatonic degree (V/X or V7/X)
-  if (quality === '7' || quality === '') {
-    for (let i = 0; i < 7; i++) {
-      if ((rootPc + 7) % 12 === scalePcs[i]) {
-        return (quality === '7' ? 'V7' : 'V') + '/' + DEGREE_ROMAN[i]
+  const diatonicIndex = scalePcs.indexOf(rootPc)
+  // Major triads that belong to the key stay diatonic (I, IV, V in major; III, V, VI, VII in minor)
+  const diatonicMajorTriad = mode === 'major' ? [0, 3, 4] : [2, 4, 5, 6]
+  const isDiatonicDominant = diatonicIndex === 4
+  // Degrees that can't be tonicized (diminished triads)
+  const noTonicize = mode === 'major' ? 6 : 1
+
+  // 1) Secondary dominant: the chord's root is a P5 ABOVE its target (target = root + P4)
+  const plainDiatonic = quality === '' && diatonicMajorTriad.includes(diatonicIndex)
+  if ((quality === '7' || quality === '') && !plainDiatonic && !isDiatonicDominant) {
+    for (let i = 1; i < 7; i++) {
+      if (i === noTonicize) continue
+      if ((rootPc + 5) % 12 === scalePcs[i]) {
+        return (quality === '7' ? 'V7' : 'V') + '/' + targetRoman(i, mode)
       }
     }
   }
 
-  // 2) Secondary leading-tone chord (viiø7/X or vii°7/X)
-  if (quality === 'm7b5' || quality === 'dim7') {
+  // 2) Secondary leading-tone chord (viiø7/X or vii°7/X): root a semitone BELOW its target
+  if ((quality === 'm7b5' || quality === 'dim7') && !(mode === 'major' && diatonicIndex === 6)) {
     for (let i = 0; i < 7; i++) {
-      if ((rootPc + 11) % 12 === scalePcs[i]) {
-        return 'vii' + qualitySuffix(quality) + '/' + DEGREE_ROMAN[i]
+      if (i === noTonicize) continue
+      if ((rootPc + 1) % 12 === scalePcs[i]) {
+        return 'vii' + qualitySuffix(quality) + '/' + targetRoman(i, mode)
       }
     }
   }
 
   // 3) Diatonic degree
-  const diatonicIndex = scalePcs.indexOf(rootPc)
   if (diatonicIndex >= 0) {
     const roman = DEGREE_ROMAN[diatonicIndex]
     const minQ = isMinorQuality(quality)
@@ -167,10 +179,16 @@ function computeRN(
   return rnBase + qualitySuffix(quality)
 }
 
+/** Roman numeral of a tonicized degree, with the case of its diatonic triad (V/ii, V/V, V/vi). */
+function targetRoman(i: number, mode: 'major' | 'minor') {
+  const minorDegrees = mode === 'major' ? [1, 2, 5] : [0, 3]
+  return minorDegrees.includes(i) ? DEGREE_ROMAN[i].toLowerCase() : DEGREE_ROMAN[i]
+}
+
 function computeFunction(rn: string): 'T' | 'S' | 'D' | undefined {
   const base = rn.split('/')[0].replace(/[°øM+].*|[0-9].*/, '').toLowerCase()
   if (['i', 'iii', 'vi'].includes(base)) return 'T'
-  if (['v', 'vii', 'bvii'].includes(base) || rn.startsWith('V/') || rn.startsWith('V7/')) return 'D'
+  if (['v', 'vii', 'bvii'].includes(base) || /^(V|V7|vii[°ø]?7?)\//.test(rn)) return 'D'
   if (['ii', 'iv', 'bii'].includes(base)) return 'S'
   return undefined
 }
@@ -223,10 +241,7 @@ function fromXmlHarmonies(
     const rn = computeRN(parsed.rootPc, parsed.quality, keyPc, mode)
     const fn = computeFunction(rn)
 
-    // Convert beatFraction (0–1) to 1-based beat for noteMap lookup
-    const beatsPerMeasure = noteMap.measures.get(item.measureNum)?.timeSignature?.beats ?? 4
-    const beat = 1 + item.beatFraction * beatsPerMeasure
-    const noteIds = findNoteIdsAtBeat(noteMap, item.measureNum, beat)
+    const noteIds = findNoteIdsAtBeat(noteMap, item.measureNum, item.beat)
 
     result.push({
       id: `rn-xml-m${item.measureNum}bf${Math.round(item.beatFraction * 1000)}`,
@@ -234,6 +249,7 @@ function fromXmlHarmonies(
       measureStart: item.measureNum,
       noteIds,
       chordSymbol: item.label,
+      xmlChord: true,
       scaleDegree: rn,
       function: fn,
       createdAt: Date.now(),

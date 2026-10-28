@@ -1,47 +1,56 @@
 import { create } from 'zustand'
-import type { SelectionType } from '../types/annotation'
+import type { ElementRef } from '../types/annotation'
 
-export interface Selection {
-  type: SelectionType
+export interface NoteSelection {
+  kind: 'notes'
+  noteIds: string[]       // noteMap IDs, in score order
   measureStart: number
   measureEnd: number
-  noteIds: string[]        // noteMap IDs (stable, renderer-agnostic)
-  anchorMeasure?: number   // for shift+click range
-  anchorNoteId?: string    // fixed end for Shift+arrow extend/shrink
-  notePitch?: string       // e.g. "G4" from Verovio getElementAttr
+  anchorId?: string       // fixed end for Shift-extension
+  focusId?: string        // moving end
+  wholeMeasures?: boolean // selected by clicking a measure / system
+  anchorMeasure?: number  // for whole-measure extension
+  focusMeasure?: number
 }
 
-interface ContextMenuState {
-  visible: boolean
-  x: number
-  y: number
-  tab?: string
+export interface ElementSelection {
+  kind: 'element'
+  element: ElementRef
+  measureStart: number
+  measureEnd: number
 }
+
+export type Selection = NoteSelection | ElementSelection
+
+export type QuickSection = 'harmony' | 'melody' | 'motif' | 'form' | 'labels' | 'questions' | 'color' | null
 
 interface SelectionState {
   selection: Selection | null
-  contextMenu: ContextMenuState
-  highlightedMeasure: number | null  // for playback
-  scrollToMeasure: number | null     // set by ResearchNotes links → ScoreView consumes
+  selectedAnnotationId: string | null
+  /** QuickTagBar section currently expanded (null = collapsed) */
+  quickSection: QuickSection
+  /** Client position for the quick bar when opened from a right-click */
+  quickAt: { x: number; y: number } | null
+  /** Measure the score view should scroll to (consumed by ScoreCanvas) */
+  scrollTo: { measure: number; noteId?: string; seq: number } | null
 
-  setSelection: (sel: Selection | null) => void
-  clearSelection: () => void
-  showContextMenu: (x: number, y: number, tab?: string) => void
-  hideContextMenu: () => void
-  setHighlightedMeasure: (m: number | null) => void
-  setScrollToMeasure: (m: number | null) => void
+  setSelection: (s: Selection | null) => void
+  clear: () => void
+  selectAnnotation: (id: string | null) => void
+  openQuick: (section: QuickSection, at?: { x: number; y: number } | null) => void
+  requestScroll: (measure: number, noteId?: string) => void
 }
 
-export const useSelectionStore = create<SelectionState>((set) => ({
+export const useSelectionStore = create<SelectionState>()((set) => ({
   selection: null,
-  contextMenu: { visible: false, x: 0, y: 0 },
-  highlightedMeasure: null,
-  scrollToMeasure: null,
+  selectedAnnotationId: null,
+  quickSection: null,
+  quickAt: null,
+  scrollTo: null,
 
-  setSelection: (selection) => set({ selection }),
-  clearSelection: () => set({ selection: null }),
-  showContextMenu: (x, y, tab) => set({ contextMenu: { visible: true, x, y, tab } }),
-  hideContextMenu: () => set({ contextMenu: { visible: false, x: 0, y: 0 } }),
-  setHighlightedMeasure: (highlightedMeasure) => set({ highlightedMeasure }),
-  setScrollToMeasure: (scrollToMeasure) => set({ scrollToMeasure }),
+  setSelection: (selection) => set({ selection, selectedAnnotationId: null, quickAt: null, ...(selection ? {} : { quickSection: null }) }),
+  clear: () => set({ selection: null, selectedAnnotationId: null, quickSection: null, quickAt: null }),
+  selectAnnotation: (selectedAnnotationId) => set({ selectedAnnotationId }),
+  openQuick: (quickSection, quickAt = null) => set({ quickSection, quickAt }),
+  requestScroll: (measure, noteId) => set(s => ({ scrollTo: { measure, noteId, seq: (s.scrollTo?.seq ?? 0) + 1 } })),
 }))

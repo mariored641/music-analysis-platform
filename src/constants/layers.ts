@@ -1,139 +1,94 @@
-import type { LayerId } from '../types/annotation'
+import type { LayerId, NoteFunction } from '../types/annotation'
 
 export interface LegendItem {
+  key: string        // stable key for user color overrides
   color: string
-  labelHe: string
-  labelEn: string
-  colorKey?: string  // maps to NOTE_COLORS key (e.g. 'CHORD_TONE') — makes the item user-editable
+  he: string
+  en: string
 }
 
 export interface LayerConfig {
   id: LayerId
-  labelHe: string
-  labelEn: string
+  he: string
+  en: string
   color: string
-  bgColor: string
+  shortcut?: string
   legend?: LegendItem[]
 }
 
+export const MELODY_FUNCTIONS: Array<{ value: NoteFunction; color: string; he: string; en: string }> = [
+  { value: 'CT',  color: '#2f6fdb', he: 'צליל אקורד',   en: 'Chord tone' },
+  { value: 'PT',  color: '#9b4fd8', he: 'צליל מעבר',     en: 'Passing tone' },
+  { value: 'NT',  color: '#1f9d55', he: 'צליל שכן',      en: 'Neighbor tone' },
+  { value: 'SUS', color: '#e0761f', he: 'השהיה',         en: 'Suspension' },
+  { value: 'ANT', color: '#0e9bb5', he: 'הקדמה',         en: 'Anticipation' },
+  { value: 'APP', color: '#d4a017', he: "אפוג'יאטורה",   en: 'Appoggiatura' },
+  { value: 'ESC', color: '#d6457d', he: 'צליל בריחה',    en: 'Escape tone' },
+  { value: 'PED', color: '#6d5bd0', he: 'צליל פדל',      en: 'Pedal tone' },
+]
+
+/** Motif label → color (A, B, C …); further labels cycle. */
+export const MOTIF_COLORS = ['#e0761f', '#8b5cf6', '#16a34a', '#db2777', '#0891b2', '#ca8a04', '#4f46e5', '#dc2626']
+
+export const FORM_COLORS = ['#2f6fdb', '#e0761f', '#16a34a', '#9b4fd8', '#db2777', '#0891b2', '#ca8a04', '#64748b']
+
 export const LAYERS: LayerConfig[] = [
   {
-    id: 'harmony',
-    labelHe: 'הרמוניה', labelEn: 'Harmony',
-    color: '#3b82f6', bgColor: 'rgba(59,130,246,0.15)',
+    id: 'harmony', he: 'הרמוניה', en: 'Harmony', color: '#2f6fdb', shortcut: 'H',
     legend: [
-      { color: '#3b82f6', labelHe: 'סימן אקורד', labelEn: 'Chord symbol' },
-      { color: '#60a5fa', labelHe: 'קדנצה (PAC/IAC/HC)', labelEn: 'Cadence (PAC/IAC/HC)' },
-      { color: '#93c5fd', labelHe: 'מודולציה', labelEn: 'Modulation' },
-      { color: '#bfdbfe', labelHe: 'פונקציה T / S / D', labelEn: 'Function T / S / D' },
+      { key: 'chord', color: '#2f6fdb', he: 'סימן אקורד', en: 'Chord symbol' },
+      { key: 'rn', color: '#1e40af', he: 'דרגה (ספרה רומית)', en: 'Roman numeral' },
+      { key: 'cadence', color: '#b45309', he: 'קדנצה', en: 'Cadence' },
     ],
   },
   {
-    id: 'melody',
-    labelHe: 'מלודיה', labelEn: 'Melody',
-    color: '#22c55e', bgColor: 'rgba(34,197,94,0.15)',
-    legend: [
-      { color: '#3b82f6', colorKey: 'CT',  labelHe: 'CT — תו הסכמה',    labelEn: 'CT — Chord tone' },
-      { color: '#a855f7', colorKey: 'PT',  labelHe: 'PT — תו מעבר',      labelEn: 'PT — Passing tone' },
-      { color: '#22c55e', colorKey: 'NT',  labelHe: 'NT — תו שכן',       labelEn: 'NT — Neighbor tone' },
-      { color: '#f97316', colorKey: 'SUS', labelHe: 'SUS — השהיה',       labelEn: 'SUS — Suspension' },
-      { color: '#f59e0b', colorKey: 'APP', labelHe: "APP — אפוג'יאטורה", labelEn: "APP — Appoggiatura" },
-    ],
+    id: 'melody', he: 'מלודיה', en: 'Melody', color: '#9b4fd8', shortcut: 'N',
+    legend: MELODY_FUNCTIONS.map(f => ({ key: f.value, color: f.color, he: `${f.value} — ${f.he}`, en: `${f.value} — ${f.en}` })),
   },
   {
-    id: 'form',
-    labelHe: 'מבנה', labelEn: 'Form',
-    color: '#f97316', bgColor: 'rgba(249,115,22,0.15)',
+    id: 'motif', he: 'מוטיבים', en: 'Motifs', color: '#e0761f', shortcut: 'M',
     legend: [
-      { color: '#3b82f6', labelHe: 'A', labelEn: 'A' },
-      { color: '#60a5fa', labelHe: "A'", labelEn: "A'" },
-      { color: '#f97316', labelHe: 'B', labelEn: 'B' },
-      { color: '#22c55e', labelHe: 'C', labelEn: 'C' },
-      { color: '#a855f7', labelHe: 'קודה', labelEn: 'Coda' },
-      { color: '#6b7280', labelHe: 'פתיחה', labelEn: 'Introduction' },
+      { key: 'original', color: '#e0761f', he: 'מקור — קו מלא', en: 'Original — solid' },
+      { key: 'variant', color: '#e0761f', he: 'וריאציה — קו מקווקו', en: 'Variant — dashed' },
     ],
   },
-  {
-    id: 'motif',
-    labelHe: 'מוטיב', labelEn: 'Motif',
-    color: '#a855f7', bgColor: 'rgba(168,85,247,0.15)',
-    legend: [
-      { color: '#a855f7', labelHe: 'מקורי', labelEn: 'Original' },
-      { color: '#c084fc', labelHe: 'היפוך', labelEn: 'Inversion' },
-      { color: '#d8b4fe', labelHe: 'רטרוגרד', labelEn: 'Retrograde' },
-      { color: '#e9d5ff', labelHe: 'הגדלה / הקטנה', labelEn: 'Augmentation / Diminution' },
-      { color: '#f3e8ff', labelHe: 'רצף', labelEn: 'Sequence' },
-    ],
-  },
-  {
-    id: 'labels',
-    labelHe: 'תוויות', labelEn: 'Labels',
-    color: '#f59e0b', bgColor: 'rgba(245,158,11,0.15)',
-    legend: [
-      { color: '#f59e0b', labelHe: 'תווית טקסט חופשית', labelEn: 'Free text label' },
-      { color: '#fbbf24', labelHe: 'שאלה פתוחה', labelEn: 'Open question' },
-    ],
-  },
-  {
-    id: 'texture',
-    labelHe: 'מרקם', labelEn: 'Texture',
-    color: '#14b8a6', bgColor: 'rgba(20,184,166,0.15)',
-    legend: [
-      { color: '#14b8a6', labelHe: 'הומופוניה', labelEn: 'Homophony' },
-      { color: '#2dd4bf', labelHe: 'פוליפוניה', labelEn: 'Polyphony' },
-      { color: '#5eead4', labelHe: 'מונופוניה', labelEn: 'Monophony' },
-      { color: '#99f6e4', labelHe: 'קונטרפונקט', labelEn: 'Counterpoint' },
-    ],
-  },
-  {
-    id: 'freehand',
-    labelHe: 'ציור חופשי', labelEn: 'Freehand',
-    color: '#ec4899', bgColor: 'rgba(236,72,153,0.15)',
-    // legend rendered as ColorPalette component — no static items
-  },
-  {
-    id: 'noteColor',
-    labelHe: 'צבע תוים', labelEn: 'Note Color',
-    color: '#6b7280', bgColor: 'rgba(107,114,128,0.15)',
-    legend: [
-      { color: '#3b82f6', colorKey: 'CHORD_TONE',    labelHe: 'תו הסכמה', labelEn: 'Chord tone' },
-      { color: '#a855f7', colorKey: 'PASSING_TONE',  labelHe: 'תו מעבר',  labelEn: 'Passing tone' },
-      { color: '#22c55e', colorKey: 'NEIGHBOR_TONE', labelHe: 'תו שכן',   labelEn: 'Neighbor tone' },
-    ],
-  },
-  {
-    id: 'svgColor',
-    labelHe: 'צבע אלמנטים', labelEn: 'Element Color',
-    color: '#06b6d4', bgColor: 'rgba(6,182,212,0.15)',
-    legend: [
-      { color: '#06b6d4', labelHe: 'דינמיקה (p, f, ff...)', labelEn: 'Dynamics (p, f, ff...)' },
-      { color: '#22d3ee', labelHe: 'ארטיקולציה', labelEn: 'Articulation' },
-      { color: '#67e8f9', labelHe: 'קרשנדו / דקרשנדו', labelEn: 'Hairpin (cresc/decresc)' },
-      { color: '#a5f3fc', labelHe: 'פרמטה', labelEn: 'Fermata' },
-      { color: '#cffafe', labelHe: 'טמפו / כיוון', labelEn: 'Tempo / Direction' },
-    ],
-  },
+  { id: 'form', he: 'מבנה', en: 'Form', color: '#16a34a', shortcut: 'F' },
+  { id: 'texture', he: 'מרקם', en: 'Texture', color: '#0891b2' },
+  { id: 'labels', he: 'תוויות', en: 'Labels', color: '#ca8a04', shortcut: 'T' },
+  { id: 'questions', he: 'שאלות', en: 'Questions', color: '#dc2626', shortcut: 'Q' },
+  { id: 'color', he: 'צביעה', en: 'Coloring', color: '#db2777', shortcut: 'K' },
+  { id: 'freehand', he: 'ציור חופשי', en: 'Freehand', color: '#475569', shortcut: 'D' },
 ]
 
 export const LAYER_MAP = new Map(LAYERS.map(l => [l.id, l]))
 
-// Note coloring (matches NoteColorAnnotation.colorType)
-export const NOTE_COLORS: Record<string, string> = {
-  CHORD_TONE:    '#3b82f6',  // blue
-  PASSING_TONE:  '#a855f7',  // purple
-  NEIGHBOR_TONE: '#22c55e',  // green
+export function motifColor(label: string, overrides?: Record<string, string>): string {
+  const o = overrides?.[`motif:${label}`]
+  if (o) return o
+  const base = label.replace(/['’]+$/, '').toUpperCase()
+  const idx = base.length === 1 && base >= 'A' && base <= 'Z' ? base.charCodeAt(0) - 65 : hash(base)
+  return MOTIF_COLORS[idx % MOTIF_COLORS.length]
 }
 
-export const FORMAL_SECTION_COLORS: Record<string, string> = {
-  Exposition:      '#3b82f6',
-  Development:     '#f97316',
-  Recapitulation:  '#22c55e',
-  Coda:            '#a855f7',
-  Introduction:    '#6b7280',
-  A:               '#3b82f6',
-  'A\'':           '#60a5fa',
-  B:               '#f97316',
-  C:               '#22c55e',
-  Refrain:         '#3b82f6',
-  Couplet:         '#f59e0b',
+export function formColor(label: string, overrides?: Record<string, string>): string {
+  const o = overrides?.[`form:${label}`]
+  if (o) return o
+  const base = label.replace(/['’]+$/, '')
+  const fixed: Record<string, number> = { A: 0, B: 1, C: 2, D: 3, Intro: 7, Introduction: 7, Coda: 3, Exposition: 0, Development: 1, Recapitulation: 2 }
+  return FORM_COLORS[(fixed[base] ?? hash(base)) % FORM_COLORS.length]
 }
+
+export function melodyColor(fn: string, overrides?: Record<string, string>): string {
+  return overrides?.[`melody:${fn}`] ?? MELODY_FUNCTIONS.find(f => f.value === fn)?.color ?? '#64748b'
+}
+
+function hash(s: string): number {
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0
+  return h
+}
+
+export const COLOR_SWATCHES = [
+  '#dc2626', '#ea580c', '#d97706', '#ca8a04', '#16a34a', '#0d9488',
+  '#0891b2', '#2563eb', '#7c3aed', '#c026d3', '#db2777', '#1f2937',
+]
