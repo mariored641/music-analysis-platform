@@ -109,6 +109,7 @@ export function useShortcuts() {
         sel.openQuick(sel.quickSection === SECTION_KEYS[k] ? null : SECTION_KEYS[k])
         return
       }
+      if (e.key === '?') { useUiStore.getState().setHelpOpen(true); return }
       if (k === 'd') { stylus.setMode(stylus.mode === 'draw' ? 'select' : 'draw'); return }
       if (k === 'e') { stylus.setMode(stylus.mode === 'erase' ? 'select' : 'erase'); return }
       if (k === 'v') { stylus.setMode('select'); return }

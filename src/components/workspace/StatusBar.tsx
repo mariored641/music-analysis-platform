@@ -53,6 +53,7 @@ export function StatusBar() {
         )}
       </div>
       <div className="sb-hint">{hint}</div>
+      <button className="icon-btn sm" onClick={() => useUiStore.getState().setHelpOpen(true)} title={tr('קיצורי מקלדת (?)', 'Keyboard shortcuts (?)')}><Icon name="keyboard" size={16} /></button>
       <div className="sb-zoom">
         <button className="icon-btn sm" onClick={() => setZoom((zoom || 1) - 0.1)} title={tr('הקטן', 'Zoom out')}><Icon name="zoomOut" size={15} /></button>
         <button className="sb-zoom-val" onClick={() => setZoom(0)} title={tr('התאם לרוחב', 'Fit width')}>{zoom === 0 ? tr('רוחב', 'Fit') : `${Math.round(zoom * 100)}%`}</button>

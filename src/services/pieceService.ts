@@ -14,6 +14,8 @@ import { migrateAnnotations } from './migrate'
 import { buildAnalysisFile, parseAnalysisFile } from './analysisExport'
 import { readPieceAnalysis, scanFolder, writePieceToFolder } from './syncService'
 import { deleteThumbnail } from '../score/thumbnail'
+import { useUiStore } from '../store/uiStore'
+import { tr } from '../i18n'
 
 // ── File reading ─────────────────────────────────────────────────────────────
 
@@ -121,6 +123,8 @@ export async function openPiece(id: string) {
   const ws = useWorkspaceStore.getState()
   if (ws.pieceId === id && ws.status === 'ready') {
     useLibraryStore.getState().setView('analysis')
+    useLibraryStore.getState().updatePiece(id, { lastOpened: Date.now() })
+    await refreshFromFolder(id)
     return
   }
   await flushSave()
@@ -158,7 +162,26 @@ export async function openPiece(id: string) {
     key: noteMap.metadata.key,
     timeSignature: noteMap.metadata.timeSignature,
   })
-  return external && external.savedAt > stored.savedAt + 1000 ? 'external' : 'local'
+  if (external && external.savedAt > stored.savedAt + 1000) announceExternal()
+}
+
+function announceExternal() {
+  useUiStore.getState().toast(tr('נטען ניתוח מעודכן מתיקיית הסנכרון', 'Loaded a newer analysis from the sync folder'), 'success')
+}
+
+/** Pick up changes made to the open piece's analysis.json outside MAP (e.g. by Claude Code). */
+export async function refreshFromFolder(id: string) {
+  const piece = useLibraryStore.getState().pieces.find(p => p.id === id)
+  const external = await readPieceAnalysis(piece?.fileName ?? id)
+  const lastSaved = useWorkspaceStore.getState().lastSaved ?? 0
+  if (!external || external.savedAt <= lastSaved + 1000 || useWorkspaceStore.getState().pieceId !== id) return
+  await flushSave()
+  useAnnotationStore.getState().loadAnnotations(external.annotations)
+  useResearchStore.getState().loadNotes(external.researchNotes)
+  const { xml } = useWorkspaceStore.getState()
+  if (xml) await saveFile(id, xml, external.annotations, external.researchNotes, external.savedAt)
+  useWorkspaceStore.getState().setSaveState('saved', external.savedAt)
+  announceExternal()
 }
 
 export async function closePiece() {

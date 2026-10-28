@@ -70,6 +70,20 @@ export function ScoreCanvas() {
     return () => ro.disconnect()
   }, [])
 
+  // ── Ctrl+wheel / pinch zoom ──
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey) return
+      e.preventDefault()
+      const ui = useUiStore.getState()
+      ui.setZoom((ui.zoom || scaleRef.current) * Math.exp(-e.deltaY * 0.0025))
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [])
+
   // ── Render ──
   useEffect(() => {
     const host = hostRef.current
@@ -311,6 +325,15 @@ export function ScoreCanvas() {
     useSelectionStore.getState().clear()
   }
 
+  // A hovering stylus disables touch panning on the page so its strokes draw instead of
+  // scrolling; fingers scroll again once the pen leaves.
+  const onPenNear = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'pen' && useStylusStore.getState().penAlwaysDraws) e.currentTarget.classList.add('pen-near')
+  }
+  const onPenAway = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'pen') e.currentTarget.classList.remove('pen-near')
+  }
+
   const onPointerCancel = () => {
     gestureRef.current = null
     setGestureActive(false)
@@ -403,6 +426,8 @@ export function ScoreCanvas() {
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerCancel}
+          onPointerOver={onPenNear}
+          onPointerLeave={onPenAway}
           onClick={onClick}
           onDoubleClick={onDoubleClick}
           onContextMenu={onContextMenu}

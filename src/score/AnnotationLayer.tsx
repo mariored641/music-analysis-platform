@@ -165,11 +165,17 @@ export const AnnotationLayer = memo(function AnnotationLayer({ geometry: g, anno
       out.push(
         <g key={a.id} {...common(a)} transform={`translate(${off.x} ${off.y})`}>
           <title>{title}</title>
-          {groups.map((grp, i) => (
-            <path key={i} d={blobPath(grp.map(n => ({ x: n.cx, y: n.cy })), 10, i > 0, i < groups.length - 1)}
-              fill={color} fillOpacity={sel ? 0.22 : 0.12} stroke={color} strokeWidth={sel ? 2.2 : 1.4}
-              strokeDasharray={variant ? '5 3' : undefined} />
-          ))}
+          {groups.map((grp, i) => {
+            const d = blobPath(grp.map(n => ({ x: n.cx, y: n.cy })), 10, i > 0, i < groups.length - 1)
+            return (
+              <g key={i}>
+                {/* the fill must not block clicks on the notes inside — only the outline is grabbable */}
+                <path d={d} fill={color} fillOpacity={sel ? 0.22 : 0.12} stroke={color} strokeWidth={sel ? 2.2 : 1.4}
+                  strokeDasharray={variant ? '5 3' : undefined} style={{ pointerEvents: 'none' }} />
+                <path d={d} fill="none" stroke="transparent" strokeWidth={9} style={{ pointerEvents: 'stroke' }} />
+              </g>
+            )
+          })}
           <g transform={`translate(${groups[0][0].cx - 12} ${Math.min(...groups[0].map(n => n.cy)) - 26})`}>
             <rect rx={7} height={15} width={motifTag(m.label, m.variantType).length * 7 + 10} fill={color} />
             <text x={5} y={11} className="ann-pill-text">{motifTag(m.label, m.variantType)}</text>
@@ -223,10 +229,14 @@ export const AnnotationLayer = memo(function AnnotationLayer({ geometry: g, anno
             return (
               <g key={i}>
                 <path d={`M${s.x0} ${y + 5} V${y} H${s.x1} V${y + 5}`} fill="none" stroke={color} strokeWidth={sel ? 2 : 1.4} strokeDasharray={l.isQuestion ? '4 3' : undefined} />
+                {i === 0 && l.isQuestion && (
+                  <g transform={`translate(${s.x0} ${y})`}>
+                    <circle r={7} fill={color} />
+                    <text y={4} textAnchor="middle" className="ann-q-mark">?</text>
+                  </g>
+                )}
                 {i === 0 && (
-                  <text x={(s.x0 + s.x1) / 2} y={y - 4} textAnchor="middle" className="ann-label-text" fill={color}>
-                    {l.isQuestion ? '? ' : ''}{l.text}
-                  </text>
+                  <text x={(s.x0 + s.x1) / 2} y={y - 4} textAnchor="middle" className="ann-label-text" fill={color}>{l.text}</text>
                 )}
                 <rect x={s.x0} y={y - 16} width={Math.max(20, s.x1 - s.x0)} height={22} fill="transparent" />
               </g>

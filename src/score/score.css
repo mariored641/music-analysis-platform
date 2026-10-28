@@ -25,6 +25,7 @@
   cursor: default;
 }
 .score-page.mode-draw { cursor: crosshair; touch-action: none; }
+.score-page.pen-near { touch-action: none; }
 .score-page.mode-erase { cursor: cell; touch-action: none; }
 
 .osmd-host { line-height: 0; }
@@ -64,8 +65,10 @@
 /* annotations */
 .ann { pointer-events: visiblePainted; cursor: grab; }
 .ann:active { cursor: grabbing; }
-.ann text { font-family: var(--font-ui); user-select: none; }
-.ann-chord { font-family: var(--font-music-text) !important; font-size: 17px; font-weight: 600; }
+.score-overlay { direction: ltr; }
+.ann text { font-family: var(--font-ui); user-select: none; unicode-bidi: plaintext; }
+.ann-q-mark { fill: #fff; font-size: 10px; font-weight: 800; }
+.ann-chord { font-family: var(--font-music-text) !important; font-size: 19px; font-weight: 500; }
 .ann-rn { font-family: var(--font-music-text) !important; font-size: 15px; font-weight: 600; }
 .ann-cadence { font-size: 11px; font-weight: 700; letter-spacing: .5px; font-family: var(--font-ui); }
 .ann-pill-text { fill: #fff; font-size: 10.5px; font-weight: 700; }

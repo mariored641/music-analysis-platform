@@ -1,336 +1,69 @@
 # MAP — Music Analysis Platform
 ## CLAUDE.md — Project context for AI sessions
 
-**Stack:** React 18 + TypeScript + Vite + Zustand + Tone.js + i18next + PWA
-**Location:** `C:\Users\DELL\Documents\MAP - Music Analysis Platform`
-**Test file:** `public/DONNALEE.XML` — Donna Lee, Charlie Parker, Ab major, 4/4, 100 measures
-**Dev server:** `node node_modules/vite/bin/vite.js --port 3002` (or next available port)
-**GitHub:** https://github.com/mariored641/music-analysis-platform
-**Vercel:** https://map-music-analysis-platform.vercel.app (auto-deploys on push to main/master)
+**Source of truth for UX:** [`docs/VISION.md`](docs/VISION.md) (Mario's vision, in his words) → [`docs/UX_REMAKE.md`](docs/UX_REMAKE.md) (how the app implements it). Read both before changing behavior.
+
+**Stack:** React 19 + TypeScript + Vite + Zustand + OSMD + Tone.js + i18next + PWA
+**Test files:** `public/DONNALEE.XML` (Donna Lee, Ab major, 100 bars), `public/liszt-test.mxl`, `public/sample-bach-invention1.xml`
+**Dev server:** `node node_modules/vite/bin/vite.js --port 3002`
+**GitHub:** https://github.com/mariored641/music-analysis-platform · **Vercel:** auto-deploys main/master
 
 ---
 
-## Views
+## Core UX loop (the remake, Oct 2026)
 
-**Two-view app — `currentView` in `libraryStore` controls routing in `App.tsx`:**
+**Select → tag → see it → saved.** Everything else supports that loop.
 
-### Library View (`src/views/LibraryView.tsx`)
-- Home screen — shown on startup (or when `currentView === 'library'`)
-- Grid of `LibraryCard` components (`src/components/library/LibraryCard.tsx`)
-- Upload button → file picker → MetaForm modal → loads piece → switches to Analysis view
-- Sort: lastModified / lastOpened / dateAdded / title / composer / genre
-- Filter: by genre, by composer; text search
-- Delete piece (with confirm) — removes from IndexedDB + libraryStore
+- Library (`components/library/LibraryView.tsx`) → click a card → Workspace (`components/workspace/Workspace.tsx`). `libraryStore.currentView` switches; the last open piece is restored on reload.
+- Workspace = TopBar · LayersPanel (left) · ScoreCanvas (center) + StylusDock · RightPanel (Inspector / research notes) · StatusBar. All UI strings are bilingual pairs: `tr('עברית', 'English')` (`i18n/index.ts`), Hebrew/RTL default.
+- **QuickTagBar** (`components/workspace/QuickTagBar.tsx`) floats above any selection: detected chord (one click), chord/degree (H, Enter), melodic role (N, then 1–8), motif (M, then 1–9), form/texture (F), label (T), question (Q), color (K), linked research note. Right-click opens it at the pointer. All tag writes go through `services/tagActions.ts` (one call = one undo step).
+- Shortcuts: `hooks/useShortcuts.ts` (cheat sheet: `?`, `components/workspace/ShortcutsHelp.tsx`).
 
-### Analysis View (default layout)
-Three-panel fixed layout:
-```
-┌──────────┬────────────────────┬──────────┐
-│LeftPanel │    ScoreView       │RightPanel│
-│  180px   │  (flex, scrolls)   │  180px   │
-└──────────┴────────────────────┴──────────┘
-│              StatusBar                    │
-└───────────────────────────────────────────┘
-```
-- **TopBar** — ← back-to-library button, title, language toggle, play button, BPM, JSON export, 🔬 Scripts button
-- **FormalStrip** — horizontal colored strip above score (form annotations)
-- **ScoreView** — main score rendering area with overlays
-- **LeftPanel** — layer toggles with collapsible legends + freehand color palette
-- **RightPanel** — selection details, tag count, open questions, analysis summary
-- **StatusBar** — key, time sig, selection info, shortcut hints
+## Score engine (`src/score/`)
 
----
+| File | Purpose |
+|---|---|
+| `engine.ts` | `renderScore(xml, host)` — OSMD into a fixed **`PAGE_WIDTH` = 1000px** page (renders serialized). `buildGeometry()` → page-unit geometry + noteId↔notehead map. `?renderer=native` uses the native renderer. |
+| `geometry.ts` | `ScoreGeometry` (measures with per-staff rects, systems, note boxes, score order) + helpers |
+| `ScoreCanvas.tsx` | Page + zoom (`transform: scale`, fit-to-width default, Ctrl+wheel), pointer input (click / lasso / pen draw / erase / right-click), notehead painting, scroll-to, playback follow |
+| `selectionOps.ts` | Word-like selection: click, Shift/Ctrl, arrows, Shift+arrows, systems, select all |
+| `AnnotationLayer.tsx` | On-score tag shapes (harmony text + anchor handle, motif blob, form/texture bars, label brackets, questions) — draggable (`visualOffset`), double-click resets |
+| `OverlayLayers.tsx` | Selection band, playback band, freehand strokes |
+| `paint.ts` / `registry.ts` | Direct DOM coloring of noteheads/elements; current render's elements (`colorables`) for element selection |
+| `thumbnail.ts` | First-system WebP thumbnails for library cards (IndexedDB `kv`) |
 
-## Renderer: OSMD (current, default)
+**Geometry is in page units** (unscaled page px). Strokes and offsets are stored in page units → stable across zoom/window size.
 
-**Renderer history:**
-1. webmscore — chord symbol root letters missing (Edwin font absent from WASM). Replaced.
-2. Verovio — worked well but replaced by OSMD for better chord positioning and VexFlow integration.
-3. **OSMD** ← current default. `?renderer=native` switches to the native renderer (in development).
-
-**How it loads:** `renderWithOSMD()` in `src/renderer/osmdAdapter.ts`, called from `ScoreView.tsx`:
-```typescript
-import { renderWithOSMD, buildOSMDElementMap, locateNoteheadInOSMD, buildNoteMapIdFromOSMD } from '../../renderer/osmdAdapter'
-```
-
-**OSMD element mapping:** `buildOSMDElementMap(container, noteMap)` — pitch-based matching (for each OSMD notehead, extract measure+step+octave from sourceNote, look up in noteMap by pitch key, pick closest beat). Stamps `id=osmd-N`, `data-notemap-id`, `.note` class on each notehead SVG. **OSMD NoteEnum uses chromatic values** (C=0, D=2, E=4, F=5, G=7, A=9, B=11), mapped via `NOTE_ENUM_TO_STEP`.
-
-**CSS selectors (OSMD):** `g.vf-measure` (measures), `g.vf-notehead` (note heads) — VexFlow-prefixed classes.
-
-**Multi-staff fix:** `prepareMusicXML()` in `src/services/xmlSanitizer.ts` — still used to reorder notes for clean rendering.
-
----
-
-## ScoreView rendering flow
-
-```
-xmlString → prepareMusicXML() → renderWithOSMD(xml, container)
-         → buildOSMDElementMap(container, noteMap) → stamps data-notemap-id on noteheads
-         → buildElementMap(container) → setElementMap(Map<"measure-N", NoteElement>)
-         → setToVrv(Map<noteMapId, svgId>)
-```
-
-**`buildElementMap(container)`**
-- Queries `container.querySelectorAll('g.vf-measure')` — OSMD/VexFlow class for measure groups
-- `elementMap` key: `"measure-N"` where N = index (0-based)
-- `NoteElement.measureNum` = index + 1 (1-based)
-- DONNALEE.XML: 100 measures, 643 notes
-
-**`buildOSMDElementMap(container, noteMap)`**
-- Positional matching: sorts noteMap IDs by measure+beat, traverses OSMD GraphicSheet, zips 1:1
-- Stamps `id=osmd-N`, `data-notemap-id`, `.note` class on each notehead SVG element
-- Returns `{ toVrv: Map<noteMapId, svgId>, fromVrv: Map<svgId, noteMapId> }`
-- `toVrv` stored in scoreStore (for overlays + scripts). `fromVrv` kept in `fromVrvRef` in ScoreView only (for click handlers)
-- DONNALEE.XML: builds 643 entries after clean page load
-
-**Click detection:**
-- Note click: `e.target.closest('g.vf-notehead')` → translate via `fromVrvRef` → noteMap ID stored in `selection.noteIds`
-- Measure click: `findMeasureAtPoint(clientX, clientY, elementMap)` — bbox hit test
-
----
+**OSMD mapping facts:** `g.vf-measure` ids are *printed measure numbers* — don't use them; measure indices come from OSMD `MusicSystems[].StaffLines[].Measures[].parentSourceMeasure.measureListIndex` paired with DOM `g.staffline` order. Each OSMD GraphicalNote ↔ one notehead, except chords where every note reports all heads → paired by pitch. Matching levels: exact (measure|staff|pitch, beat) → nearest beat → any staff → any octave (8va). DONNALEE 643/643, Liszt 612/612.
 
 ## ID architecture — CRITICAL
 
-**Two separate ID spaces:**
-- **SVG IDs** — ephemeral IDs assigned at render time (OSMD: `osmd-N` format)
-- **noteMap IDs** — stable format `note-m{measureNum}b{Math.round(beat*100)}-{step}{octave}`, e.g. `note-m4b300-E5`
+- **noteMap IDs** (stored in annotations): `note-m{measureIndex}b{round(beat*100)}-{Step}{Oct}[-s{staff}][-p{part}]`, collisions get `-v{voice}`. `measureIndex` = 1-based position in document order (not the printed number). See `services/xmlParser.ts`.
+- `NoteData`: `measureNum` (index), `beat` (1-based quarters), `staff`, `part`, `globalStaff`, `tied`, `grace`. `MeasureData`: `label`, `startQ`, `lengthQ`, effective time/key.
+- Annotations never store rendered SVG ids. Score elements (chord symbols, dynamics, ties…) are referenced by `ElementRef {index, tag, x, y}` and re-resolved by `registry.resolveElement`.
 
-**Rule:** `annotation.noteIds` and `selection.noteIds` always store **noteMap IDs**.
-`toVrv` is a one-way rendering translation layer only — never stored in annotations.
+## Data model (`types/annotation.ts`)
 
-**Translation points:**
-- Click → `fromVrvRef.current.get(vrvId)` → noteMap ID → stored in selection/annotation
-- Overlay/color → `toVrv.get(noteMapId)` → vrvId → `document.getElementById(vrvId)`
+Layers: `harmony | melody | motif | form | texture | labels | color | freehand`; `questions` is visibility-only (labels with `isQuestion`). `HarmonyAnnotation.noteIds[0]` = anchor note (the chord's real position; Alt+←/→ or drag the orange dot). Melody roles are per-note `melody` annotations (`noteFunction`) — the melody script writes the same layer with `scriptId`. `ColorAnnotation` colors notes (`noteIds`) or an element (`element`). Strokes: `FreehandAnnotation {points, path, color, strokeWidth, opacity, linkedLayer, label}`; a stroke shows when `freehand` or its `linkedLayer` is visible.
 
-**OSMD notehead SVG structure:**
-- OSMD stamps `data-notemap-id` on each notehead element
-- Note coloring targets `g.vf-notehead` and its path children
-- Positional matching is used to link noteMap IDs to SVG elements
+Old saved data is upgraded on load by `services/migrate.ts` (`noteColor{colorType}` → `melody`, Verovio-era `svgColor` dropped).
 
----
+## State (`src/store/`)
 
-## Selection system
+`libraryStore` (pieces, persisted `map-library`) · `workspaceStore` (open piece: xml, noteMap, xmlHarmonies, geometry, save state) · `annotationStore` (annotations + undo/redo, `transact`) · `selectionStore` (selection: notes | element, selected annotation, quick-bar section, scroll requests) · `layerStore` (visibility, solo, color overrides `melody:CT` / `motif:A` / `form:B` / `harmony:chord`…) · `stylusStore` (palette, mode select/draw/erase, `penAlwaysDraws`) · `researchStore` · `playbackStore` · `uiStore` (panels, zoom, drawers, toasts).
 
-| Action | Result |
-|--------|--------|
-| Click note | Purple highlight on note, StatusBar: `Note — m.N` |
-| Click measure (non-note area) | Purple highlight on measure, StatusBar: `Measure N` |
-| Shift+click | Extends range from anchorMeasure |
-| Drag lasso | Rubber-band rect → selects **notes** (`type: 'notes'`) intersecting the rect |
-| Escape | Clears selection |
+Dev builds expose `window.__map` (stores) for debugging and browser tests.
 
-`selection.noteIds` always contains **noteMap IDs** (translated at click time via `fromVrvRef`).
+## Persistence, sync, export (`src/services/`)
 
-**Context menu positioning:** uses `useLayoutEffect` to measure actual rendered height after each open, clamps to viewport on all four sides. Never goes off-screen.
-
-**Tag button tooltips:** `title` attribute on tag chips shows `עברית / English` on hover.
-
-**SelectionOverlay.tsx** — translates noteMap IDs → SVG IDs via `toVrv` prop for DOM lookup.
+- `pieceService.ts` — the only load/save path: `importPiece`, `openPiece`, `closePiece`, `deletePiece`, `savePiece` / `scheduleSave` / `flushSave`, `importFromFolder`, `refreshFromFolder`.
+- `storageService.ts` — IndexedDB `map-storage` v2: `files` (xml + annotations + researchNotes + savedAt), `kv` (sync folder handle, thumbnails).
+- `syncService.ts` — File System Access folder: `<base>/<base>.musicxml` + `<base>/<base>.analysis.json`. Written on every save; a newer analysis.json (e.g. edited by Claude Code) wins on open and on window focus; "sync folder" in the library imports pieces that exist only in the folder.
+- `analysisExport.ts` — `.analysis.json` v2: `{format, version, savedAt, piece, annotations[], researchNotes[], summary}`. `annotations` round-trips; `summary` is derived/readable only.
+- Scripts: `melodyColorScript.ts` (CT/PT/NT → melody layer; manual tags win), `motifScript.ts` (seeds = hand-tagged motifs), `romanNumeralScript.ts` (degrees + functions; chordifies when no chords). UI: `components/workspace/ScriptsDrawer.tsx`.
+- `hooks/usePlayback.ts` — Tone.js from the selection, transport ticks (live BPM), loop, cursor via `playbackStore.currentNoteIds`.
 
 ---
-
-## Source files
-
-### `src/components/score/`
-| File | Purpose |
-|------|---------|
-| `ScoreView.tsx` | Main renderer — OSMD, elementMap, buildOSMDElementMap, click/drag handling, applyNoteColors |
-| `ScoreView.css` | Score layout styles |
-| `SelectionOverlay.tsx` | SVG overlay — note + measure highlight, lasso rect. Accepts `toVrv` prop |
-| `AnnotationOverlay.tsx` | SVG overlay for annotations (colored rects + labels). Accepts `toVrv` prop |
-| `HarmonyOverlay.tsx` | Legacy file — imported but not rendered (OSMD renders chord symbols natively) |
-| `FormalStrip.tsx` | Horizontal strip above score for form annotations |
-| `FreehandCanvas.tsx` | Canvas layer for freehand drawing |
-
-### `src/components/layout/`
-`TopBar.tsx`, `LeftPanel.tsx`, `RightPanel.tsx`, `StatusBar.tsx`
-
-### `src/components/stylus/`
-| File | Purpose |
-|------|---------|
-| `ColorPalette.tsx` | Color circles for freehand layer — click circle → popover (color picker, width, opacity, link to layer, label). Reads/writes `stylusStore` |
-| `ColorPalette.css` | Palette + popover styles |
-
-### `src/components/menus/`
-`ContextMenu.tsx` — dispatcher
-`HarmonyMenu.tsx`, `MelodyMenu.tsx`, `FormMenu.tsx`, `MotifMenu.tsx`, `LabelMenu.tsx`, `NoteColorMenu.tsx`
-
-### `src/components/scripts/`
-`ScriptPanel.tsx` — floating panel opened by 🔬 button. Lists scripts, runs on click, clears+reruns on second click. Auto-enables noteColor layer when melodyColor runs.
-`ScriptPanel.css`
-
-### `src/store/`
-| Store | State |
-|-------|-------|
-| `scoreStore.ts` | `xmlString`, `metadata`, `noteMap`, `toVrv: Map<noteMapId, vrvId>` (ephemeral, set after each render) |
-| `annotationStore.ts` | `annotations: Record<id, Annotation>`, undo stack (immer) |
-| `selectionStore.ts` | `selection` (type, measureStart, measureEnd, noteIds=noteMapIds, anchorMeasure), `contextMenu` |
-| `playbackStore.ts` | `isPlaying`, `currentMeasure`, `bpm` |
-| `layerStore.ts` | `visible: Record<layerId, boolean>`, `legendColors: Record<string,string>` (key: `"layerId:itemIndex"`). Methods: `toggle`, `setVisible`, `setAll`, `setLegendColor`. Exports `getEffectiveNoteColors(legendColors)` |
-| `libraryStore.ts` | `pieces[]`, `activePieceId`, `currentView: 'library'\|'analysis'`, `setView()` |
-| `stylusStore.ts` | `palette: PaletteEntry[]` (color/width/opacity/linkedLayer/label), `activeColorId`. Persisted to localStorage |
-
-### `src/views/`
-| File | Purpose |
-|------|---------|
-| `LibraryView.tsx` | Home/library screen — cards grid, sort/filter, upload+metadata modal |
-| `LibraryView.css` | Library view styles |
-
-### `src/components/library/`
-| File | Purpose |
-|------|---------|
-| `LibraryCard.tsx` | Individual piece card — title, composer, genre, year, key, measures, last opened |
-| `LibraryCard.css` | Card styles |
-
-### `src/services/`
-| File | Purpose |
-|------|---------|
-| `xmlParser.ts` | `parseMusicXml()` → NoteMap. `parseHarmonies()` → HarmonyItem[]. Handles `<backup>/<forward>`, staff filtering |
-| `xmlSanitizer.ts` | `prepareMusicXML()` — fixes multi-staff ordering for rendering |
-| `storageService.ts` | IndexedDB — `saveFile()`, `loadFile()` |
-| `jsonExporter.ts` | Exports `.analysis.json` |
-| `melodyColorScript.ts` | Script 1 — colors notes by melodic role. Uses XML harmonies + user harmony annotations. 3-pass: chord tone → passing (run-based, monotone+stepwise) → neighbor (same MIDI prev/next). Returns `{ annotations, count }`. |
-| `motifScript.ts` | Script 2 — finds motif occurrences. Reads user MotifAnnotations as seeds. Searches EXACT/INVERSION/RETROGRADE. |
-| `chordParser.ts` | `parseChordSymbol()` → pitch class Set. `noteNameToPc()` |
-
-### `src/hooks/`
-`useAutoSave.ts` — 1.5s debounce → IndexedDB
-`useKeyboard.ts` — H/M/F/T/Q/Space/Ctrl+Z/Escape shortcuts
-`usePlayback.ts` — Tone.js synthesis from NoteMap
-`useRestoreSession.ts` — loads last piece on startup
-
-### `src/types/`
-`score.ts` — `NoteMap`, `MeasureData`, `NoteData`, `ScoreMetadata`
-`annotation.ts` — `Annotation` type, `NoteColorAnnotation` (colorType: CHORD_TONE | PASSING_TONE | NEIGHBOR_TONE | CHROMATIC | AMBIGUOUS), `SelectionType`
-`analysis.ts` — `.analysis.json` export format
-
-### `src/constants/`
-`layers.ts` — 8 layer definitions (harmony, melody, form, motif, noteColor...)
-`tags.ts` — tag definitions per layer
-
----
-
-## `xmlParser.ts` key facts
-
-- `parseMusicXml()` iterates measure children in order — handles `<backup>` (rewinds beat), `<forward>` (advances beat), skips `staff ≠ 1`
-- Note IDs: `note-m{measureNum}b{Math.round(beat*100)}-{step}{octave}`
-- `parseHarmonies()` → `HarmonyItem[]` with `{ measureNum, beatFraction, label }` — label = rootStep + accidental (♭/♯) + kindText
-
----
-
-## Annotation system
-
-```typescript
-interface Annotation {
-  id: string
-  layer: string        // 'harmony' | 'melody' | 'form' | 'motif' | 'label' | 'noteColor' | 'svgColor' | ...
-  measureStart: number
-  measureEnd?: number
-  noteIds?: string[]   // ALWAYS noteMap IDs — never SVG IDs
-  scriptId?: string    // set when created by a script (e.g. 'melodyColor', 'motifFinder')
-  visualOffset?: { x: number; y: number }  // drag-to-reposition offset in SVG pixels
-  // layer-specific fields: chordFunction, cadenceType, colorType, formLabel, label, variantType, ...
-}
-```
-
-**`SvgColorAnnotation`** (`layer: 'svgColor'`) — colors non-note SVG elements (dynamics, articulation, hairpins, fermatas, etc.):
-```typescript
-{ layer: 'svgColor', color: string, svgClass: string, positionIndex: number, measureStart: number }
-```
-- `svgClass`: SVG element class (`dynam` | `artic` | `hairpin` | `tempo` | `fermata` | `trill` | `turn` | `mordent` | `ornament` | `dir`)
-- `positionIndex`: index among elements of same class within the measure (stable across re-renders)
-- Applied by `applySvgColors()` in ScoreView — stroke-only for hairpins (`fill="none"` → only `stroke` changed), fill for glyphs/text
-
-Annotations stored in `annotationStore`. Auto-saved to IndexedDB. Rendered by `AnnotationOverlay`.
-
----
-
-## Script system (`src/components/scripts/ScriptPanel.tsx`)
-
-- Opened by 🔬 button in TopBar
-- Clicking a script: clears previous results → re-runs
-- `clearScript(id)` reads fresh state via `useAnnotationStore.getState()` (avoids stale closure)
-- After melodyColor runs: auto-calls `useLayerStore.getState().setVisible('noteColor', true)`
-
-### Script 1 — Melody Colors (`melodyColorScript.ts`)
-- Chord source: XML harmonies (`parseHarmonies`) merged with user harmony annotations
-- Beat-precise chord lookup via `beatFraction`
-- colorTypes: `CHORD_TONE` (blue), `PASSING_TONE` (purple), `NEIGHBOR_TONE` (green) — NO CHROMATIC, NO AMBIGUOUS
-- All non-chord tones go through the same algorithm (no special chromatic treatment)
-- **Algorithm — 3 passes:**
-  1. **Pass 1:** mark chord tones (pitch class ∈ current chord set)
-  2. **Pass 2 (passing):** find runs of consecutive non-chord-tones bounded by chord tones on both sides; full sequence (prevChord → run → nextChord) must be monotone (all ascending or all descending) AND step-wise (each consecutive interval ≤2 semitones)
-  3. **Pass 3 (neighbor):** single non-chord-tone whose immediate prev AND next are both chord tones with the EXACT SAME MIDI pitch
-- Stores `noteIds: [noteMapId]` — renderer-agnostic
-- ScriptPanel shows completion message: `✓ סיים — N תווים נצבעו` / `✓ Done — N notes colored`
-
-### Script 2 — Motif Finder (`motifScript.ts`)
-- Seeds: user-created `MotifAnnotation` objects without `scriptId`
-- Groups by label (A/B/C), picks one seed per label (prefers `variantType === 'original'`)
-- Sliding window over staff-1 notes (sorted by measure+beat)
-- Transformations: EXACT → 'original', INVERSION, RETROGRADE (default threshold 80%)
-- Re-emits seed as confirmed original + all found occurrences
-- Error if no motif seeds: `'NO_MOTIF_ANNOTATIONS'`
-
-### Note color rendering (`ScoreView.tsx`)
-- `applyNoteColors`: translates noteMapId → svgId via `toVrv`, then targets the notehead element — colors only the note head, not stem/flag/accidentals
-- `clearNoteColors`: clears `.notehead` (native) and `g.vf-notehead` (OSMD) elements
-- Color map: `CHORD_TONE=#3b82f6` (blue), `PASSING_TONE=#a855f7` (purple), `NEIGHBOR_TONE=#22c55e` (green)
-- Same colors defined in `src/constants/layers.ts` → `NOTE_COLORS` export
-- `AnnotationOverlay.tsx` skips noteColor annotations entirely (returns null) — no overlay rect, coloring is DOM-direct only
-- RightPanel shows color dot + colored text for noteColor annotations (uses NOTE_COLORS import)
-
----
-
-## RightPanel — Analysis display
-
-- Shows annotations for selected measure range
-- For `noteColor` annotations with a note selection: filters by `selection.noteIds` (noteMap IDs) — shows only the annotation for the exact selected note
-- `getAnnotationSummary` for noteColor shows human-readable labels: "Chord Tone", "Passing Tone", "Neighbor Tone"
-
----
-
-## What's done ✅
-
-- OSMD rendering (default renderer, VexFlow-based)
-- elementMap (g.vf-measure → screen-space bboxes)
-- Multi-staff rendering fixed (prepareMusicXML in xmlSanitizer.ts)
-- Chord symbols render natively (no overlay needed)
-- **Note-level selection** — click g.note → purple highlight + context menu
-- **Measure-level selection** — click, shift+click range, lasso drag
-- Annotation system with undo
-- Library (IndexedDB, left panel)
-- JSON export
-- Layer toggles
-- i18n Hebrew/English
-- Keyboard shortcuts (incl. Escape)
-- Tone.js playback hook — **fixed timing** (sixteenth subdivision in Tone.js Part events)
-- Auto-save + **annotations load on piece open** (IndexedDB load fixed)
-- **toVrv/fromVrv ID mapping** — positional matching, 643 entries on DONNALEE.XML
-- **Script 1: Melody Colors** — chord tone (blue) / passing tone (purple) / neighbor tone (green). Note head coloring only. Auto-enables noteColor layer. Completion message in ScriptPanel.
-- **Script 2: Motif Finder** — sliding window, EXACT/INVERSION/RETROGRADE, summary alert
-- **ScriptPanel UI** — 🔬 button, bilingual, clear+rerun on click
-- **RightPanel analysis** — readable labels per note, filtered to selected note
-- **Note color display fixed** — ref-managed div replaces `dangerouslySetInnerHTML`, React re-renders no longer wipe inline styles
-- **`annotation.ts` types cleaned** — `NoteColorAnnotation.colorType` is `CHORD_TONE | PASSING_TONE | NEIGHBOR_TONE` only
-- **שלב 1: Library View** — cards grid, sort/filter/search, metadata form modal, back-to-library button in TopBar, two-view routing via `currentView` in libraryStore
-- **שלב 2: StatusBar חכם** — `chordDetector.ts` (pitch-class matching, jazz flat names), StatusBar מציג note names מ-noteMap, זיהוי אקורד אוטומטי, לחיצה על שם האקורד → HarmonyAnnotation. RightPanel pitch מ-noteMap.
-- **שלב 3: סלקציה מלאה** — ר' פירוט בסעיף "Stage 3" למטה.
-- **שלב 4: LeftPanel מחודש + Legend** — ר' פירוט בסעיף "Stage 4" למטה.
-- **שלב 4.5: Annotation Visuals Redesign** — ר' פירוט בסעיף "Stage 4.5" למטה.
-- **שלב 5: Stylus / Freehand Drawing** — ר' פירוט בסעיף "Stage 5" למטה.
-- **שלב 6: Research Notes** — ר' פירוט בסעיף "Stage 6" למטה.
-- **שלב 7: File System Sync** — syncService, 📁 Sync button in TopBar, auto-write + read-back on open.
-- **שלב 8: Export** — JSON מעודכן (researchNotes + palette + full freehand strokes), `pdfExporter.ts` (window.print + CSS print), כפתור 🖨 PDF ב-TopBar.
-- **שלב 10: Playback משופר** — cursor נע (PlaybackHighlightShape תוקן), auto-scroll תיבה פעילה, נגינה מהסלקציה, Pause/Resume/Stop controls, Loop section (🔁). `playbackStore`: isPaused/startMeasure/loop. Space = play→pause→resume.
-- **שלב 9: Roman Numeral Analysis** — `romanNumeralScript.ts`. 3 מצבים אוטומטיים: (A) עדכון harmony annotations קיימים בסטור, (A-XML) יצירה מ-`<harmony>` elements ב-XML (lead sheets / jazz), (B) chordify כל הסולמות (קלאסי). מנגנון RN: diatonic degrees, secondary dominants (V7/X), secondary leading tones (viiø7/X), chromatic degrees (bVI, bVII, #IV), harmonic function T/S/D. HarmonyShape מציג chord symbol + RN מוערמים. `detectChordFromPcs()` הופרד מ-`detectChord()`. `parseAllStavesNotes()` נוסף ל-xmlParser. `scriptId` הועבר ל-BaseAnnotation.
-- **OSMD as default renderer** — `buildOSMDElementMap(container, noteMap)` ב-`osmdAdapter.ts`: positional matching → 100 measures + 643 notes על DONNALEE.XML. `?renderer=native` לעבור לרנדרר המובנה (בפיתוח).
-
-## What's pending ⬜
-
-- **שלב 9 המשך** — ניתוח הרמוני מלא (voice leading, modulations)
-- **FormalStrip** — needs measure-range annotations to render
-- **Mobile/touch** — not started
 
 ## Native Renderer — מצב נוכחי
 
@@ -377,7 +110,7 @@ npx tsx renderer-tests/pipeline/run.ts --case=05-stems --verbose  # specific fix
 npm run test:r:extract           # re-extract reference data (one fixture at a time due to WASM)
 ```
 
-Always test with DONNALEE.XML (click "♩ Donna Lee" button on empty state).
+Always test with DONNALEE.XML ("♩ נסה עם Donna Lee" in the empty library). Also check `public/liszt-test.mxl` (dense, chords, 8va) and `public/sample-bach-invention1.xml`.
 
 **Important:** After HMR, if useEffect deps array changed size — do a full page reload (Ctrl+Shift+R). HMR breaks on deps array size changes in React.
 
@@ -393,155 +126,3 @@ Always test with DONNALEE.XML (click "♩ Donna Lee" button on empty state).
 - **Session 9 fixes:** barline clamp consistency (B7: 15/15), BAR_ACC_DIST_SP 0.65→2.0sp, הסרת accidentalPaddingSp, RenderedNote.x → center. **Score: 141/214.** ראה `docs/IMPLEMENTATION_PLAN.md` + `docs/SESSION9_RENDERER.md`.
 
 ---
-
-## Stage 3 — Full Selection (completed March 2026)
-
-### Selection — `anchorNoteId`
-`Selection` in `selectionStore.ts` now has `anchorNoteId?: string` — the "fixed" end for Shift+arrow extend/shrink:
-- Shift+→: anchor at start → extend right; anchor at end → shrink from left
-- Shift+←: anchor at end → extend left; anchor at start → shrink from right
-
-### `data-notemap-id` attribute
-`buildOSMDElementMap` stamps `data-notemap-id` on every notehead SVG element. All keyboard navigation reads this attribute — **never** uses ephemeral SVG IDs in `getDomOrderedNoteIds` / `getMeasureNumForNote`.
-
-### Shift+↑/↓ — system navigation
-Detects system row boundaries in the SVG. Shift+↑ extends measureStart to the first measure of the system row above; Shift+↓ extends measureEnd to the last measure of the system row below.
-
-### SVG element coloring
-- Click `g.dynam`, `g.artic`, `g.hairpin`, `g.tempo`, `g.fermata`, `g.trill`, `g.turn`, `g.mordent`, `g.ornament`, `g.dir` → color picker popover
-- Proximity-based hit detection: `SVG_HIT_PADDING = 8px` around bbox — handles thin hairpins and small glyphs
-- Notes/harmony checked **first** — clicking a note never opens color picker by mistake
-- **Smart coloring**: elements with `fill="none"` (hairpins, slurs) → only `stroke` changed; glyph/text elements → `fill` changed
-- Stored as `SvgColorAnnotation` identified by `svgClass + positionIndex + measureStart` (stable across re-renders)
-
-### Drag annotations
-`AnnotationOverlay` → each annotation shape is draggable (`pointerEvents: 'all'`, `cursor: 'move'`). Drag commits `visualOffset: {x,y}` to `annotationStore.updateAnnotation` on mouseup. Live preview during drag via local `useState`.
-
----
-
-## Stage 4 — LeftPanel Redesign + Legend (completed March 2026)
-
-### LeftPanel layout
-Each layer row: `[checkbox] [label] [▸ expand]`
-- Clicking the **checkbox area** → toggles layer visibility (`layerStore.toggle`)
-- Clicking **▸** → collapses/expands the legend inline (local `Set<LayerId>` state)
-- Legend persists open while working — no auto-close
-
-### Legend items
-`layers.ts` — each `LayerConfig` has `legend?: LegendItem[]` with `{ color, colorKey?, labelHe, labelEn }`.
-- `colorKey` (on noteColor layer items) links the item to `NOTE_COLORS` key (`CHORD_TONE` / `PASSING_TONE` / `NEIGHBOR_TONE`)
-- Legend dots are `<label>` wrapping a hidden `<input type="color">` → click dot → native color picker
-
-### Editable legend colors
-`layerStore.legendColors: Record<string, string>` — key `"${layerId}:${itemIndex}"`, persisted.
-- `setLegendColor(layerId, itemIndex, color)` saves override
-- `getEffectiveNoteColors(legendColors)` (exported) → merges defaults with user overrides
-- `ScoreView` subscribes via `useLayerStore.subscribe` (NOT in deps array — avoids HMR deps-array-size error) → calls `applyNoteColors` with new colors immediately when any noteColor legend item changes
-
-### ColorPalette (freehand layer)
-`stylusStore.ts` — `palette: PaletteEntry[]` (id/color/width/opacity/linkedLayer/label), `activeColorId`. Persisted.
-`ColorPalette.tsx` — rendered inside freehand layer's expanded legend:
-- Colored circles + `+` add / `×` remove (on hover)
-- Click circle → marks active + opens inline popover (color picker, width slider, opacity slider, text label, link-to-layer select)
-- Popover closes on outside click
-
----
-
-## Stage 4.5 — Annotation Visuals Redesign (completed March 2026)
-
-### Visual shapes per layer
-
-| Layer | Shape |
-|-------|-------|
-| **harmony** | Floating text above staff — chord function + degree (e.g. "T I") in small pill |
-| **melody** | Note head recoloring — direct DOM via `applyNoteColors` (no SVG overlay rect) |
-| **motif** | Metaball blob — organic capsule connecting selected notes, semi-transparent fill |
-| **form** | Thick colored bar below all staves in the measure range |
-| **labels** | Zigzag polyline above the selection range |
-| **freehand** | Free canvas (no overlay shape) |
-| **texture** | Skipped (no shape rendered) |
-
-### `elementMap` — container-relative positions (critical fix)
-`buildElementMap` in `ScoreView.tsx` now stores **container-relative** bboxes by subtracting `containerRect` at build time:
-```typescript
-const containerRect = container.getBoundingClientRect()
-const bbox = new DOMRect(
-  absBox.left - containerRect.left, absBox.top - containerRect.top,
-  absBox.width, absBox.height
-)
-```
-All helper functions in `AnnotationOverlay.tsx` (`getStaffTopY`, `getMeasureXRange`, `getRowBottomY`) use positions as-is — **no further subtraction** needed.
-`findMeasureAtPoint` now accepts `containerRect` param and converts clientX/Y to container-relative before hit-testing.
-
-### Motif metaball shape
-Catmull-Rom spline connecting note centers with constant radius capsule:
-- Backbone = smoothed spline through `{cx, cy}` points (sorted by measure+beat)
-- Endcaps = semicircle arcs (left cap: sweep `0 0 1`, right cap: sweep `0 0 0`)
-- Multi-row support: cuts between rows at row boundary, draws a segment per row
-
-### Harmony annotation click → context menu
-Clicking a harmony annotation shape:
-1. `onClick={e => e.stopPropagation()}` — prevents propagation to score container (which would clear selection)
-2. `onMouseDown` → calls `setSelection` + `showContextMenu(x, y, 'harmony')` directly
-3. Opens context menu pre-set to harmony tab for editing
-
-### Melody colors from legend
-`getEffectiveMelodyColors(legendColors)` (exported from `layerStore.ts`) merges hardcoded defaults with user legend overrides for CT/PT/NT/SUS/APP/ESC/ANT/PED.
-`AnnotationOverlay` subscribes to `legendColors` and passes `melodyColors` through `ShapeProps` to `MelodyShape`.
-
-### All context menu tabs always visible
-`getTabsForSelection` always returns all 7 tabs — just reorders them so the most relevant tab for the selection type is first.
-
----
-
-## Stage 5 — Stylus / Freehand Drawing (completed March 2026)
-
-### FreehandAnnotation type
-Added `opacity?: number` and `linkedLayer?: string` to `FreehandAnnotation` in `annotation.ts`.
-
-### drawMode in stylusStore
-`stylusStore` now holds `drawMode: 'off' | 'draw' | 'erase'` (not persisted — resets on reload).
-`setDrawMode(mode)` exported. FreehandCanvas reads mode from store (no local state).
-
-### FreehandCanvas — full rewrite
-- **PointerEvents** (`onPointerDown/Move/Up/Cancel` + `setPointerCapture`) — supports pen, touch, mouse
-- **No floating toolbar** — mode controls live in LeftPanel (ColorPalette)
-- Color/width/opacity read from `stylusStore.activeEntry`
-- `touchAction: none` when drawing (prevents scroll interference on touch screens)
-- **Erase mode**: `onPointerDown` → finds nearest stroke via segment-distance test (threshold 14px) → `removeAnnotation`
-- **linkedLayer visibility**: stroke hidden if its `linkedLayer` is toggled off in layerStore
-- Strokes saved to `annotationStore` → auto-saved to IndexedDB; Ctrl+Z undoes
-
-### ColorPalette — draw/erase buttons
-Two buttons added above the palette circles: `✏️ ציור` / `◻ מחק`.
-Active draw button shows the active palette color as background.
-Buttons call `setDrawMode` on click (toggle: click active mode → 'off').
-
----
-
-## Stage 6 — Research Notes (completed March 2026)
-
-### researchStore (`src/store/researchStore.ts`)
-`ResearchNote { id, text, links: ResearchLink[] }` — `ResearchLink { type: 'measures'|'notes', measureStart, measureEnd?, noteIds?, label }`.
-Actions: `addNote`, `updateNote`, `addLink(noteId, link)`, `removeLink(noteId, index)`, `removeNote`, `loadNotes`, `clearAll`.
-
-### RightPanel tabs
-Two tabs at the top of RightPanel: **תיוגים / Tags** (existing content) | **פתקים / Notes** (ResearchNotes component).
-Tab state is local `useState` in RightPanel. Tab underline uses `#6366f1`.
-
-### ResearchNotes (`src/components/panels/ResearchNotes.tsx`)
-- List of `NoteCard` components (one per research note)
-- Each card: textarea (3 rows, resizable) + link chips row + "🔗 Link selection" button + delete (×) in header
-- **Link to selection**: reads current `selection` from `selectionStore` → creates `ResearchLink` with label `"m.5"` / `"m.5–8"` / `"note m.5"` → `addLink(noteId, link)`
-- **Link chip click**: calls `setSelection` with the stored range/noteIds + `setScrollToMeasure(link.measureStart)`
-- "🔗 Link selection" button disabled (greyed) when no selection active
-- "+ New note" button at bottom with dashed border
-
-### Scroll-to-measure (`selectionStore` + `ScoreView`)
-- `selectionStore` gains `scrollToMeasure: number | null` + `setScrollToMeasure`
-- `ScoreView` has `useEffect([scrollToMeasure, elementMap])` → looks up `elementMap.get('measure-${m-1}')` → `scrollRef.current.scrollTop = bbox.top - 48` → resets to null
-
-### Persistence
-- `storageService.saveFile()` accepts optional `researchNotes?: ResearchNote[]`, stores alongside annotations in IndexedDB (DB version stays at 1 — field is optional)
-- `useAutoSave` subscribes to both `annotations` and `researchNotes`
-- All load sites (`useRestoreSession`, `LibraryView`, `ScoreView` OpenFile/LoadSample) call `useResearchStore.getState().loadNotes(saved.researchNotes ?? [])`

@@ -8,6 +8,7 @@ interface UiState {
   leftOpen: boolean
   rightOpen: boolean
   scriptsOpen: boolean
+  helpOpen: boolean
   zoom: number            // 0 = fit to width
   toasts: Toast[]
 
@@ -15,6 +16,7 @@ interface UiState {
   toggleLeft: () => void
   toggleRight: () => void
   setScriptsOpen: (v: boolean) => void
+  setHelpOpen: (v: boolean) => void
   setZoom: (z: number) => void
   toast: (text: string, tone?: Toast['tone'], action?: Toast['action']) => void
   dismiss: (id: number) => void
@@ -29,6 +31,7 @@ export const useUiStore = create<UiState>()(
       leftOpen: true,
       rightOpen: true,
       scriptsOpen: false,
+      helpOpen: false,
       zoom: 0,
       toasts: [],
 
@@ -36,6 +39,7 @@ export const useUiStore = create<UiState>()(
       toggleLeft: () => set(s => ({ leftOpen: !s.leftOpen })),
       toggleRight: () => set(s => ({ rightOpen: !s.rightOpen })),
       setScriptsOpen: (scriptsOpen) => set({ scriptsOpen }),
+      setHelpOpen: (helpOpen) => set({ helpOpen }),
       setZoom: (zoom) => set({ zoom: zoom === 0 ? 0 : Math.max(0.4, Math.min(2.5, zoom)) }),
       toast: (text, tone = 'info', action) => {
         const id = ++toastSeq

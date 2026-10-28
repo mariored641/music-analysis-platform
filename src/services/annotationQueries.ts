@@ -66,7 +66,7 @@ export function summarize(a: Annotation, he: boolean): string {
       return t ? (he ? t.he : t.en) : (he ? 'מרקם' : 'Texture')
     }
     case 'labels':
-      return a.isQuestion ? `? ${a.text}` : a.text
+      return a.text
     case 'color':
       return a.element ? (he ? 'אלמנט צבוע' : 'Colored element') : (he ? 'תווים צבועים' : 'Colored notes')
     case 'freehand':

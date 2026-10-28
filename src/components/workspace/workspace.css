@@ -145,9 +145,11 @@
 .ann-card-layer { font-size: 11px; color: var(--text-3); font-weight: 600; white-space: nowrap; }
 .ann-card-text { flex: 1; font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .badge { display: inline-flex; color: var(--accent); }
-.ann-editor { padding: 8px 10px 10px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: var(--surface-2); }
+.ann-editor { padding: 8px 10px 10px; border-top: 1px solid var(--border); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; background: var(--surface-2); }
 .ed-field { display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; color: var(--text-2); font-weight: 600; }
-.ed-field input, .ed-field select { height: 30px; font-weight: 500; font-size: 13px; }
+.ed-field { min-width: 0; }
+.ed-field input, .ed-field select { height: 30px; font-weight: 500; font-size: 13px; width: 100%; }
+.ed-field input[type=color] { width: 44px; }
 .ed-check { grid-column: 1 / -1; display: flex; align-items: center; gap: 6px; font-size: 12.5px; }
 .ed-tip { grid-column: 1 / -1; margin: 0; font-size: 11.5px; color: var(--text-3); line-height: 1.5; }
 .ed-actions { grid-column: 1 / -1; display: flex; gap: 14px; font-size: 12.5px; }
@@ -326,3 +328,9 @@
   .topbar, .side-panel, .statusbar, .stylus-dock, .panel-toggle, .quickbar, .toasts { display: none !important; }
   .workspace, .ws-body, .ws-score { display: block !important; height: auto !important; }
 }
+
+/* ─── Shortcuts help ─── */
+.help-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; }
+.help-grid h3 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--accent); }
+.help-row { display: flex; align-items: baseline; gap: 10px; padding: 4px 0; font-size: 13px; color: var(--text-2); border-bottom: 1px dashed var(--border); }
+.help-row kbd { flex-shrink: 0; min-width: 64px; text-align: center; font-size: 11px; padding: 3px 6px; color: var(--text); }

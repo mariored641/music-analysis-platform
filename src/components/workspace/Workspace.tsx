@@ -7,6 +7,7 @@ import { RightPanel } from './Inspector'
 import { StatusBar } from './StatusBar'
 import { StylusDock } from './StylusDock'
 import { ScriptsDrawer } from './ScriptsDrawer'
+import { ShortcutsHelp } from './ShortcutsHelp'
 import { Icon } from '../common/Icon'
 import { useShortcuts } from '../../hooks/useShortcuts'
 import { useTr } from '../../i18n'
@@ -44,6 +45,7 @@ export function Workspace() {
       </div>
       <StatusBar />
       <ScriptsDrawer />
+      <ShortcutsHelp />
     </div>
   )
 }

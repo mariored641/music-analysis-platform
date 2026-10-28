@@ -55,7 +55,7 @@ export const LAYERS: LayerConfig[] = [
   { id: 'form', he: 'מבנה', en: 'Form', color: '#16a34a', shortcut: 'F' },
   { id: 'texture', he: 'מרקם', en: 'Texture', color: '#0891b2' },
   { id: 'labels', he: 'תוויות', en: 'Labels', color: '#ca8a04', shortcut: 'T' },
-  { id: 'questions', he: 'שאלות פתוחות', en: 'Open questions', color: '#dc2626', shortcut: 'Q' },
+  { id: 'questions', he: 'שאלות', en: 'Questions', color: '#dc2626', shortcut: 'Q' },
   { id: 'color', he: 'צביעה', en: 'Coloring', color: '#db2777', shortcut: 'K' },
   { id: 'freehand', he: 'ציור חופשי', en: 'Freehand', color: '#475569', shortcut: 'D' },
 ]
