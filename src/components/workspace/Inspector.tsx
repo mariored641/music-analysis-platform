@@ -108,7 +108,39 @@ function SelectionInfo() {
             <div className="kbd-row"><kbd>H</kbd>{tr('אקורד', 'chord')} <kbd>N</kbd>{tr('תפקיד', 'role')} <kbd>M</kbd>{tr('מוטיב', 'motif')} <kbd>F</kbd>{tr('מבנה', 'form')} <kbd>T</kbd>{tr('תווית', 'label')} <kbd>Q</kbd>{tr('שאלה', 'question')}</div>
           </div>
         )}
-        {related.map(a => <AnnotationCard key={a.id} a={a} open={a.id === selectedId} />)}
+        {(() => {
+          const melody = related.filter(a => a.layer === 'melody')
+          const rest = related.filter(a => a.layer !== 'melody')
+          if (melody.length <= 3) return related.map(a => <AnnotationCard key={a.id} a={a} open={a.id === selectedId} />)
+          return <>
+            {rest.map(a => <AnnotationCard key={a.id} a={a} open={a.id === selectedId} />)}
+            <MelodySummary list={melody} />
+          </>
+        })()}
+      </div>
+    </div>
+  )
+}
+
+/** Many per-note melody tags → one row with counts per function. */
+function MelodySummary({ list }: { list: Annotation[] }) {
+  const he = useHe()
+  const tr = useTr()
+  const colors = useLayerStore(s => s.colors)
+  const counts = new Map<string, number>()
+  list.forEach(a => a.layer === 'melody' && a.noteFunction && counts.set(a.noteFunction, (counts.get(a.noteFunction) ?? 0) + 1))
+  return (
+    <div className="ann-card">
+      <div className="ann-card-head" style={{ cursor: 'default' }}>
+        <span className="layer-dot" style={{ background: LAYER_MAP.get('melody')!.color }} />
+        <span className="ann-card-layer">{he ? 'מלודיה' : 'Melody'}</span>
+        <span className="ann-card-text melody-counts">
+          {MELODY_FUNCTIONS.filter(f => counts.get(f.value)).map(f => (
+            <span key={f.value}><i style={{ background: melodyColor(f.value, colors) }} />{f.value}×{counts.get(f.value)}</span>
+          ))}
+        </span>
+        <button className="icon-btn sm" title={tr('הסר את כל התפקידים בבחירה', 'Remove all roles in the selection')}
+          onClick={() => useAnnotationStore.getState().removeAnnotations(list.map(a => a.id))}><Icon name="trash" size={14} /></button>
       </div>
     </div>
   )

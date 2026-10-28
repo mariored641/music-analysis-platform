@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useAnnotationStore } from '../store/annotationStore'
 import { useResearchStore } from '../store/researchStore'
 import { useWorkspaceStore } from '../store/workspaceStore'
-import { flushSave, refreshFromFolder, scheduleSave } from '../services/pieceService'
+import { flushSave, isApplyingLoad, refreshFromFolder, scheduleSave } from '../services/pieceService'
 
 /**
  * Save ~1s after any change to annotations or research notes; flush on leave.
@@ -10,7 +10,7 @@ import { flushSave, refreshFromFolder, scheduleSave } from '../services/pieceSer
  */
 export function useAutoSave() {
   useEffect(() => {
-    const onChange = () => { if (useWorkspaceStore.getState().pieceId) scheduleSave() }
+    const onChange = () => { if (useWorkspaceStore.getState().pieceId && !isApplyingLoad()) scheduleSave() }
     const u1 = useAnnotationStore.subscribe((s, p) => { if (s.annotations !== p.annotations) onChange() })
     const u2 = useResearchStore.subscribe((s, p) => { if (s.notes !== p.notes) onChange() })
     const flush = () => { flushSave() }

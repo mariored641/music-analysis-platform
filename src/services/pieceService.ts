@@ -17,6 +17,15 @@ import { deleteThumbnail } from '../score/thumbnail'
 import { useUiStore } from '../store/uiStore'
 import { tr } from '../i18n'
 
+// While a piece's saved state is being applied to the stores, autosave must not
+// treat it as an edit.
+let applying = 0
+export const isApplyingLoad = () => applying > 0
+function applyLoaded(fn: () => void) {
+  applying++
+  try { fn() } finally { applying-- }
+}
+
 // ── File reading ─────────────────────────────────────────────────────────────
 
 export async function readScoreFile(file: File): Promise<string> {
@@ -152,8 +161,12 @@ export async function openPiece(id: string) {
   const noteMap = parseMusicXml(stored.xml)
   useSelectionStore.getState().clear()
   usePlaybackStore.getState().stop()
-  useAnnotationStore.getState().loadAnnotations(annotations)
-  useResearchStore.getState().loadNotes(notes)
+  const bpm = parseFloat(noteMap.metadata.tempo)
+  usePlaybackStore.getState().setTempo(bpm >= 30 && bpm <= 400 ? bpm : 120)
+  applyLoaded(() => {
+    useAnnotationStore.getState().loadAnnotations(annotations)
+    useResearchStore.getState().loadNotes(notes)
+  })
   useWorkspaceStore.getState().setPiece({ pieceId: id, xml: stored.xml, noteMap, xmlHarmonies: parseHarmonies(stored.xml) })
   useWorkspaceStore.getState().setSaveState('saved', stored.savedAt)
   useLibraryStore.getState().updatePiece(id, {
@@ -176,8 +189,10 @@ export async function refreshFromFolder(id: string) {
   const lastSaved = useWorkspaceStore.getState().lastSaved ?? 0
   if (!external || external.savedAt <= lastSaved + 1000 || useWorkspaceStore.getState().pieceId !== id) return
   await flushSave()
-  useAnnotationStore.getState().loadAnnotations(external.annotations)
-  useResearchStore.getState().loadNotes(external.researchNotes)
+  applyLoaded(() => {
+    useAnnotationStore.getState().loadAnnotations(external.annotations)
+    useResearchStore.getState().loadNotes(external.researchNotes)
+  })
   const { xml } = useWorkspaceStore.getState()
   if (xml) await saveFile(id, xml, external.annotations, external.researchNotes, external.savedAt)
   useWorkspaceStore.getState().setSaveState('saved', external.savedAt)

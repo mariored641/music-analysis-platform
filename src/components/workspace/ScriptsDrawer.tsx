@@ -81,18 +81,23 @@ export function ScriptsDrawer() {
   const runRN = () => {
     const { noteMap, xml } = useWorkspaceStore.getState()
     if (!noteMap || !xml) return
-    const harm = list.filter((a): a is HarmonyAnnotation => a.layer === 'harmony' && a.scriptId !== RN_ID)
+    // user chords (including ones a previous run annotated in place) — not the chords it created
+    const harm = list.filter((a): a is HarmonyAnnotation => a.layer === 'harmony' && !a.id.startsWith('rn-'))
     const res = runRomanNumeralScript(noteMap, harm, xml)
     if (res.error) { setResult(RN_ID, { ok: false, text: tr('לא נמצאו אקורדים לניתוח.', 'No chords found to analyze.') }); return }
+    // Your own chords are analyzed in place; the score's printed chords are analyzed too
+    const extra = res.mode === 'update' && xmlHarmonies.length ? runRomanNumeralScript(noteMap, [], xml) : null
     useAnnotationStore.getState().transact(d => {
       clearDraft(RN_ID, d)
       for (const a of res.annotations) {
         if (res.mode === 'update') { if (d[a.id]) d[a.id] = { ...d[a.id], scaleDegree: a.scaleDegree, function: a.function, scriptId: RN_ID } as Annotation }
         else d[a.id] = a
       }
+      for (const a of extra?.annotations ?? []) d[a.id] = a
     })
     useLayerStore.getState().setVisible('harmony', true)
-    setResult(RN_ID, { ok: true, text: tr(`נותחו ${res.count} אקורדים`, `Analyzed ${res.count} chords`) })
+    const n = res.count + (extra?.count ?? 0)
+    setResult(RN_ID, { ok: true, text: tr(`נותחו ${n} אקורדים`, `Analyzed ${n} chords`) })
   }
 
   const T: Array<{ v: MotifTransformation; he: string; en: string }> = [
