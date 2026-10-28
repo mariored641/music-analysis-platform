@@ -26,6 +26,7 @@
 }
 .score-page.mode-draw { cursor: crosshair; touch-action: none; }
 .score-page.pen-near { touch-action: none; }
+.score-page.mode-draw .ann, .score-page.mode-erase .ann { pointer-events: none; }
 .score-page.mode-erase { cursor: cell; touch-action: none; }
 
 .osmd-host { line-height: 0; }

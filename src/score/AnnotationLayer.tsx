@@ -1,12 +1,13 @@
 import { memo, useRef, useState } from 'react'
 import type { Annotation, HarmonyAnnotation, LabelAnnotation, MotifAnnotation, FormAnnotation, TextureAnnotation } from '../types/annotation'
 import type { ScoreGeometry, NoteBox } from './geometry'
-import { notesBySystem, segmentsForRange, systemOfMeasure } from './geometry'
+import { lanes, notesBySystem, segmentsForRange, systemOfMeasure } from './geometry'
 import { blobPath } from './shapes'
 import { formColor, motifColor, LAYER_MAP } from '../constants/layers'
 import { motifTag, measureEnd, summarize } from '../services/annotationQueries'
 import { useAnnotationStore } from '../store/annotationStore'
 import { useSelectionStore } from '../store/selectionStore'
+import { useStylusStore } from '../store/stylusStore'
 import { selectNotes, selectMeasures } from './selectionOps'
 import { TEXTURE_TYPES } from '../constants/tags'
 
@@ -22,12 +23,6 @@ interface Props {
 type Drag = { id: string; dx: number; dy: number; moved: boolean }
 type AnchorDrag = { id: string; x: number; y: number }
 
-// vertical placement relative to a system (page units)
-const CHORD_DY = -26
-const RN_DY = 24
-const FORM_DY = 42
-const TEXTURE_DY = 56
-const LABEL_CLEAR = 30   // labels sit above the chord-symbol line
 
 export const AnnotationLayer = memo(function AnnotationLayer({ geometry: g, annotations, colors, selectedId, scale, he }: Props) {
   const [drag, setDrag] = useState<Drag | null>(null)
@@ -37,6 +32,9 @@ export const AnnotationLayer = memo(function AnnotationLayer({ geometry: g, anno
   /** Select the annotation (and its notes) and start a drag that commits visualOffset. */
   const startDrag = (e: React.PointerEvent, a: Annotation) => {
     if (e.button !== 0) return
+    // Drawing always wins over tags: let the page start a stroke instead
+    const { mode, penAlwaysDraws } = useStylusStore.getState()
+    if (mode !== 'select' || (e.pointerType === 'pen' && penAlwaysDraws)) return
     e.stopPropagation()
     e.preventDefault()
     if (a.layer === 'form' || a.layer === 'texture') selectMeasures(a.measureStart, measureEnd(a))
@@ -130,8 +128,9 @@ export const AnnotationLayer = memo(function AnnotationLayer({ geometry: g, anno
       const color = colors['harmony:chord'] ?? LAYER_MAP.get('harmony')!.color
       const rnColor = colors['harmony:rn'] ?? '#1e40af'
       const cadColor = colors['harmony:cadence'] ?? '#b45309'
-      const cy = sys.y + CHORD_DY + off.y
-      const ry = sys.y + sys.h + RN_DY + off.y
+      const L = lanes(sys)
+      const cy = L.chord + off.y
+      const ry = L.numeral + off.y
       out.push(
         <g key={a.id} {...common(a)}>
           <title>{title}</title>
@@ -176,7 +175,8 @@ export const AnnotationLayer = memo(function AnnotationLayer({ geometry: g, anno
               </g>
             )
           })}
-          <g transform={`translate(${groups[0][0].cx - 12} ${Math.min(...groups[0].map(n => n.cy)) - 26})`}>
+          {/* tag sits just left of the first note, clear of beams above */}
+          <g transform={`translate(${groups[0][0].x - motifTag(m.label, m.variantType).length * 7 - 18} ${groups[0][0].cy - 7.5})`}>
             <rect rx={7} height={15} width={motifTag(m.label, m.variantType).length * 7 + 10} fill={color} />
             <text x={5} y={11} className="ann-pill-text">{motifTag(m.label, m.variantType)}</text>
           </g>
@@ -196,7 +196,7 @@ export const AnnotationLayer = memo(function AnnotationLayer({ geometry: g, anno
         <g key={a.id} {...common(a)} transform={`translate(${off.x} ${off.y})`}>
           <title>{title}</title>
           {segs.map((s, i) => {
-            const y = s.system.y + s.system.h + (isForm ? FORM_DY : TEXTURE_DY)
+            const y = isForm ? lanes(s.system).form : lanes(s.system).texture
             const th = isForm ? 5 : 3
             return (
               <g key={i}>
@@ -218,8 +218,8 @@ export const AnnotationLayer = memo(function AnnotationLayer({ geometry: g, anno
       const color = l.isQuestion ? (colors['questions'] ?? '#dc2626') : (colors['labels'] ?? '#ca8a04')
       const groups = l.noteIds?.length ? notesBySystem(g, l.noteIds) : []
       const segs = groups.length
-        ? groups.map(grp => ({ x0: grp[0].x - 2, x1: grp[grp.length - 1].x + grp[grp.length - 1].w + 2, top: Math.min(...grp.map(n => n.y - 2), g.systems[grp[0].system].y - LABEL_CLEAR) }))
-        : segmentsForRange(g, l.measureStart, measureEnd(l)).map(s => ({ x0: s.x0 + 4, x1: s.x1 - 4, top: s.system.y - LABEL_CLEAR }))
+        ? groups.map(grp => ({ x0: grp[0].x - 2, x1: grp[grp.length - 1].x + grp[grp.length - 1].w + 2, top: lanes(g.systems[grp[0].system]).label + 10 }))
+        : segmentsForRange(g, l.measureStart, measureEnd(l)).map(s => ({ x0: s.x0 + 4, x1: s.x1 - 4, top: lanes(s.system).label + 10 }))
       if (segs.length === 0) continue
       out.push(
         <g key={a.id} {...common(a)} transform={`translate(${off.x} ${off.y})`}>
