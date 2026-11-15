@@ -213,12 +213,8 @@ function simplifyNote(n: SpelledNote): string {
   return isExotic(n) ? ROOT_NAMES[pcOf(n)] : spelledName(n)
 }
 
-/**
- * Plain enharmonic spelling of a chord symbol: B#→C, E#→F, Cb→B, Fb→E, D##→E, Ebb→D…
- * Normal names (Bb, F#, Gb…) are left as they are; the quality is untouched,
- * and a slash bass ("B#/D##") is simplified too.
- */
-export function simplifyChordSymbol(symbol: string): string {
+/** Rewrite the root (and slash bass) of a chord symbol; `fix` returns the new name, or null to keep it. */
+function mapChordNotes(symbol: string, fix: (n: SpelledNote) => string | null): string {
   const root = readNoteName(symbol)
   if (!root) return symbol
   let rest = symbol.slice(root.length)
@@ -226,8 +222,36 @@ export function simplifyChordSymbol(symbol: string): string {
   if (slash >= 0) {
     const bass = readNoteName(rest.slice(slash + 1))
     if (bass && bass.length === rest.length - slash - 1) {
-      rest = `${rest.slice(0, slash)}/${simplifyNote(bass.note)}`
+      rest = `${rest.slice(0, slash)}/${fix(bass.note) ?? rest.slice(slash + 1)}`
     }
   }
-  return `${simplifyNote(root.note)}${rest}`
+  return `${fix(root.note) ?? symbol.slice(0, root.length)}${rest}`
+}
+
+/**
+ * Plain enharmonic spelling of a chord symbol: B#→C, E#→F, Cb→B, Fb→E, D##→E, Ebb→D…
+ * Normal names (Bb, F#, Gb…) are left as they are; the quality is untouched,
+ * and a slash bass ("B#/D##") is simplified too.
+ */
+export function simplifyChordSymbol(symbol: string): string {
+  return mapChordNotes(symbol, n => (isExotic(n) ? ROOT_NAMES[pcOf(n)] : null))
+}
+
+/**
+ * The reverse: respell the root / bass as the notes are written. "C" over B#–D##–F##
+ * becomes "B#". Only same-pitch respellings — the harmony never changes — and only when
+ * the symbol's own spelling is not among the written notes but another spelling of that
+ * pitch is. Anything not found in `written` is left alone.
+ */
+export function respellChordSymbol(symbol: string, written: SpelledNote[]): string {
+  return mapChordNotes(symbol, n => {
+    const same = written.filter(w => pcOf(w) === pcOf(n))
+    if (same.length === 0 || same.some(w => keyOf(w) === keyOf(n))) return null
+    const counts = new Map<number, { note: SpelledNote; count: number }>()
+    for (const w of same) {
+      const e = counts.get(keyOf(w))
+      if (e) e.count++; else counts.set(keyOf(w), { note: w, count: 1 })
+    }
+    return spelledName([...counts.values()].sort((x, y) => y.count - x.count)[0].note)
+  })
 }

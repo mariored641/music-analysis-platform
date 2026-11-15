@@ -13,7 +13,7 @@ import type {
   MelodyAnnotation, MotifAnnotation, MotifVariant, NoteFunction, TextureAnnotation,
 } from '../types/annotation'
 import { newId, selectionLinkLabel } from './annotationQueries'
-import { detectChord, simplifyChordSymbol } from './chordDetector'
+import { detectChord, respellChordSymbol, simplifyChordSymbol, spelledFromStepAlter } from './chordDetector'
 import { tr, isHe } from '../i18n'
 
 const sel = () => useSelectionStore.getState().selection
@@ -94,6 +94,40 @@ export function simplifyChordSpellings(): number {
     for (const a of targets) {
       const cur = draft[a.id] as HarmonyAnnotation | undefined
       if (cur?.chordSymbol) draft[a.id] = { ...cur, chordSymbol: simplifyChordSymbol(cur.chordSymbol) }
+    }
+  })
+  return targets.length
+}
+
+/** Written notes sounding at a chord's anchor (all staves) — what the chord is "spelled" from. */
+function writtenNotesAt(a: HarmonyAnnotation) {
+  const nm = useWorkspaceStore.getState().noteMap
+  const anchor = a.noteIds?.[0] ? nm?.notes.get(a.noteIds[0]) : undefined
+  const measure = anchor && nm?.measures.get(anchor.measureNum)
+  if (!anchor || !measure) return []
+  const at = anchor.beat + 0.01
+  return spelledFromStepAlter(measure.notes.filter(n => !n.grace && n.beat <= at && (n.beat + n.duration > at || Math.abs(n.beat - anchor.beat) < 0.01)))
+}
+
+/** Chord annotations whose root/bass is not spelled as the notes under them are written. */
+export function chordsToRespell(): Array<{ ann: HarmonyAnnotation; next: string }> {
+  const out: Array<{ ann: HarmonyAnnotation; next: string }> = []
+  for (const a of Object.values(anns())) {
+    if (a.layer !== 'harmony' || !a.chordSymbol || a.xmlChord) continue
+    const next = respellChordSymbol(a.chordSymbol, writtenNotesAt(a as HarmonyAnnotation))
+    if (next !== a.chordSymbol) out.push({ ann: a as HarmonyAnnotation, next })
+  }
+  return out
+}
+
+/** Respell every chord root/bass as the notes are written (C → B# over B#–D##–F##). One undo step. */
+export function respellChordsToNotation(): number {
+  const targets = chordsToRespell()
+  if (targets.length === 0) return 0
+  useAnnotationStore.getState().transact(draft => {
+    for (const { ann, next } of targets) {
+      const cur = draft[ann.id] as HarmonyAnnotation | undefined
+      if (cur) draft[ann.id] = { ...cur, chordSymbol: next }
     }
   })
   return targets.length

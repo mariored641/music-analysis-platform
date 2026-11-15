@@ -7,7 +7,7 @@ import { useLayerStore } from '../../store/layerStore'
 import { runMelodyColorScript, SCRIPT_ID as MELODY_ID } from '../../services/melodyColorScript'
 import { runMotifScript, SCRIPT_ID as MOTIF_ID, type MotifTransformation } from '../../services/motifScript'
 import { runRomanNumeralScript, SCRIPT_ID as RN_ID } from '../../services/romanNumeralScript'
-import { addMotif, chordsToSimplify, nextMotifLabel, simplifyChordSpellings } from '../../services/tagActions'
+import { addMotif, chordsToRespell, chordsToSimplify, nextMotifLabel, respellChordsToNotation, simplifyChordSpellings } from '../../services/tagActions'
 import type { Annotation, HarmonyAnnotation, MotifAnnotation } from '../../types/annotation'
 import { Icon } from '../common/Icon'
 import { useTr } from '../../i18n'
@@ -70,6 +70,13 @@ export function ScriptsDrawer() {
     setResult('simplify', n > 0
       ? { ok: true, text: tr(`הומרו ${n} אקורדים לאיות רגיל`, `Converted ${n} chords to plain spelling`) }
       : { ok: true, text: tr('אין אקורדים להמרה', 'No chords to convert') })
+  }
+
+  const runRespell = () => {
+    const n = respellChordsToNotation()
+    setResult('simplify', n > 0
+      ? { ok: true, text: tr(`${n} אקורדים אויתו מחדש לפי התווים`, `Respelled ${n} chords to match the notation`) }
+      : { ok: true, text: tr('כל האקורדים כבר נאמנים לכתיבה', 'All chords already match the notation') })
   }
 
   const runMotifs = () => {
@@ -154,16 +161,17 @@ export function ScriptsDrawer() {
           onRun={runRN} onClear={hasRun(RN_ID) ? () => clear(RN_ID) : undefined} result={results[RN_ID]} />
 
         <ScriptCard title={tr('איות אקורדים רגיל', 'Plain chord spelling')}
-          desc={tr('הצעות האקורדים נאמנות לאיות התווים (למשל B# ולא C כשהתווים הם B♯–D𝄪–F𝄪). הכפתור ממיר את כל האקורדים שלך לשם הרגיל: B#→C, E#→F, Cb→B, Fb→E, D##→E… Ctrl+Z מבטל.', 'Chord suggestions follow how the notes are written (B# rather than C for B♯–D𝄪–F𝄪). This converts all your chords to the plain name: B#→C, E#→F, Cb→B, Fb→E, D##→E… Ctrl+Z undoes.')}
+          desc={tr('הצעות האקורדים נאמנות לאיות התווים (B# ולא C כשהתווים הם B♯–D𝄪–F𝄪). "איות רגיל" ממיר את כל האקורדים שלך לשם הרגיל: B#→C, E#→F, Cb→B, Fb→E… "לפי הכתיבה" עושה את ההפך — מאיית כל אקורד כפי שהתווים שמתחתיו כתובים (C→B#). הרמוניה לא משתנה, רק האיות. Ctrl+Z מבטל.', 'Chord suggestions follow how the notes are written (B# rather than C for B♯–D𝄪–F𝄪). "Plain" converts all your chords to the plain name: B#→C, E#→F, Cb→B, Fb→E… "As notated" does the reverse — respells each chord as the notes under it are written (C→B#). Harmony never changes, only spelling. Ctrl+Z undoes.')}
           req={chordsToSimplify().length > 0 ? { ok: true, text: tr(`${chordsToSimplify().length} אקורדים ישתנו`, `${chordsToSimplify().length} chords will change`) } : { ok: true, text: tr('אין אקורדים בעלי איות חריג', 'No unusual spellings') }}
-          runLabel={tr('המר לאיות רגיל', 'Convert to plain')} onRun={runSimplify} result={results.simplify} />
+          runLabel={tr('המר לאיות רגיל', 'Convert to plain')} onRun={runSimplify}
+          extra={{ label: tr('איית לפי הכתיבה', 'Respell as notated'), onClick: runRespell, hint: chordsToRespell().length > 0 ? tr(`${chordsToRespell().length} יתוקנו`, `${chordsToRespell().length} would change`) : undefined }} result={results.simplify} />
       </aside>
     </div>
   )
 }
 
-function ScriptCard({ title, desc, req, onRun, onClear, result, runLabel, children }: {
-  title: string; desc: string; req: Result; runLabel?: string; onRun: () => void; onClear?: () => void; result?: Result; children?: React.ReactNode
+function ScriptCard({ title, desc, req, onRun, onClear, result, runLabel, extra, children }: {
+  title: string; desc: string; req: Result; runLabel?: string; extra?: { label: string; onClick: () => void; hint?: string }; onRun: () => void; onClear?: () => void; result?: Result; children?: React.ReactNode
 }) {
   const tr = useTr()
   return (
@@ -174,6 +182,7 @@ function ScriptCard({ title, desc, req, onRun, onClear, result, runLabel, childr
       {children}
       <div className="sc-actions">
         <button className="btn primary" onClick={onRun}><Icon name="play" size={14} fill />{runLabel ?? (onClear ? tr('הרץ שוב', 'Run again') : tr('הרץ', 'Run'))}</button>
+        {extra && <button className="btn" onClick={extra.onClick}>{extra.label}{extra.hint ? ` (${extra.hint})` : ''}</button>}
         {onClear && <button className="btn" onClick={onClear}>{tr('נקה תוצאות', 'Clear results')}</button>}
       </div>
       {result && <div className={`sc-result ${result.ok ? 'ok' : 'no'}`}>{result.text}</div>}
