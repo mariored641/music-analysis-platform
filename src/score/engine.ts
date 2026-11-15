@@ -66,8 +66,43 @@ async function doRender(xml: string, host: HTMLDivElement): Promise<void> {
     rules.PageTopMargin = 6
   }
   osmd.zoom = OSMD_ZOOM
-  await osmd.load(xml)
+  await osmd.load(fixOctaveShifts(xml))
   osmd.render()
+}
+
+/**
+ * OSMD throws ("Cannot read properties of undefined (reading 'realValue')") when an
+ * `<octave-shift>` start has no matching stop, and some exporters (e.g. MuseScore 2 on
+ * long piano scores) emit such files. Drop the unpaired markers (stop without start,
+ * start never stopped / restarted while open) so the rest of the score still renders;
+ * notes keep their sounding pitch and simply draw without the 8va bracket.
+ * Returns the input unchanged when every marker is paired.
+ */
+export function fixOctaveShifts(xml: string): string {
+  if (!xml.includes('<octave-shift')) return xml
+  const doc = new DOMParser().parseFromString(xml, 'application/xml')
+  if (doc.querySelector('parsererror')) return xml
+  let removed = 0
+  for (const part of Array.from(doc.getElementsByTagName('part'))) {
+    const open = new Map<string, Element>()
+    const drop = (el: Element) => { el.parentNode?.removeChild(el); removed++ }
+    for (const el of Array.from(part.getElementsByTagName('octave-shift'))) {
+      const type = el.getAttribute('type')
+      const num = el.getAttribute('number') ?? '1'
+      if (type === 'stop') {
+        if (open.has(num)) open.delete(num)
+        else drop(el)
+      } else {
+        const prev = open.get(num)
+        if (prev) drop(prev)
+        open.set(num, el)
+      }
+    }
+    open.forEach(drop)
+  }
+  if (!removed) return xml
+  console.warn(`MusicXML: removed ${removed} unpaired octave-shift marker(s)`)
+  return new XMLSerializer().serializeToString(doc)
 }
 
 // ── Geometry ─────────────────────────────────────────────────────────────────
