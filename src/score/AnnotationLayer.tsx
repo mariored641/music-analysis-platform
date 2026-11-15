@@ -3,6 +3,7 @@ import type { Annotation, HarmonyAnnotation, LabelAnnotation, MotifAnnotation, F
 import type { ScoreGeometry, NoteBox } from './geometry'
 import { lanes, notesBySystem, segmentsForRange, systemOfMeasure } from './geometry'
 import { blobPath } from './shapes'
+import { assignChordRows, CHORD_ROW_STEP, type ChordItem } from './chordLayout'
 import { formColor, motifColor, LAYER_MAP } from '../constants/layers'
 import { motifTag, measureEnd, summarize } from '../services/annotationQueries'
 import { useAnnotationStore } from '../store/annotationStore'
@@ -109,6 +110,27 @@ export const AnnotationLayer = memo(function AnnotationLayer({ geometry: g, anno
     className: `ann ann-${a.layer}${selectedId === a.id ? ' is-selected' : ''}`,
   })
 
+  // Chord symbols that would overlap are stacked onto extra rows (per system, left → right).
+  const chordRow = new Map<string, number>()
+  {
+    const bySystem = new Map<number, ChordItem[]>()
+    for (const a of annotations) {
+      if (a.layer !== 'harmony') continue
+      const h = a as HarmonyAnnotation
+      const text = h.xmlChord ? '' : prettyChord(h.chordSymbol ?? '')
+      if (!text) continue
+      const anchor = h.noteIds?.[0] ? g.notes.get(h.noteIds[0]) : undefined
+      const mb = g.measures[h.measureStart - 1]
+      const sysIdx = anchor ? anchor.system : mb?.system
+      if (sysIdx === undefined) continue
+      const x = anchor ? anchor.x : (mb?.x ?? 0) + 10
+      const item: ChordItem = { id: a.id, x, text, pinned: !!a.visualOffset }
+      const arr = bySystem.get(sysIdx)
+      if (arr) arr.push(item); else bySystem.set(sysIdx, [item])
+    }
+    for (const items of bySystem.values()) for (const [id, r] of assignChordRows(items)) chordRow.set(id, r)
+  }
+
   const out: React.ReactNode[] = []
 
   for (const a of annotations) {
@@ -129,7 +151,7 @@ export const AnnotationLayer = memo(function AnnotationLayer({ geometry: g, anno
       const rnColor = colors['harmony:rn'] ?? '#1e40af'
       const cadColor = colors['harmony:cadence'] ?? '#b45309'
       const L = lanes(sys)
-      const cy = L.chord + off.y
+      const cy = L.chord - (chordRow.get(a.id) ?? 0) * CHORD_ROW_STEP + off.y
       const ry = L.numeral + off.y
       out.push(
         <g key={a.id} {...common(a)}>
