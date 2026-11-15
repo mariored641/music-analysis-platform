@@ -1,81 +1,168 @@
 /**
  * chordDetector.ts
- * Detects chord name from a set of noteMap IDs using pitch-class matching.
- * Jazz convention: flat names preferred (Eb, Bb, Ab, Db, Gb).
+ * Detects chord names from a set of notes.
+ *
+ * Spelling-aware: the chord root is named the way the notes are written, so
+ * B#–D##–F## is suggested as "B#" (not "C"). Rootless/ambiguous cases fall back
+ * to the jazz convention (flat names: Eb, Bb, Ab, Db, Gb; F# is the only sharp).
+ * When the notated root is exotic (B#, E#, Cb, Fb or a double accidental) the
+ * plain enharmonic name is offered right after it — see `simplifyChordSymbol`
+ * for converting existing symbols.
  */
 
 import type { NoteMap } from '../types/score'
 
-const NOTE_PC: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }
+const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
+const NATURAL_PC = [0, 2, 4, 5, 7, 9, 11]
+const LETTER_INDEX: Record<string, number> = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 }
 const ROOT_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']
 
+/** A written pitch name without octave: letter index (C=0…B=6) + alteration (−2…+2). */
+export interface SpelledNote { letter: number; alter: number }
+
 interface Template {
-  size: number
-  intervals: Set<number>
   quality: string
+  /** [semitones above root, letter steps above root's letter] */
+  degrees: Array<[number, number]>
 }
 
 // Ordered: 7th chords first (preferred for exact matches with 4 notes)
 const TEMPLATES: Template[] = [
-  { size: 4, intervals: new Set([0, 4, 7, 11]), quality: 'maj7' },
-  { size: 4, intervals: new Set([0, 4, 7, 10]), quality: '7' },
-  { size: 4, intervals: new Set([0, 3, 7, 10]), quality: 'm7' },
-  { size: 4, intervals: new Set([0, 3, 6, 10]), quality: 'm7b5' },
-  { size: 4, intervals: new Set([0, 3, 6, 9]),  quality: 'dim7' },
-  { size: 4, intervals: new Set([0, 3, 7, 11]), quality: 'mMaj7' },
-  { size: 4, intervals: new Set([0, 4, 8, 10]), quality: 'aug7' },
-  { size: 4, intervals: new Set([0, 5, 7, 10]), quality: '7sus4' },
-  { size: 4, intervals: new Set([0, 2, 7, 10]), quality: '7sus2' },
-  { size: 4, intervals: new Set([0, 4, 7, 9]),  quality: '6' },
-  { size: 4, intervals: new Set([0, 3, 7, 9]),  quality: 'm6' },
-  { size: 4, intervals: new Set([0, 4, 5, 7]),  quality: 'add4' },
-  { size: 3, intervals: new Set([0, 4, 7]),     quality: '' },      // major triad
-  { size: 3, intervals: new Set([0, 3, 7]),     quality: 'm' },
-  { size: 3, intervals: new Set([0, 3, 6]),     quality: 'dim' },
-  { size: 3, intervals: new Set([0, 4, 8]),     quality: 'aug' },
-  { size: 3, intervals: new Set([0, 5, 7]),     quality: 'sus4' },
-  { size: 3, intervals: new Set([0, 2, 7]),     quality: 'sus2' },
+  { quality: 'maj7',  degrees: [[0, 0], [4, 2], [7, 4], [11, 6]] },
+  { quality: '7',     degrees: [[0, 0], [4, 2], [7, 4], [10, 6]] },
+  { quality: 'm7',    degrees: [[0, 0], [3, 2], [7, 4], [10, 6]] },
+  { quality: 'm7b5',  degrees: [[0, 0], [3, 2], [6, 4], [10, 6]] },
+  { quality: 'dim7',  degrees: [[0, 0], [3, 2], [6, 4], [9, 6]] },
+  { quality: 'mMaj7', degrees: [[0, 0], [3, 2], [7, 4], [11, 6]] },
+  { quality: 'aug7',  degrees: [[0, 0], [4, 2], [8, 4], [10, 6]] },
+  { quality: '7sus4', degrees: [[0, 0], [5, 3], [7, 4], [10, 6]] },
+  { quality: '7sus2', degrees: [[0, 0], [2, 1], [7, 4], [10, 6]] },
+  { quality: '6',     degrees: [[0, 0], [4, 2], [7, 4], [9, 5]] },
+  { quality: 'm6',    degrees: [[0, 0], [3, 2], [7, 4], [9, 5]] },
+  { quality: 'add4',  degrees: [[0, 0], [4, 2], [5, 3], [7, 4]] },
+  { quality: '',      degrees: [[0, 0], [4, 2], [7, 4]] },   // major triad
+  { quality: 'm',     degrees: [[0, 0], [3, 2], [7, 4]] },
+  { quality: 'dim',   degrees: [[0, 0], [3, 2], [6, 4]] },
+  { quality: 'aug',   degrees: [[0, 0], [4, 2], [8, 4]] },
+  { quality: 'sus4',  degrees: [[0, 0], [5, 3], [7, 4]] },
+  { quality: 'sus2',  degrees: [[0, 0], [2, 1], [7, 4]] },
 ]
 
-/** Extract pitch classes from noteMap IDs */
-function extractPcs(noteIds: string[], noteMap: NoteMap): Set<number> {
-  const pcs = new Set<number>()
+const pcOf = (n: SpelledNote) => (((NATURAL_PC[n.letter] + n.alter) % 12) + 12) % 12
+const keyOf = (n: SpelledNote) => n.letter * 20 + n.alter + 10
+
+function accidental(alter: number): string | null {
+  switch (alter) {
+    case 0: return ''
+    case 1: return '#'
+    case 2: return '##'
+    case -1: return 'b'
+    case -2: return 'bb'
+    default: return null
+  }
+}
+
+/** Name of a spelled pitch ("B#", "Ebb"); falls back to the flat-convention name beyond ±2. */
+function spelledName(n: SpelledNote): string {
+  const acc = accidental(n.alter)
+  return acc === null ? ROOT_NAMES[pcOf(n)] : `${LETTERS[n.letter]}${acc}`
+}
+
+/** B#, E#, Cb, Fb and anything with a double accidental. */
+function isExotic(n: SpelledNote): boolean {
+  if (Math.abs(n.alter) >= 2) return true
+  return (n.alter === 1 && (n.letter === 2 || n.letter === 6)) || (n.alter === -1 && (n.letter === 0 || n.letter === 3))
+}
+
+/** Expected written pitch for a chord degree above a spelled root. */
+function expectedNote(root: SpelledNote, interval: number, steps: number): SpelledNote {
+  const letter = (root.letter + steps) % 7
+  const target = (pcOf(root) + interval) % 12
+  const alter = ((((target - NATURAL_PC[letter]) % 12) + 18) % 12) - 6
+  return { letter, alter }
+}
+
+/** Spelled notes of a noteMap selection. */
+function spelledFromIds(noteIds: string[], noteMap: NoteMap): SpelledNote[] {
+  const out: SpelledNote[] = []
   for (const id of noteIds) {
     const note = noteMap.notes.get(id)
     if (!note) continue
-    const pc = ((NOTE_PC[note.step] ?? 0) + Math.round(note.alter ?? 0) + 12) % 12
-    pcs.add(pc)
+    const letter = LETTER_INDEX[note.step]
+    if (letter === undefined) continue
+    out.push({ letter, alter: Math.round(note.alter ?? 0) })
   }
-  return pcs
+  return out
 }
 
-/** Score all matching chords for a set of pitch classes, sorted best-first. */
-function scoreAllMatches(pcs: Set<number>): { name: string; score: number }[] {
+/** Convert raw `{step, alter}` pairs (e.g. from the MusicXML parser) to spelled notes. */
+export function spelledFromStepAlter(notes: Array<{ step: string; alter?: number }>): SpelledNote[] {
+  const out: SpelledNote[] = []
+  for (const n of notes) {
+    const letter = LETTER_INDEX[n.step]
+    if (letter !== undefined) out.push({ letter, alter: Math.round(n.alter ?? 0) })
+  }
+  return out
+}
+
+/** Score all matching chords for a set of written notes, sorted best-first. */
+function scoreAllMatches(notes: SpelledNote[]): { name: string; score: number }[] {
+  const pcs = new Set(notes.map(pcOf))
   if (pcs.size < 2) return []
+
+  // How each pitch class is written, most frequent spelling first
+  const spellingsByPc = new Map<number, Map<number, { note: SpelledNote; count: number }>>()
+  for (const n of notes) {
+    const pc = pcOf(n)
+    const byKey = spellingsByPc.get(pc) ?? new Map()
+    const e = byKey.get(keyOf(n))
+    if (e) e.count++; else byKey.set(keyOf(n), { note: n, count: 1 })
+    spellingsByPc.set(pc, byKey)
+  }
+  const writtenRoot = (pc: number): SpelledNote | null => {
+    const byKey = spellingsByPc.get(pc)
+    if (!byKey) return null
+    return [...byKey.values()].sort((a, b) => b.count - a.count)[0].note
+  }
+  const writtenKeys = new Set(notes.map(keyOf))
 
   const results: { name: string; score: number }[] = []
   const seen = new Set<string>()
+  const push = (name: string, score: number) => {
+    if (seen.has(name)) return
+    seen.add(name)
+    results.push({ name, score })
+  }
 
   for (const tpl of TEMPLATES) {
     for (let root = 0; root < 12; root++) {
-      const tplPcs = new Set([...tpl.intervals].map(iv => (root + iv) % 12))
-
+      const tplPcs = new Set(tpl.degrees.map(([iv]) => (root + iv) % 12))
       let matched = 0
-      for (const pc of pcs) {
-        if (tplPcs.has(pc)) matched++
-      }
+      for (const pc of pcs) if (tplPcs.has(pc)) matched++
       if (matched < pcs.size) continue
 
-      const isExact = tpl.size === pcs.size
-      const score = isExact
-        ? 1000 + tpl.size * 10
-        : pcs.size * 10 - (tpl.size - pcs.size)
+      const isExact = tpl.degrees.length === pcs.size
+      const base = isExact
+        ? 1000 + tpl.degrees.length * 10
+        : pcs.size * 10 - (tpl.degrees.length - pcs.size)
 
-      const name = `${ROOT_NAMES[root]}${tpl.quality}`
-      if (!seen.has(name)) {
-        seen.add(name)
-        results.push({ name, score })
+      // Name the root as written; if the root isn't in the selection, use the default name
+      const rootNote = writtenRoot(root)
+      if (!rootNote) {
+        push(`${ROOT_NAMES[root]}${tpl.quality}`, base)
+        continue
       }
+
+      // Spelling fidelity: how many written notes sit exactly where this chord expects them
+      let fidelity = 0
+      for (const [iv, steps] of tpl.degrees) {
+        if (writtenKeys.has(keyOf(expectedNote(rootNote, iv, steps)))) fidelity++
+      }
+
+      const score = base + fidelity
+      push(`${spelledName(rootNote)}${tpl.quality}`, score)
+      // Unusual written root → also offer the plain enharmonic name, right behind it
+      if (isExotic(rootNote)) push(`${ROOT_NAMES[root]}${tpl.quality}`, score - 0.5)
     }
   }
 
@@ -84,28 +171,63 @@ function scoreAllMatches(pcs: Set<number>): { name: string; score: number }[] {
 }
 
 /**
- * Detect chord name from a set of pitch classes (0–11).
- * Returns e.g. "Cm7", "F7", "Bbmaj7", or null if no match.
+ * Detect the chord from written notes; the root is spelled as notated.
+ * Returns e.g. "Cm7", "B#", "Bbmaj7", or null if no match.
  */
-export function detectChordFromPcs(pcs: Set<number>): string | null {
-  const matches = scoreAllMatches(pcs)
+export function detectChordFromSpelled(notes: SpelledNote[]): string | null {
+  const matches = scoreAllMatches(notes)
   return matches.length > 0 ? matches[0].name : null
 }
 
-/**
- * Detect chord name from an array of noteMap IDs.
- * Returns the best match, or null.
- */
+/** Detect the chord name from an array of noteMap IDs. Returns the best match, or null. */
 export function detectChord(noteIds: string[], noteMap: NoteMap): string | null {
   if (noteIds.length < 2) return null
-  return detectChordFromPcs(extractPcs(noteIds, noteMap))
+  return detectChordFromSpelled(spelledFromIds(noteIds, noteMap))
 }
 
 /**
  * Detect ALL matching chord names from an array of noteMap IDs.
- * Returns sorted by score (best first). Useful for showing alternatives.
+ * Best first — the notated spelling leads; plain enharmonic alternatives follow.
  */
 export function detectAllChords(noteIds: string[], noteMap: NoteMap): string[] {
   if (noteIds.length < 2) return []
-  return scoreAllMatches(extractPcs(noteIds, noteMap)).map(m => m.name)
+  return scoreAllMatches(spelledFromIds(noteIds, noteMap)).map(m => m.name)
+}
+
+// ── Converting existing chord symbols ──────────────────────────────────────────
+
+/** Read a note name ("B#", "D♭", "F##", "E𝄫") at the start of `s`. */
+function readNoteName(s: string): { note: SpelledNote; length: number } | null {
+  const m = /^([A-Ga-g])(##|♯♯|𝄪|bb(?![59])|♭♭|𝄫|#|♯|b|♭)?/u.exec(s)
+  if (!m) return null
+  const acc = m[2] ?? ''
+  const alter = acc === '' ? 0
+    : /^(##|♯♯|𝄪)$/u.test(acc) ? 2
+    : /^(#|♯)$/u.test(acc) ? 1
+    : /^(bb|♭♭|𝄫)$/u.test(acc) ? -2
+    : -1
+  return { note: { letter: LETTER_INDEX[m[1].toUpperCase()], alter }, length: m[0].length }
+}
+
+function simplifyNote(n: SpelledNote): string {
+  return isExotic(n) ? ROOT_NAMES[pcOf(n)] : spelledName(n)
+}
+
+/**
+ * Plain enharmonic spelling of a chord symbol: B#→C, E#→F, Cb→B, Fb→E, D##→E, Ebb→D…
+ * Normal names (Bb, F#, Gb…) are left as they are; the quality is untouched,
+ * and a slash bass ("B#/D##") is simplified too.
+ */
+export function simplifyChordSymbol(symbol: string): string {
+  const root = readNoteName(symbol)
+  if (!root) return symbol
+  let rest = symbol.slice(root.length)
+  const slash = rest.lastIndexOf('/')
+  if (slash >= 0) {
+    const bass = readNoteName(rest.slice(slash + 1))
+    if (bass && bass.length === rest.length - slash - 1) {
+      rest = `${rest.slice(0, slash)}/${simplifyNote(bass.note)}`
+    }
+  }
+  return `${simplifyNote(root.note)}${rest}`
 }

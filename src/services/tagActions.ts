@@ -13,7 +13,7 @@ import type {
   MelodyAnnotation, MotifAnnotation, MotifVariant, NoteFunction, TextureAnnotation,
 } from '../types/annotation'
 import { newId, selectionLinkLabel } from './annotationQueries'
-import { detectChord } from './chordDetector'
+import { detectChord, simplifyChordSymbol } from './chordDetector'
 import { tr, isHe } from '../i18n'
 
 const sel = () => useSelectionStore.getState().selection
@@ -78,6 +78,25 @@ export function addDetectedChord(): string | null {
   setHarmony({ chordSymbol: chord })
   useUiStore.getState().toast(tr(`נוסף אקורד ${chord}`, `Added chord ${chord}`), 'success')
   return chord
+}
+
+/** Chord annotations whose symbol would change under `simplifyChordSymbol` (B#→C, Fb→E, D##→E…). */
+export function chordsToSimplify(): HarmonyAnnotation[] {
+  return Object.values(anns()).filter((a): a is HarmonyAnnotation =>
+    a.layer === 'harmony' && !!a.chordSymbol && !a.xmlChord && simplifyChordSymbol(a.chordSymbol) !== a.chordSymbol)
+}
+
+/** Rewrite every notated-spelling chord (B#, E#, Cb, Fb, double accidentals) with its plain enharmonic name. One undo step. */
+export function simplifyChordSpellings(): number {
+  const targets = chordsToSimplify()
+  if (targets.length === 0) return 0
+  useAnnotationStore.getState().transact(draft => {
+    for (const a of targets) {
+      const cur = draft[a.id] as HarmonyAnnotation | undefined
+      if (cur?.chordSymbol) draft[a.id] = { ...cur, chordSymbol: simplifyChordSymbol(cur.chordSymbol) }
+    }
+  })
+  return targets.length
 }
 
 // ── Melody ───────────────────────────────────────────────────────────────────

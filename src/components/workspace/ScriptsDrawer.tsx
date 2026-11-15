@@ -7,7 +7,7 @@ import { useLayerStore } from '../../store/layerStore'
 import { runMelodyColorScript, SCRIPT_ID as MELODY_ID } from '../../services/melodyColorScript'
 import { runMotifScript, SCRIPT_ID as MOTIF_ID, type MotifTransformation } from '../../services/motifScript'
 import { runRomanNumeralScript, SCRIPT_ID as RN_ID } from '../../services/romanNumeralScript'
-import { addMotif, nextMotifLabel } from '../../services/tagActions'
+import { addMotif, chordsToSimplify, nextMotifLabel, simplifyChordSpellings } from '../../services/tagActions'
 import type { Annotation, HarmonyAnnotation, MotifAnnotation } from '../../types/annotation'
 import { Icon } from '../common/Icon'
 import { useTr } from '../../i18n'
@@ -63,6 +63,13 @@ export function ScriptsDrawer() {
     useLayerStore.getState().setVisible('melody', true)
     const by = (fn: string) => fresh.filter(a => a.noteFunction === fn).length
     setResult(MELODY_ID, { ok: true, text: tr(`נצבעו ${fresh.length} תווים — CT ${by('CT')} · PT ${by('PT')} · NT ${by('NT')}`, `Colored ${fresh.length} notes — CT ${by('CT')} · PT ${by('PT')} · NT ${by('NT')}`) })
+  }
+
+  const runSimplify = () => {
+    const n = simplifyChordSpellings()
+    setResult('simplify', n > 0
+      ? { ok: true, text: tr(`הומרו ${n} אקורדים לאיות רגיל`, `Converted ${n} chords to plain spelling`) }
+      : { ok: true, text: tr('אין אקורדים להמרה', 'No chords to convert') })
   }
 
   const runMotifs = () => {
@@ -145,13 +152,18 @@ export function ScriptsDrawer() {
           desc={tr('מוסיף דרגה ופונקציה (T/S/D) לכל אקורד. אם אין אקורדים ביצירה — מזהה אותם אוטומטית מכל החמשות.', 'Adds degree and function (T/S/D) to each chord. If the piece has no chords, detects them from all staves.')}
           req={{ ok: true, text: chordCount > 0 ? tr(`${chordCount} אקורדים`, `${chordCount} chords`) : tr('יזהה אקורדים אוטומטית', 'Will detect chords') }}
           onRun={runRN} onClear={hasRun(RN_ID) ? () => clear(RN_ID) : undefined} result={results[RN_ID]} />
+
+        <ScriptCard title={tr('איות אקורדים רגיל', 'Plain chord spelling')}
+          desc={tr('הצעות האקורדים נאמנות לאיות התווים (למשל B# ולא C כשהתווים הם B♯–D𝄪–F𝄪). הכפתור ממיר את כל האקורדים שלך לשם הרגיל: B#→C, E#→F, Cb→B, Fb→E, D##→E… Ctrl+Z מבטל.', 'Chord suggestions follow how the notes are written (B# rather than C for B♯–D𝄪–F𝄪). This converts all your chords to the plain name: B#→C, E#→F, Cb→B, Fb→E, D##→E… Ctrl+Z undoes.')}
+          req={chordsToSimplify().length > 0 ? { ok: true, text: tr(`${chordsToSimplify().length} אקורדים ישתנו`, `${chordsToSimplify().length} chords will change`) } : { ok: true, text: tr('אין אקורדים בעלי איות חריג', 'No unusual spellings') }}
+          runLabel={tr('המר לאיות רגיל', 'Convert to plain')} onRun={runSimplify} result={results.simplify} />
       </aside>
     </div>
   )
 }
 
-function ScriptCard({ title, desc, req, onRun, onClear, result, children }: {
-  title: string; desc: string; req: Result; onRun: () => void; onClear?: () => void; result?: Result; children?: React.ReactNode
+function ScriptCard({ title, desc, req, onRun, onClear, result, runLabel, children }: {
+  title: string; desc: string; req: Result; runLabel?: string; onRun: () => void; onClear?: () => void; result?: Result; children?: React.ReactNode
 }) {
   const tr = useTr()
   return (
@@ -161,7 +173,7 @@ function ScriptCard({ title, desc, req, onRun, onClear, result, children }: {
       <div className={`sc-req ${req.ok ? 'ok' : 'no'}`}>{req.ok ? '✓' : '!'} {req.text}</div>
       {children}
       <div className="sc-actions">
-        <button className="btn primary" onClick={onRun}><Icon name="play" size={14} fill />{onClear ? tr('הרץ שוב', 'Run again') : tr('הרץ', 'Run')}</button>
+        <button className="btn primary" onClick={onRun}><Icon name="play" size={14} fill />{runLabel ?? (onClear ? tr('הרץ שוב', 'Run again') : tr('הרץ', 'Run'))}</button>
         {onClear && <button className="btn" onClick={onClear}>{tr('נקה תוצאות', 'Clear results')}</button>}
       </div>
       {result && <div className={`sc-result ${result.ok ? 'ok' : 'no'}`}>{result.text}</div>}

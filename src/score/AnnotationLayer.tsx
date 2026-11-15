@@ -274,5 +274,6 @@ export const AnnotationLayer = memo(function AnnotationLayer({ geometry: g, anno
 
 /** Typographic chord symbol: b → ♭, # → ♯ (only right after the root / bass letter). */
 export function prettyChord(s: string) {
-  return s.replace(/^([A-G])b/, '$1♭').replace(/^([A-G])#/, '$1♯').replace(/\/([A-G])b/, '/$1♭').replace(/\/([A-G])#/, '/$1♯')
+  const acc = (x: string) => x.replace(/##/g, '𝄪').replace(/bb/g, '𝄫').replace(/#/g, '♯').replace(/b/g, '♭')
+  return s.replace(/^([A-G])(##|bb|#|b)/, (_, l, a) => l + acc(a)).replace(/\/([A-G])(##|bb|#|b)/, (_, l, a) => '/' + l + acc(a))
 }

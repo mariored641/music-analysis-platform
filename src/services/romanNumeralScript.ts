@@ -15,7 +15,7 @@
  *   Returns mode: 'create' → ScriptPanel calls addAnnotation().
  */
 
-import { detectChordFromPcs } from './chordDetector'
+import { detectChordFromSpelled, spelledFromStepAlter } from './chordDetector'
 import { parseAllStavesNotes, parseHarmonies } from './xmlParser'
 import type { HarmonyAnnotation } from '../types/annotation'
 import type { NoteMap } from '../types/score'
@@ -104,6 +104,8 @@ function parseChordForRN(chordName: string): { rootPc: number; quality: string }
     rootPc = (rootPc - 2 + 12) % 12; i += 2
   } else if (chordName[i] === '♭' || chordName[i] === 'b') {
     rootPc = (rootPc - 1 + 12) % 12; i++
+  } else if (chordName[i] === '𝄪' || (chordName[i] === '#' && chordName[i + 1] === '#')) {
+    rootPc = (rootPc + 2) % 12; i += chordName[i] === '𝄪' ? 1 : 2
   } else if (chordName[i] === '♯' || chordName[i] === '#') {
     rootPc = (rootPc + 1) % 12; i++
   }
@@ -290,17 +292,11 @@ function fromChordify(
     let lastChordName = ''
 
     for (const beat of beats) {
-      // Collect pitch classes from ALL staves at this exact beat
-      const pcs = new Set<number>()
-      for (const n of notes) {
-        if (Math.abs(n.beat - beat) > 0.005) continue
-        const basePc = NOTE_PC[n.step] ?? 0
-        pcs.add(((basePc + Math.round(n.alter)) + 12) % 12)
-      }
+      // Collect the written notes from ALL staves at this exact beat
+      const atBeat = notes.filter(n => Math.abs(n.beat - beat) <= 0.005)
+      if (new Set(atBeat.map(n => (((NOTE_PC[n.step] ?? 0) + Math.round(n.alter)) + 12) % 12)).size < 2) continue
 
-      if (pcs.size < 2) continue
-
-      const chordName = detectChordFromPcs(pcs)
+      const chordName = detectChordFromSpelled(spelledFromStepAlter(atBeat))
       if (!chordName || chordName === lastChordName) continue
       lastChordName = chordName
 
