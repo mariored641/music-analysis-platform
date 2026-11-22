@@ -1,0 +1,702 @@
+[
+  {
+    "fileName": "map-etudes-chopin-op10-01.mxl",
+    "title": "Étude Op. 10 No. 1",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 79,
+    "genre": "Étude",
+    "key": "C major",
+    "timeSignature": "4/4",
+    "source": {
+      "label": "Chopin Institute · Maurice Schlesinger (1833)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/010-1b-Sm-001.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op10-02.mxl",
+    "title": "Étude Op. 10 No. 2",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 49,
+    "genre": "Étude",
+    "key": "A minor",
+    "timeSignature": "4/4",
+    "source": {
+      "label": "Chopin Institute · Maurice Schlesinger (1833)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/010-1b-Sm-002.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op10-03.mxl",
+    "title": "Étude Op. 10 No. 3",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 78,
+    "genre": "Étude",
+    "key": "E major",
+    "timeSignature": "2/4",
+    "source": {
+      "label": "Chopin Institute · Maurice Schlesinger (1833)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/010-1b-Sm-003.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op10-04.mxl",
+    "title": "Étude Op. 10 No. 4",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 83,
+    "genre": "Étude",
+    "key": "C♯ minor",
+    "timeSignature": "4/4",
+    "source": {
+      "label": "Chopin Institute · Maurice Schlesinger (1833)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/010-1b-Sm-004.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op10-05.mxl",
+    "title": "Étude Op. 10 No. 5",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 86,
+    "genre": "Étude",
+    "key": "G♭ major",
+    "timeSignature": "2/4",
+    "source": {
+      "label": "Chopin Institute · Maurice Schlesinger (1833)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/010-1b-Sm-005.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op10-06.mxl",
+    "title": "Étude Op. 10 No. 6",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 54,
+    "genre": "Étude",
+    "key": "E♭ minor",
+    "timeSignature": "6/8",
+    "source": {
+      "label": "Chopin Institute · Maurice Schlesinger (1833)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/010-1b-Sm-006.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op10-07.mxl",
+    "title": "Étude Op. 10 No. 7",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 60,
+    "genre": "Étude",
+    "key": "C major",
+    "timeSignature": "6/8",
+    "source": {
+      "label": "Chopin Institute · Maurice Schlesinger (1833)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/010-1b-Sm-007.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op10-08.mxl",
+    "title": "Étude Op. 10 No. 8",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 96,
+    "genre": "Étude",
+    "key": "F major",
+    "timeSignature": "2/2",
+    "source": {
+      "label": "Chopin Institute · Maurice Schlesinger (1833)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/010-1b-Sm-008.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op10-09.mxl",
+    "title": "Étude Op. 10 No. 9",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 67,
+    "genre": "Étude",
+    "key": "F minor",
+    "timeSignature": "6/8",
+    "source": {
+      "label": "Chopin Institute · Maurice Schlesinger (1833)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/010-1b-Sm-009.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op10-10.mxl",
+    "title": "Étude Op. 10 No. 10",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 78,
+    "genre": "Étude",
+    "key": "A♭ major",
+    "timeSignature": "12/8",
+    "source": {
+      "label": "Chopin Institute · Maurice Schlesinger (1833)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/010-1b-Sm-010.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op10-11.mxl",
+    "title": "Étude Op. 10 No. 11",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 55,
+    "genre": "Étude",
+    "key": "E♭ major",
+    "timeSignature": "3/4",
+    "source": {
+      "label": "Chopin Institute · Maurice Schlesinger (1833)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/010-1b-Sm-011.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op10-12.mxl",
+    "title": "Étude Op. 10 No. 12",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 84,
+    "genre": "Étude",
+    "key": "C minor",
+    "timeSignature": "2/2",
+    "source": {
+      "label": "Chopin Institute · Maurice Schlesinger (1833)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/010-1b-Sm-012.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op25-01.mxl",
+    "title": "Étude Op. 25 No. 1",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 50,
+    "genre": "Étude",
+    "key": "A♭ major",
+    "timeSignature": "4/4",
+    "source": {
+      "label": "Chopin Institute · Henry Lemoine (1837)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/025-1b-LE-001.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op25-02.mxl",
+    "title": "Étude Op. 25 No. 2",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 70,
+    "genre": "Étude",
+    "key": "F minor",
+    "timeSignature": "4/4",
+    "source": {
+      "label": "Chopin Institute · Henry Lemoine (1837)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/025-1b-LE-002.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op25-03.mxl",
+    "title": "Étude Op. 25 No. 3",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 73,
+    "genre": "Étude",
+    "key": "F major",
+    "timeSignature": "3/4",
+    "source": {
+      "label": "Chopin Institute · Henry Lemoine (1837)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/025-1b-LE-003.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op25-04.mxl",
+    "title": "Étude Op. 25 No. 4",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 66,
+    "genre": "Étude",
+    "key": "A minor",
+    "timeSignature": "2/2",
+    "source": {
+      "label": "Chopin Institute · Henry Lemoine (1837)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/025-1b-LE-004.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op25-05.mxl",
+    "title": "Étude Op. 25 No. 5",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 139,
+    "genre": "Étude",
+    "key": "E minor",
+    "timeSignature": "3/4",
+    "source": {
+      "label": "Chopin Institute · Henry Lemoine (1837)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/025-1b-LE-005.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op25-06.mxl",
+    "title": "Étude Op. 25 No. 6",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 63,
+    "genre": "Étude",
+    "key": "G♯ minor",
+    "timeSignature": "4/4",
+    "source": {
+      "label": "Chopin Institute · Henry Lemoine (1837)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/025-1b-LE-006.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op25-07.mxl",
+    "title": "Étude Op. 25 No. 7",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 69,
+    "genre": "Étude",
+    "key": "C♯ minor",
+    "timeSignature": "3/4",
+    "source": {
+      "label": "Chopin Institute · Henry Lemoine (1837)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/025-1b-LE-007.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op25-08.mxl",
+    "title": "Étude Op. 25 No. 8",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 36,
+    "genre": "Étude",
+    "key": "D♭ major",
+    "timeSignature": "4/4",
+    "source": {
+      "label": "Chopin Institute · Henry Lemoine (1837)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/025-1b-LE-008.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op25-09.mxl",
+    "title": "Étude Op. 25 No. 9",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 51,
+    "genre": "Étude",
+    "key": "G♭ major",
+    "timeSignature": "2/4",
+    "source": {
+      "label": "Chopin Institute · Henry Lemoine (1837)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/025-1b-LE-009.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op25-10.mxl",
+    "title": "Étude Op. 25 No. 10",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 119,
+    "genre": "Étude",
+    "key": "B minor",
+    "timeSignature": "2/2",
+    "source": {
+      "label": "Chopin Institute · Henry Lemoine (1837)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/025-1b-LE-010.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op25-11.mxl",
+    "title": "Étude Op. 25 No. 11",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 96,
+    "genre": "Étude",
+    "key": "A minor",
+    "timeSignature": "4/4",
+    "source": {
+      "label": "Chopin Institute · Henry Lemoine (1837)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/025-1b-LE-011.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-op25-12.mxl",
+    "title": "Étude Op. 25 No. 12",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 83,
+    "genre": "Étude",
+    "key": "C minor",
+    "timeSignature": "2/2",
+    "source": {
+      "label": "Chopin Institute · Henry Lemoine (1837)",
+      "url": "https://github.com/pl-wnifc/humdrum-chopin-first-editions/blob/95dfb105c1669c72d10b04088566154f12d3dc1c/kern/025-1b-LE-012.krn"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-b130-01.mxl",
+    "title": "Trois Nouvelles Études, B.130 No. 1",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 67,
+    "genre": "Étude",
+    "key": "F minor",
+    "timeSignature": "2/2",
+    "source": {
+      "label": "Mutopia · Artform",
+      "url": "https://jamescarterpiano.com/sheet-music/chopin/trois-nouvelles-etudes-no-1-in-f-minor/"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-b130-02.mxl",
+    "title": "Trois Nouvelles Études, B.130 No. 2",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 60,
+    "genre": "Étude",
+    "key": "A♭ major",
+    "timeSignature": "2/4",
+    "source": {
+      "label": "Knute Snortum · CC BY-SA 4.0",
+      "url": "https://github.com/ksnortum/chopin-b130/blob/9f191991af80b71f23a52856eadea037c18d8fc8/etude-b130-no2-individual.ly"
+    }
+  },
+  {
+    "fileName": "map-etudes-chopin-b130-03.mxl",
+    "title": "Trois Nouvelles Études, B.130 No. 3",
+    "composer": "Frédéric Chopin",
+    "collection": "Chopin — Études",
+    "totalMeasures": 74,
+    "genre": "Étude",
+    "key": "D♭ major",
+    "timeSignature": "3/4",
+    "source": {
+      "label": "Knute Snortum · CC BY-SA 4.0",
+      "url": "https://github.com/ksnortum/chopin-b130/blob/9f191991af80b71f23a52856eadea037c18d8fc8/etude-b130-no3-individual.ly"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-mazeppa-early.mxl",
+    "title": "Mazeppa — Early version",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 170,
+    "genre": "Étude",
+    "key": "D minor",
+    "timeSignature": "6/4",
+    "source": {
+      "label": "Noctave · CC BY 4.0",
+      "url": "https://noctavepiano.com/en/sheet-music/liszt-mazeppa-s137/"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s139-01.mxl",
+    "title": "Transcendental Étude S.139 No. 1 — Preludio",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 23,
+    "genre": "Étude",
+    "key": "C major",
+    "timeSignature": "4/4",
+    "source": {
+      "label": "PDMX · CC0 1.0",
+      "url": "https://musescore.com/score/2190561"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s139-02.mxl",
+    "title": "Transcendental Étude S.139 No. 2 — Molto vivace (Fusées)",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 103,
+    "genre": "Étude",
+    "key": "A minor",
+    "timeSignature": "3/4",
+    "source": {
+      "label": "PDMX · CC0 1.0",
+      "url": "https://musescore.com/score/6299753"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s139-03.mxl",
+    "title": "Transcendental Étude S.139 No. 3 — Paysage",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 98,
+    "genre": "Étude",
+    "key": "F major",
+    "timeSignature": "6/8",
+    "source": {
+      "label": "PDMX · CC0 1.0",
+      "url": "https://musescore.com/score/2204471"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s139-04.mxl",
+    "title": "Transcendental Étude S.139 No. 4 — Mazeppa",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 206,
+    "genre": "Étude",
+    "key": "D minor",
+    "timeSignature": "4/4",
+    "source": {
+      "label": "PDMX · CC0 1.0",
+      "url": "https://musescore.com/score/2221471"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s139-05.mxl",
+    "title": "Transcendental Étude S.139 No. 5 — Feux follets",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 134,
+    "genre": "Étude",
+    "key": "B♭ major",
+    "timeSignature": "2/4",
+    "source": {
+      "label": "ASAP · CC BY-NC-SA 4.0",
+      "url": "https://github.com/fosfrancesco/asap-dataset/blob/master/Liszt/Transcendental_Etudes/5/xml_score.musicxml"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s139-06.mxl",
+    "title": "Transcendental Étude S.139 No. 6 — Vision",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 70,
+    "genre": "Étude",
+    "key": "G minor",
+    "timeSignature": "3/4",
+    "source": {
+      "label": "PDMX · CC0 1.0",
+      "url": "https://musescore.com/score/2253141"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s139-07.mxl",
+    "title": "Transcendental Étude S.139 No. 7 — Eroica",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 120,
+    "genre": "Étude",
+    "key": "E♭ major",
+    "timeSignature": "4/4",
+    "source": {
+      "label": "PianoCoRe / ATEPP · CC BY-NC-SA 4.0",
+      "url": "https://zenodo.org/records/19186016"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s139-08.mxl",
+    "title": "Transcendental Étude S.139 No. 8 — Wilde Jagd",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 228,
+    "genre": "Étude",
+    "key": "C minor",
+    "timeSignature": "6/8",
+    "source": {
+      "label": "PDMX · CC0 1.0",
+      "url": "https://musescore.com/score/6338294"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s139-09.mxl",
+    "title": "Transcendental Étude S.139 No. 9 — Ricordanza",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 117,
+    "genre": "Étude",
+    "key": "A♭ major",
+    "timeSignature": "6/4",
+    "source": {
+      "label": "ASAP · CC BY-NC-SA 4.0",
+      "url": "https://github.com/fosfrancesco/asap-dataset/blob/master/Liszt/Transcendental_Etudes/9/xml_score.musicxml"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s139-10.mxl",
+    "title": "Transcendental Étude S.139 No. 10 — Allegro agitato molto",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 182,
+    "genre": "Étude",
+    "key": "F minor",
+    "timeSignature": "2/4",
+    "source": {
+      "label": "PDMX · CC0 1.0",
+      "url": "https://musescore.com/score/5640196"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s139-11.mxl",
+    "title": "Transcendental Étude S.139 No. 11 — Harmonies du soir",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 156,
+    "genre": "Étude",
+    "key": "D♭ major",
+    "timeSignature": "4/4",
+    "source": {
+      "label": "PDMX · CC0 1.0",
+      "url": "https://musescore.com/score/6339906"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s140-04b.mxl",
+    "title": "Paganini Étude S.140 No. 4 — Version II",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 94,
+    "genre": "Étude",
+    "key": "E major",
+    "timeSignature": "2/4",
+    "source": {
+      "label": "PDMX · CC0 1.0",
+      "url": "https://musescore.com/score/5985882"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s140-06.mxl",
+    "title": "Paganini Étude S.140 No. 6 — Theme and Variations",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 200,
+    "genre": "Étude",
+    "key": "A minor",
+    "timeSignature": "2/4",
+    "source": {
+      "label": "PDMX · CC0 1.0",
+      "url": "https://musescore.com/score/5976041"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s141-02.mxl",
+    "title": "Paganini Étude S.141 No. 2 — Andante",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 85,
+    "genre": "Étude",
+    "key": "E♭ major",
+    "timeSignature": "4/4",
+    "source": {
+      "label": "HfM Weimar · Score database",
+      "url": "https://analyse.hfm-weimar.de/database/01/LiFra_S141_2-6_COM_Grandesetu_001_00326.xml"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s141-03.mxl",
+    "title": "Paganini Étude S.141 No. 3 — La campanella",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 144,
+    "genre": "Étude",
+    "key": "G♯ minor",
+    "timeSignature": "6/8",
+    "source": {
+      "label": "PDMX · CC0 1.0",
+      "url": "https://musescore.com/score/6225893"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s141-04.mxl",
+    "title": "Paganini Étude S.141 No. 4 — Vivo (Arpeggio)",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 77,
+    "genre": "Étude",
+    "key": "E major",
+    "timeSignature": "2/4",
+    "source": {
+      "label": "HfM Weimar · Score database",
+      "url": "https://analyse.hfm-weimar.de/database/01/LiFra_S141_4-6_COM_Grandesetu_001_00328.xml"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s141-05.mxl",
+    "title": "Paganini Étude S.141 No. 5 — La chasse",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 137,
+    "genre": "Étude",
+    "key": "E major",
+    "timeSignature": "2/4",
+    "source": {
+      "label": "HfM Weimar · Score database",
+      "url": "https://analyse.hfm-weimar.de/database/01/LiFra_S141_5-6_COM_Grandesetu_001_00329.xml"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s141-06.mxl",
+    "title": "Paganini Étude S.141 No. 6 — Theme and Variations",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 220,
+    "genre": "Étude",
+    "key": "A minor",
+    "timeSignature": "2/4",
+    "source": {
+      "label": "PDMX · CC0 1.0",
+      "url": "https://musescore.com/score/5849889"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s144-02.mxl",
+    "title": "Concert Étude S.144 No. 2 — La leggierezza",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 106,
+    "genre": "Étude",
+    "key": "F minor",
+    "timeSignature": "3/4",
+    "source": {
+      "label": "PianoCoRe / ATEPP · CC BY-NC-SA 4.0",
+      "url": "https://zenodo.org/records/19186016"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s144-03.mxl",
+    "title": "Concert Étude S.144 No. 3 — Un sospiro",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 91,
+    "genre": "Étude",
+    "key": "D♭ major",
+    "timeSignature": "4/4",
+    "source": {
+      "label": "Peters (Emil von Sauer) · Artform",
+      "url": "https://jamescarterpiano.com/sheet-music/liszt/un-sospiro-concert-etude-no-3-in-d-flat-major-s-144/"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s145-01.mxl",
+    "title": "Concert Étude S.145 No. 1 — Waldesrauschen",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 97,
+    "genre": "Étude",
+    "key": "D♭ major",
+    "timeSignature": "4/4",
+    "source": {
+      "label": "ASAP · CC BY-NC-SA 4.0",
+      "url": "https://github.com/fosfrancesco/asap-dataset/blob/master/Liszt/Concert_Etude_S145/1/xml_score.musicxml"
+    }
+  },
+  {
+    "fileName": "map-etudes-liszt-s145-02.mxl",
+    "title": "Concert Étude S.145 No. 2 — Gnomenreigen",
+    "composer": "Franz Liszt",
+    "collection": "Liszt — Études",
+    "totalMeasures": 168,
+    "genre": "Étude",
+    "key": "F♯ minor",
+    "timeSignature": "6/8",
+    "source": {
+      "label": "PDMX · Public Domain Mark 1.0",
+      "url": "https://musescore.com/score/2971521"
+    }
+  }
+]

@@ -10,7 +10,7 @@ export default defineConfig({
       includeAssets: ['icons/*.png', 'icons/*.svg'],
       workbox: {
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}', 'etudes/*.mxl'],
       },
       manifest: {
         name: 'Music Analysis Platform',

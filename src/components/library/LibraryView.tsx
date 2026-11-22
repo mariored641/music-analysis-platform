@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLibraryStore, type LibraryPiece } from '../../store/libraryStore'
+import { getBuiltInPiece } from '../../data/builtInLibrary'
 import { useUiStore } from '../../store/uiStore'
 import { useSyncStore, connectFolder, reauthorize } from '../../services/syncService'
 import { deletePiece, importFromFolder, importPiece, isScoreFile, loadSamplePiece, openPiece, readScoreFile, suggestMeta } from '../../services/pieceService'
 import { PieceForm } from './PieceForm'
+import { CollectionCard } from './CollectionCard'
 import { Modal } from '../common/Modal'
 import { Icon } from '../common/Icon'
 import { setLanguage, useHe, useTr } from '../../i18n'
@@ -17,6 +19,9 @@ export function LibraryView() {
   const tr = useTr()
   const he = useHe()
   const pieces = useLibraryStore(s => s.pieces)
+  const viewMode = useLibraryStore(s => s.viewMode)
+  const collection = useLibraryStore(s => s.activeCollectionId)
+  const setCollectionView = useLibraryStore(s => s.setCollectionView)
   const sync = useSyncStore()
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<SortKey>(() => (localStorage.getItem('map-lib-sort') as SortKey) || 'lastModified')
@@ -37,17 +42,28 @@ export function LibraryView() {
     const q = query.trim().toLowerCase()
     const list = pieces.filter(p =>
       (!genre || p.genre === genre) && (!composer || p.composer === composer) &&
-      (!q || [p.title, p.composer, p.genre, p.notes, p.key].some(v => v?.toString().toLowerCase().includes(q))))
+      (!q || [p.title, p.composer, p.genre, p.notes, p.key, p.collection].some(v => v?.toString().toLowerCase().includes(q))))
     const cmp: Record<SortKey, (a: LibraryPiece, b: LibraryPiece) => number> = {
       lastModified: (a, b) => (b.lastModified ?? 0) - (a.lastModified ?? 0),
       lastOpened: (a, b) => (b.lastOpened ?? 0) - (a.lastOpened ?? 0),
       dateAdded: (a, b) => (b.dateAdded ?? 0) - (a.dateAdded ?? 0),
-      title: (a, b) => a.title.localeCompare(b.title, he ? 'he' : 'en'),
+      title: (a, b) => a.title.localeCompare(b.title, he ? 'he' : 'en', { numeric: true }),
       composer: (a, b) => (a.composer || '').localeCompare(b.composer || '') || a.title.localeCompare(b.title),
       genre: (a, b) => (a.genre || '~').localeCompare(b.genre || '~') || a.title.localeCompare(b.title),
     }
     return list.sort(cmp[sort])
   }, [pieces, query, genre, composer, sort, he])
+
+  const folderOpen = viewMode === 'collections' && collection !== null
+  const folderOverview = viewMode === 'collections' && !folderOpen
+  const folders = new Map<string, number>()
+  if (folderOverview) {
+    for (const piece of shown) {
+      if (piece.collection) folders.set(piece.collection, (folders.get(piece.collection) ?? 0) + 1)
+    }
+  }
+  const visiblePieces = viewMode === 'pieces' ? shown : shown.filter(p => (p.collection ?? null) === collection)
+  const offerSample = !folderOpen && pieces.every(piece => getBuiltInPiece(piece.id))
 
   const handleFiles = async (files: File[]) => {
     const scores = files.filter(f => isScoreFile(f.name))
@@ -114,6 +130,14 @@ export function LibraryView() {
       {pieces.length > 0 && (
         <div className="lib-filters">
           <div className="chips">
+            <div className="library-view-switch" role="group" aria-label={tr('תצוגת ספרייה', 'Library view')}>
+              <button className={`chip${viewMode === 'collections' ? ' on' : ''}`} aria-pressed={viewMode === 'collections'} onClick={() => setCollectionView('collections')}>
+                <Icon name="folder" size={15} />{tr('אוספים', 'Collections')}
+              </button>
+              <button className={`chip${viewMode === 'pieces' ? ' on' : ''}`} aria-pressed={viewMode === 'pieces'} onClick={() => setCollectionView('pieces')}>
+                {tr('יצירות', 'Pieces')}
+              </button>
+            </div>
             <button className={`chip${!genre ? ' on' : ''}`} onClick={() => setGenre(null)}>{tr('הכל', 'All')} <span className="count">{pieces.length}</span></button>
             {genres.map(g => <button key={g} className={`chip${genre === g ? ' on' : ''}`} onClick={() => setGenre(genre === g ? null : g)}>{g}</button>)}
           </div>
@@ -137,21 +161,28 @@ export function LibraryView() {
       )}
 
       <main className="lib-main">
-        {pieces.length === 0 ? (
-          <div className="lib-empty">
-            <button className="dropzone" onClick={() => fileRef.current?.click()}>
-              <Icon name="music" size={44} stroke={1.3} />
-              <b>{tr('גרור לכאן קבצי MusicXML', 'Drop MusicXML files here')}</b>
-              <span>{tr('או לחץ לבחירת קבצים (.xml, .musicxml, .mxl)', 'or click to choose files (.xml, .musicxml, .mxl)')}</span>
+        {folderOpen && (
+          <nav className="library-breadcrumb" aria-label={tr('ניווט באוספים', 'Collection navigation')}>
+            <button className="btn ghost" onClick={() => setCollectionView('collections')}>
+              <Icon name={he ? 'forward' : 'back'} size={16} />{tr('כל האוספים', 'All collections')}
             </button>
-            <button className="btn" onClick={async () => openPiece(await loadSamplePiece())}>♩ {tr('נסה עם Donna Lee', 'Try Donna Lee')}</button>
-          </div>
-        ) : shown.length === 0 ? (
+            <strong>{collection}</strong>
+          </nav>
+        )}
+        {visiblePieces.length === 0 && folders.size === 0 ? (
           <div className="lib-none">{tr('לא נמצאו יצירות', 'No pieces found')}</div>
         ) : (
           <div className="grid">
-            {shown.map(p => <PieceCard key={p.id} p={p} onEdit={() => setEditing(p)} onDelete={() => setDeleting(p)} />)}
+            {[...folders].map(([name, count]) => (
+              <CollectionCard key={name} name={name} pieceCount={count} onClick={() => setCollectionView('collections', name)} />
+            ))}
+            {visiblePieces.map(p => <PieceCard key={p.id} p={p} onEdit={() => setEditing(p)} onDelete={getBuiltInPiece(p.id) ? undefined : () => setDeleting(p)} />)}
           </div>
+        )}
+        {offerSample && (
+          <button className="btn library-sample" onClick={async () => openPiece(await loadSamplePiece())}>
+            <Icon name="music" />{tr('נסה עם Donna Lee', 'Try Donna Lee')}
+          </button>
         )}
       </main>
 
@@ -198,12 +229,12 @@ function genreColor(g?: string) {
   return FORM_COLORS[h % FORM_COLORS.length]
 }
 
-function PieceCard({ p, onEdit, onDelete }: { p: LibraryPiece; onEdit: () => void; onDelete: () => void }) {
+function PieceCard({ p, onEdit, onDelete }: { p: LibraryPiece; onEdit: () => void; onDelete?: () => void }) {
   const tr = useTr()
   const he = useHe()
   const when = p.lastOpened ? new Date(p.lastOpened).toLocaleDateString(he ? 'he-IL' : 'en-GB', { day: 'numeric', month: 'short' }) : tr('לא נפתח', 'Not opened')
   return (
-    <article className="card" onClick={() => openPiece(p.id)} tabIndex={0} onKeyDown={e => { if (e.key === 'Enter') openPiece(p.id) }}
+    <article className="card" onClick={() => openPiece(p.id)} tabIndex={0} onKeyDown={e => { if (e.key === 'Enter' && e.target === e.currentTarget) openPiece(p.id) }}
       style={{ ['--g' as string]: genreColor(p.genre) }}>
       <Thumb id={p.id} />
       <div className="card-body">
@@ -215,6 +246,7 @@ function PieceCard({ p, onEdit, onDelete }: { p: LibraryPiece; onEdit: () => voi
           {p.timeSignature && <span>{p.timeSignature}</span>}
           {p.totalMeasures ? <span>{p.totalMeasures} {tr('תיבות', 'bars')}</span> : null}
         </div>
+        {p.source && <a className="library-source" href={p.source.url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>{p.source.label}</a>}
       </div>
       <div className="card-foot">
         <span><Icon name="tag" size={13} />{p.tagCount ?? 0}</span>
@@ -222,7 +254,7 @@ function PieceCard({ p, onEdit, onDelete }: { p: LibraryPiece; onEdit: () => voi
       </div>
       <div className="card-actions" onClick={e => e.stopPropagation()}>
         <button className="icon-btn sm" onClick={onEdit} title={tr('עריכה', 'Edit')}><Icon name="edit" size={15} /></button>
-        <button className="icon-btn sm" onClick={onDelete} title={tr('מחיקה', 'Delete')}><Icon name="trash" size={15} /></button>
+        {onDelete && <button className="icon-btn sm" onClick={onDelete} title={tr('מחיקה', 'Delete')}><Icon name="trash" size={15} /></button>}
       </div>
     </article>
   )

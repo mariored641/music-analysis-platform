@@ -8,7 +8,9 @@ import { useResearchStore } from '../store/researchStore'
 import { useSelectionStore } from '../store/selectionStore'
 import { usePlaybackStore } from '../store/playbackStore'
 import { useWorkspaceStore } from '../store/workspaceStore'
-import { deleteFile, loadFile, saveFile } from './storageService'
+import { getBuiltInPiece } from '../data/builtInLibrary'
+import { deleteFile, loadFile, saveFile, type StoredPiece } from './storageService'
+import { extractXmlFromMxl, readMusicFile } from './musicFile'
 import { parseHarmonies, parseMusicXml } from './xmlParser'
 import { migrateAnnotations } from './migrate'
 import { buildAnalysisFile, parseAnalysisFile } from './analysisExport'
@@ -28,17 +30,7 @@ function applyLoaded(fn: () => void) {
 
 // ── File reading ─────────────────────────────────────────────────────────────
 
-export async function readScoreFile(file: File): Promise<string> {
-  if (!/\.mxl$/i.test(file.name)) return file.text()
-  const JSZip = (await import('jszip')).default
-  const zip = await JSZip.loadAsync(await file.arrayBuffer())
-  const container = await zip.file('META-INF/container.xml')?.async('string')
-  const path = container?.match(/full-path="([^"]+)"/i)?.[1]
-    ?? Object.keys(zip.files).find(n => /\.(xml|musicxml)$/i.test(n) && !n.startsWith('META-INF'))
-  const root = path ? zip.file(path) : null
-  if (!root) throw new Error('Invalid MXL file')
-  return root.async('string')
-}
+export { readMusicFile as readScoreFile }
 
 export function isScoreFile(name: string) {
   return /\.(xml|musicxml|mxl)$/i.test(name)
@@ -128,6 +120,17 @@ export async function importFromFolder(): Promise<number> {
 
 // ── Open / close ─────────────────────────────────────────────────────────────
 
+async function loadLibraryScore(id: string): Promise<StoredPiece | undefined> {
+  const saved = await loadFile(id)
+  if (saved) return saved
+  const bundled = getBuiltInPiece(id)
+  if (!bundled) return undefined
+  const response = await fetch(`${import.meta.env.BASE_URL}etudes/${encodeURIComponent(bundled.fileName)}`)
+  if (!response.ok) throw new Error(`Could not load ${bundled.fileName} (HTTP ${response.status})`)
+  const xml = await extractXmlFromMxl(await response.arrayBuffer())
+  return { id, xml, annotations: {}, researchNotes: [], savedAt: 0 }
+}
+
 export async function openPiece(id: string) {
   const ws = useWorkspaceStore.getState()
   if (ws.pieceId === id && ws.status === 'ready') {
@@ -141,7 +144,14 @@ export async function openPiece(id: string) {
   useLibraryStore.getState().setActive(id)
   useLibraryStore.getState().setView('analysis')
 
-  const stored = await loadFile(id)
+  let stored: StoredPiece | undefined
+  try {
+    stored = await loadLibraryScore(id)
+  } catch (error) {
+    console.error(error)
+    ws.setStatus('error', tr('פתיחת היצירה נכשלה', 'Could not open the score'))
+    return
+  }
   if (!stored) {
     ws.setStatus('error', 'missing')
     return
@@ -172,7 +182,7 @@ export async function openPiece(id: string) {
   useLibraryStore.getState().updatePiece(id, {
     lastOpened: Date.now(),
     totalMeasures: noteMap.metadata.totalMeasures,
-    key: noteMap.metadata.key,
+    key: getBuiltInPiece(id)?.key ?? noteMap.metadata.key,
     timeSignature: noteMap.metadata.timeSignature,
   })
   if (external && external.savedAt > stored.savedAt + 1000) announceExternal()

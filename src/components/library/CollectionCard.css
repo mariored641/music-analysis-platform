@@ -1,0 +1,27 @@
+.card.collection-card {
+  min-height: 140px;
+  align-items: stretch;
+  padding: 0;
+  text-align: start;
+}
+
+.collection-card-cover {
+  display: grid;
+  place-items: center;
+  min-height: 78px;
+  border-bottom: 1px solid var(--border);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.collection-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+}
+
+.collection-card-count {
+  color: var(--text-3);
+  font-size: 12px;
+}
