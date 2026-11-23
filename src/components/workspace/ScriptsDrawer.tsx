@@ -7,9 +7,10 @@ import { useLayerStore } from '../../store/layerStore'
 import { runMelodyColorScript, SCRIPT_ID as MELODY_ID } from '../../services/melodyColorScript'
 import { runMotifScript, SCRIPT_ID as MOTIF_ID, type MotifTransformation } from '../../services/motifScript'
 import { runRomanNumeralScript, SCRIPT_ID as RN_ID } from '../../services/romanNumeralScript'
-import { addMotif, chordsToRespell, chordsToSimplify, nextMotifLabel, respellChordsToNotation, simplifyChordSpellings } from '../../services/tagActions'
+import { addMotif, applyChordSymbolUpdates, chordSymbolUpdates, chordsToRespell, chordsToSimplify, nextMotifLabel, respellChordsToNotation, simplifyChordSpellings } from '../../services/tagActions'
 import type { Annotation, HarmonyAnnotation, MotifAnnotation } from '../../types/annotation'
 import { Icon } from '../common/Icon'
+import { prettyChord } from '../../score/AnnotationLayer'
 import { useTr } from '../../i18n'
 
 type Result = { ok: boolean; text: string }
@@ -22,6 +23,7 @@ export function ScriptsDrawer() {
   const selection = useSelectionStore(s => s.selection)
   const [results, setResults] = useState<Record<string, Result>>({})
   const [threshold, setThreshold] = useState(80)
+  const [skipUpdate, setSkipUpdate] = useState<Set<string>>(new Set())
   const [transforms, setTransforms] = useState<MotifTransformation[]>(['EXACT', 'INVERSION', 'RETROGRADE'])
 
   if (!open) return null
@@ -63,6 +65,16 @@ export function ScriptsDrawer() {
     useLayerStore.getState().setVisible('melody', true)
     const by = (fn: string) => fresh.filter(a => a.noteFunction === fn).length
     setResult(MELODY_ID, { ok: true, text: tr(`נצבעו ${fresh.length} תווים — CT ${by('CT')} · PT ${by('PT')} · NT ${by('NT')}`, `Colored ${fresh.length} notes — CT ${by('CT')} · PT ${by('PT')} · NT ${by('NT')}`) })
+  }
+
+  const { updates: symbolUpdates, skipped: symbolSkipped } = chordSymbolUpdates()
+  const chosenUpdates = symbolUpdates.filter(u => !skipUpdate.has(u.ann.id))
+  const runSymbolUpdate = () => {
+    const n = applyChordSymbolUpdates(chosenUpdates)
+    setSkipUpdate(new Set())
+    setResult('symbols', n > 0
+      ? { ok: true, text: tr(`${n} סימוני אקורד עודכנו (Ctrl+Z מבטל)`, `Updated ${n} chord symbols (Ctrl+Z undoes)`) }
+      : { ok: true, text: tr('אין מה לעדכן', 'Nothing to update') })
   }
 
   const runSimplify = () => {
@@ -159,6 +171,31 @@ export function ScriptsDrawer() {
           desc={tr('מוסיף דרגה ופונקציה (T/S/D) לכל אקורד. אם אין אקורדים ביצירה — מזהה אותם אוטומטית מכל החמשות.', 'Adds degree and function (T/S/D) to each chord. If the piece has no chords, detects them from all staves.')}
           req={{ ok: true, text: chordCount > 0 ? tr(`${chordCount} אקורדים`, `${chordCount} chords`) : tr('יזהה אקורדים אוטומטית', 'Will detect chords') }}
           onRun={runRN} onClear={hasRun(RN_ID) ? () => clear(RN_ID) : undefined} result={results[RN_ID]} />
+
+        <ScriptCard title={tr('עדכון סימוני אקורד: omit ובס', 'Update chord symbols: omit & bass')}
+          desc={tr('בודק כל אקורד שסימנת מול התווים שמתחתיו (עד האקורד הבא או סוף התיבה): צלילי אקורד שלא מופיעים → (omit5), בס שונה בחמשה התחתונה → /E. ההרמוניה לא משתנה, אקורדים מודפסים לא נוגעים. בטל סימון במה שלא רוצים.', 'Checks each chord you tagged against the notes under it (until the next chord or the end of the bar): chord tones that are not played → (omit5), a different bass on a lower staff → /E. The harmony never changes; printed chords are left alone. Untick what you don\'t want.')}
+          req={symbolUpdates.length > 0
+            ? { ok: true, text: tr(`${symbolUpdates.length} אקורדים יתעדכנו${symbolSkipped ? ` · ${symbolSkipped} לא זוהו (9, 13…) ונשארים` : ''}`, `${symbolUpdates.length} chords will change${symbolSkipped ? ` · ${symbolSkipped} not recognized (9, 13…), kept` : ''}`) }
+            : { ok: true, text: tr('כל סימוני האקורד מעודכנים', 'All chord symbols are up to date') }}
+          runLabel={tr(`עדכן ${chosenUpdates.length}`, `Update ${chosenUpdates.length}`)} onRun={runSymbolUpdate} result={results.symbols}>
+          {symbolUpdates.length > 0 && (
+            <div className="sc-updates">
+              <label className="sc-update all">
+                <input type="checkbox" checked={chosenUpdates.length === symbolUpdates.length}
+                  onChange={e => setSkipUpdate(e.target.checked ? new Set() : new Set(symbolUpdates.map(u => u.ann.id)))} />
+                {tr('הכול', 'All')}
+              </label>
+              {symbolUpdates.map(u => (
+                <label key={u.ann.id} className="sc-update">
+                  <input type="checkbox" checked={!skipUpdate.has(u.ann.id)}
+                    onChange={e => setSkipUpdate(s => { const n = new Set(s); if (e.target.checked) n.delete(u.ann.id); else n.add(u.ann.id); return n })} />
+                  <span className="sc-bar">{tr('תיבה', 'Bar')} {u.bar}</span>
+                  <span className="sc-chords" dir="ltr">{prettyChord(u.ann.chordSymbol!)} → <b>{prettyChord(u.next)}</b></span>
+                </label>
+              ))}
+            </div>
+          )}
+        </ScriptCard>
 
         <ScriptCard title={tr('איות אקורדים רגיל', 'Plain chord spelling')}
           desc={tr('הצעות האקורדים נאמנות לאיות התווים (B# ולא C כשהתווים הם B♯–D𝄪–F𝄪). "איות רגיל" ממיר את כל האקורדים שלך לשם הרגיל: B#→C, E#→F, Cb→B, Fb→E… "לפי הכתיבה" עושה את ההפך — מאיית כל אקורד כפי שהתווים שמתחתיו כתובים (C→B#). הרמוניה לא משתנה, רק האיות. Ctrl+Z מבטל.', 'Chord suggestions follow how the notes are written (B# rather than C for B♯–D𝄪–F𝄪). "Plain" converts all your chords to the plain name: B#→C, E#→F, Cb→B, Fb→E… "As notated" does the reverse — respells each chord as the notes under it are written (C→B#). Harmony never changes, only spelling. Ctrl+Z undoes.')}

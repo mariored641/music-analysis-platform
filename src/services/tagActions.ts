@@ -13,7 +13,8 @@ import type {
   MelodyAnnotation, MotifAnnotation, MotifVariant, NoteFunction, TextureAnnotation,
 } from '../types/annotation'
 import { newId, selectionLinkLabel } from './annotationQueries'
-import { detectChord, respellChordSymbol, simplifyChordSymbol, spelledFromStepAlter } from './chordDetector'
+import { annotateChordSymbol, detectChord, respellChordSymbol, simplifyChordSymbol, soundingFrom, spelledFromStepAlter } from './chordDetector'
+import type { NoteData } from '../types/score'
 import { keyOfSignature } from './romanNumeralScript'
 import { tr, isHe } from '../i18n'
 
@@ -265,6 +266,65 @@ export function respellChordsToNotation(): number {
     }
   })
   return targets.length
+}
+
+// ── Updating existing chord symbols (omit + bass) ───────────────────────────
+
+export interface ChordSymbolUpdate { ann: HarmonyAnnotation; next: string; bar: string }
+
+/**
+ * Every hand-made chord symbol whose omit / bass marking no longer matches the notes:
+ * chord tones missing from the chord's span get "(omitX)", a different bass on another staff
+ * gets "/X". A chord lasts until the next chord (tagged or printed) or the end of its bar.
+ * Qualities the detector doesn't know (9, 13, alt…) are left alone.
+ */
+export function chordSymbolUpdates(): { updates: ChordSymbolUpdate[]; skipped: number } {
+  const nm = useWorkspaceStore.getState().noteMap
+  const updates: ChordSymbolUpdate[] = []
+  let skipped = 0
+  if (!nm) return { updates, skipped }
+  const absQ = (measure: number, beat: number) => (nm.measures.get(measure)?.startQ ?? 0) + beat - 1
+  const harm = Object.values(anns()).filter((a): a is HarmonyAnnotation => a.layer === 'harmony' && !!a.noteIds?.[0])
+  // where chords begin (ours + printed) — a chord ends where the next one starts
+  const starts = [
+    ...harm.map(a => { const n = nm.notes.get(a.noteIds![0]); return n ? absQ(n.measureNum, n.beat) : NaN }),
+    ...useWorkspaceStore.getState().xmlHarmonies.map(h => absQ(h.measureNum, h.beat)),
+  ].filter(x => !Number.isNaN(x)).sort((a, b) => a - b)
+
+  for (const a of harm) {
+    if (!a.chordSymbol || a.xmlChord) continue
+    const n = nm.notes.get(a.noteIds![0])
+    const m = n && nm.measures.get(n.measureNum)
+    if (!n || !m) continue
+    const start = absQ(n.measureNum, n.beat)
+    const end = Math.min(starts.find(x => x > start + 0.001) ?? Infinity, m.startQ + m.lengthQ)
+    const span: NoteData[] = [], atStart: NoteData[] = []
+    for (const mm of [nm.measures.get(n.measureNum - 1), m]) {
+      for (const x of mm?.notes ?? []) {
+        if (x.grace) continue
+        const s0 = mm!.startQ + x.beat - 1, s1 = s0 + x.duration
+        if (s0 < end - 0.001 && s1 > start + 0.001) span.push(x)
+        if (s0 <= start + 0.001 && s1 > start + 0.001) atStart.push(x)
+      }
+    }
+    const next = annotateChordSymbol(a.chordSymbol, soundingFrom(span), soundingFrom(atStart))
+    if (next === null) { skipped++; continue }
+    if (next !== a.chordSymbol) updates.push({ ann: a, next, bar: m.label || String(m.num) })
+  }
+  updates.sort((x, y) => (x.ann.measureStart - y.ann.measureStart))
+  return { updates, skipped }
+}
+
+/** Apply chosen chord-symbol updates (one undo step). */
+export function applyChordSymbolUpdates(list: ChordSymbolUpdate[]): number {
+  if (list.length === 0) return 0
+  useAnnotationStore.getState().transact(draft => {
+    for (const { ann, next } of list) {
+      const cur = draft[ann.id] as HarmonyAnnotation | undefined
+      if (cur) draft[ann.id] = { ...cur, chordSymbol: next }
+    }
+  })
+  return list.length
 }
 
 // ── Melody ───────────────────────────────────────────────────────────────────

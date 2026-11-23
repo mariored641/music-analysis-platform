@@ -306,3 +306,63 @@ export function omittedTones(symbol: string): string[] {
   const m = /\(omit([^)]*)\)/.exec(symbol)
   return m ? m[1].split(',').map(t => t.trim()).filter(Boolean) : []
 }
+
+// ── Bringing existing chord symbols up to date (omit + bass) ──────────────────
+
+const QUALITY_ALIASES: Record<string, string> = {
+  M7: 'maj7', Maj7: 'maj7', ma7: 'maj7', 'Δ': 'maj7', 'Δ7': 'maj7', '^7': 'maj7',
+  min: 'm', '-': 'm', min7: 'm7', '-7': 'm7', 'ø': 'm7b5', 'ø7': 'm7b5', 'm7♭5': 'm7b5', '-7b5': 'm7b5',
+  '°': 'dim', o: 'dim', '°7': 'dim7', o7: 'dim7', '+': 'aug', '+7': 'aug7', '7#5': 'aug7', maj: '', M: '',
+  mmaj7: 'mMaj7', mM7: 'mMaj7', 'm(maj7)': 'mMaj7', sus: 'sus4', '7sus': '7sus4',
+}
+
+/** A written note with its sounding height and staff. */
+export interface SoundingNote { note: SpelledNote; height: number; staff: number }
+
+/**
+ * Re-annotate a chord symbol against the notes it covers — the harmony itself never changes:
+ * - chord tones that no note in the chord's span plays → "(omitX)" (an old omit is replaced),
+ *   unless fewer than two chord tones are played at all (an implied chord — left as it is);
+ * - notes on more than one staff and the lowest note at the chord's start isn't the root →
+ *   "/bass" (kept as written when the symbol already has a slash).
+ * `span`: every note sounding while the chord lasts; `atStart`: the notes sounding when it begins.
+ * Returns the updated symbol, or null when the quality isn't one the detector knows (e.g. "13").
+ */
+export function annotateChordSymbol(symbol: string, span: SoundingNote[], atStart: SoundingNote[]): string | null {
+  const root = readNoteName(symbol)
+  if (!root || span.length === 0) return null
+  let rest = symbol.slice(root.length)
+  let slash = ''
+  const si = rest.lastIndexOf('/')
+  if (si >= 0) {
+    const bass = readNoteName(rest.slice(si + 1))
+    if (bass && bass.length === rest.length - si - 1) { slash = rest.slice(si); rest = rest.slice(0, si) }
+  }
+  const quality = rest.replace(/\s*\(omit[^)]*\)\s*/g, '')
+  const tpl = TEMPLATES.find(t => t.quality === (QUALITY_ALIASES[quality] ?? quality))
+  if (!tpl) return null
+
+  const rootPc = pcOf(root.note)
+  const played = new Set(span.map(s => pcOf(s.note)))
+  const missing = tpl.degrees.filter(([iv]) => !played.has((rootPc + iv) % 12))
+  // fewer than two chord tones played = an implied chord, not one the notes spell: keep its omit as it was
+  const omit = tpl.degrees.length - missing.length < 2 ? (/\(omit[^)]*\)/.exec(rest)?.[0] ?? '') : omitSuffix(missing)
+
+  if (!slash && atStart.length > 0 && new Set(atStart.map(s => s.staff)).size > 1) {
+    const bass = atStart.reduce((a, b) => (b.height < a.height ? b : a))
+    if (pcOf(bass.note) !== rootPc) slash = `/${spelledName(bass.note)}`
+  }
+  return `${symbol.slice(0, root.length)}${quality}${omit}${slash}`
+}
+
+/** Sounding notes from noteMap entries (step/alter/octave/globalStaff). */
+export function soundingFrom(notes: Array<{ step: string; alter?: number; octave: number; globalStaff: number }>): SoundingNote[] {
+  const out: SoundingNote[] = []
+  for (const n of notes) {
+    const letter = LETTER_INDEX[n.step]
+    if (letter === undefined) continue
+    const alter = Math.round(n.alter ?? 0)
+    out.push({ note: { letter, alter }, height: n.octave * 12 + NATURAL_PC[letter] + alter, staff: n.globalStaff })
+  }
+  return out
+}
