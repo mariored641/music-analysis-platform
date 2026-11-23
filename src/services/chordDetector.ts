@@ -105,6 +105,15 @@ export function spelledFromStepAlter(notes: Array<{ step: string; alter?: number
   return out
 }
 
+/** Chord-tone name of a template degree: R (root), 2…7 — from its letter steps above the root. */
+const DEGREE_NAME = ['R', '2', '3', '4', '5', '6', '7']
+
+/** "(omit5)", "(omitR,5)" — the chord tones that are missing from the notes; '' when none. */
+function omitSuffix(missing: Array<[number, number]>): string {
+  if (missing.length === 0) return ''
+  return `(omit${missing.map(([, steps]) => DEGREE_NAME[steps]).join(',')})`
+}
+
 /** Score all matching chords for a set of written notes, sorted best-first. */
 function scoreAllMatches(notes: SpelledNote[]): { name: string; score: number }[] {
   const pcs = new Set(notes.map(pcOf))
@@ -145,11 +154,13 @@ function scoreAllMatches(notes: SpelledNote[]): { name: string; score: number }[
       const base = isExact
         ? 1000 + tpl.degrees.length * 10
         : pcs.size * 10 - (tpl.degrees.length - pcs.size)
+      // Chord tones the template expects but the notes don't have → spelled out: "Em7(omit5)"
+      const omit = isExact ? '' : omitSuffix(tpl.degrees.filter(([iv]) => !pcs.has((root + iv) % 12)))
 
       // Name the root as written; if the root isn't in the selection, use the default name
       const rootNote = writtenRoot(root)
       if (!rootNote) {
-        push(`${ROOT_NAMES[root]}${tpl.quality}`, base)
+        push(`${ROOT_NAMES[root]}${tpl.quality}${omit}`, base)
         continue
       }
 
@@ -160,9 +171,9 @@ function scoreAllMatches(notes: SpelledNote[]): { name: string; score: number }[
       }
 
       const score = base + fidelity
-      push(`${spelledName(rootNote)}${tpl.quality}`, score)
+      push(`${spelledName(rootNote)}${tpl.quality}${omit}`, score)
       // Unusual written root → also offer the plain enharmonic name, right behind it
-      if (isExotic(rootNote)) push(`${ROOT_NAMES[root]}${tpl.quality}`, score - 0.5)
+      if (isExotic(rootNote)) push(`${ROOT_NAMES[root]}${tpl.quality}${omit}`, score - 0.5)
     }
   }
 
@@ -254,4 +265,10 @@ export function respellChordSymbol(symbol: string, written: SpelledNote[]): stri
     }
     return spelledName([...counts.values()].sort((x, y) => y.count - x.count)[0].note)
   })
+}
+
+/** Chord tones a symbol marks as missing: "Em7(omit5)" → ["5"], "C7(omitR,5)" → ["R", "5"]. */
+export function omittedTones(symbol: string): string[] {
+  const m = /\(omit([^)]*)\)/.exec(symbol)
+  return m ? m[1].split(',').map(t => t.trim()).filter(Boolean) : []
 }

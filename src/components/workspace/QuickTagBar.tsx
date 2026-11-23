@@ -8,11 +8,17 @@ import { notesBySystem } from '../../score/geometry'
 import { registry } from '../../score/registry'
 import { detectAllChords } from '../../services/chordDetector'
 import {
-  addDetectedChord, addForm, addLabel, addMotif, addTexture, colorSelection, harmonyAtAnchor,
-  linkSelectionToNewNote, melodyFunctionsOfSelection, motifLabels, nextMotifLabel, setHarmony, setMelodyFunction,
+  addDetectedChord, addDetectedChords, addForm, addLabel, addMotif, addTexture, anchorNote, colorSelection, harmonyAtAnchor,
+  keyAtMeasure, linkSelectionToNewNote, melodyFunctionsOfSelection, motifLabels, nextMotifLabel, printedChordAtNote,
+  selectionChordSlots, setHarmony, setHarmonyAt, setMelodyFunction, slotChord, type ChordSlot,
 } from '../../services/tagActions'
+import { suggestDegree } from '../../services/romanNumeralScript'
+import { omittedTones } from '../../services/chordDetector'
 import { COLOR_SWATCHES, MELODY_FUNCTIONS, melodyColor, motifColor, formColor, LAYER_MAP } from '../../constants/layers'
-import { CADENCE_TYPES, DEFAULT_LABEL_SUGGESTIONS, FORM_LARGE, FORM_PHRASES, FORM_SECTIONS, HARMONIC_FUNCTIONS, MOTIF_VARIANTS, TEXTURE_TYPES } from '../../constants/tags'
+import {
+  APPLIED_MAJOR, APPLIED_MINOR, CADENCE_TYPES, CHROMATIC_DEGREES, DEFAULT_LABEL_SUGGESTIONS, DEGREE_FIGURES, DEGREES_MAJOR, DEGREES_MINOR,
+  FORM_LARGE, FORM_PHRASES, FORM_SECTIONS, HARMONIC_FUNCTIONS, MOTIF_VARIANTS, TEXTURE_TYPES, degreeFigure, withFigure,
+} from '../../constants/tags'
 import type { MotifVariant } from '../../types/annotation'
 import { Icon } from '../common/Icon'
 import { useHe, useTr } from '../../i18n'
@@ -37,13 +43,18 @@ export function QuickTagBar({ scale, hidden }: { scale: number; hidden: boolean 
   const openQuick = useSelectionStore(s => s.openQuick)
   const g = useWorkspaceStore(s => s.geometry)
   const noteMap = useWorkspaceStore(s => s.noteMap)
-  useAnnotationStore(s => s.annotations) // re-render on changes (active states)
+  const annotations = useAnnotationStore(s => s.annotations) // re-render on changes (active states)
   const colors = useLayerStore(s => s.colors)
 
   const chords = useMemo(() => {
     if (!selection || selection.kind !== 'notes' || !noteMap || selection.noteIds.length < 2) return []
     return detectAllChords(selection.noteIds, noteMap).slice(0, 4)
   }, [selection, noteMap])
+  // Several chord positions selected (tagged, printed or played chords) → the chord tools act on each
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const slots = useMemo(() => selectionChordSlots(), [selection, noteMap, annotations])
+  const multi = slots.length >= 2
+  const untagged = slots.filter(s => !s.ann?.chordSymbol && !s.printed && s.detected).length
 
   if (!selection || !g || hidden) return null
 
@@ -71,8 +82,15 @@ export function QuickTagBar({ scale, hidden }: { scale: number; hidden: boolean 
     <FloatingBar anchor={anchor} at={quickAt} scale={scale}>
       {section && <div className="qb-panel">{renderSection(section)}</div>}
       <div className="qb-row">
-        {!isElement && chords[0] && (
-          <button className="qb-chord" onClick={() => addDetectedChord()} title={tr('הוסף את האקורד המזוהה (Enter)', 'Add detected chord (Enter)')}>
+        {!isElement && multi && untagged > 0 && (
+          <button className="qb-chord" onClick={() => addDetectedChords(slots)}
+            title={slots.filter(s => !s.ann?.chordSymbol && !s.printed && s.detected).map(s => s.detected).join('  ')}>
+            <Icon name="plus" size={14} /> {tr(`${untagged} אקורדים`, `${untagged} chords`)}
+          </button>
+        )}
+        {!isElement && !multi && chords[0] && (
+          <button className="qb-chord" onClick={() => addDetectedChord()}
+            title={`${tr('הוסף את האקורד המזוהה (Enter)', 'Add detected chord (Enter)')}${omitHint(chords[0], he)}`}>
             <Icon name="plus" size={14} /> {prettyChord(chords[0])}
           </button>
         )}
@@ -96,7 +114,7 @@ export function QuickTagBar({ scale, hidden }: { scale: number; hidden: boolean 
 
   function renderSection(sec: Exclude<QuickSection, null>) {
     switch (sec) {
-      case 'harmony': return <HarmonyPanel chords={chords} />
+      case 'harmony': return multi ? <ChordSequencePanel slots={slots} /> : <HarmonyPanel chords={chords} />
       case 'melody': return (
         <div className="qb-chips">
           {MELODY_FUNCTIONS.map((f, i) => {
@@ -194,31 +212,48 @@ function FloatingBar({ anchor, at, scale, children }: { anchor: { x0: number; x1
   )
 }
 
+/** " — missing: 5th" for chords suggested with absent chord tones. */
+function omitHint(chord: string, he: boolean) {
+  const missing = omittedTones(chord)
+  if (missing.length === 0) return ''
+  const names = missing.map(t => (he ? TONE_HE : TONE_EN)[t] ?? t).join(', ')
+  return he ? `\nחסרים בתווים: ${names}` : `\nNot in the notes: ${names}`
+}
+const TONE_HE: Record<string, string> = { R: 'יסוד', '2': 'סקונדה', '3': 'טרצה', '4': 'קוורטה', '5': 'קווינטה', '6': 'סקסטה', '7': 'ספטימה' }
+const TONE_EN: Record<string, string> = { R: 'root', '2': '2nd', '3': '3rd', '4': '4th', '5': '5th', '6': '6th', '7': '7th' }
+
 function HarmonyPanel({ chords }: { chords: string[] }) {
   const tr = useTr()
   const he = useHe()
   const existing = harmonyAtAnchor()
-  const [chord, setChord] = useState(existing?.chordSymbol ?? chords[0] ?? '')
+  const anchor = anchorNote()
+  const printed = printedChordAtNote(anchor)
+  const [chord, setChord] = useState(existing?.chordSymbol ?? printed ?? chords[0] ?? '')
   const [degree, setDegree] = useState(existing?.scaleDegree ?? '')
   const inputRef = useRef<HTMLInputElement>(null)
   useEffect(() => { inputRef.current?.focus(); inputRef.current?.select() }, [])
+  useEffect(() => { setDegree(existing?.scaleDegree ?? '') }, [existing?.scaleDegree])
   const submit = () => {
     setHarmony({ chordSymbol: chord.trim() || undefined, scaleDegree: degree.trim() || undefined })
     useSelectionStore.getState().openQuick(null)
   }
+  const measure = useWorkspaceStore.getState().noteMap?.notes.get(anchor ?? '')?.measureNum ?? 1
+  const pickDegree = (d: string | undefined) => { setDegree(d ?? ''); setHarmony({ scaleDegree: d }) }
   return (
     <div className="qb-stack">
       <div className="qb-inputs" onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submit() } }}>
-        <input ref={inputRef} value={chord} onChange={e => setChord(e.target.value)} placeholder={tr('אקורד (Cmaj7)', 'Chord (Cmaj7)')} className="mono" />
+        <input ref={inputRef} value={chord} onChange={e => setChord(e.target.value)} placeholder={tr('אקורד (Cmaj7)', 'Chord (Cmaj7)')} className="mono"
+          readOnly={!!(existing?.xmlChord || (!existing && printed))} title={existing?.xmlChord || printed ? tr('האקורד מודפס בפרטיטורה', 'Printed in the score') : undefined} />
         <input value={degree} onChange={e => setDegree(e.target.value)} placeholder={tr('דרגה (ii, V7/V)', 'Degree (ii, V7/V)')} className="mono short" />
         <button className="btn primary sm" onClick={submit}>{tr('הוסף', 'Add')} ↵</button>
       </div>
-      {chords.length > 1 && (
+      {chords.length > 1 && !printed && (
         <div className="qb-chips small">
           <span className="qb-hint">{tr('אפשרויות', 'Options')}</span>
-          {chords.map(c => <button key={c} className="chip ghost mono" onClick={() => setChord(c)}>{prettyChord(c)}</button>)}
+          {chords.map(c => <button key={c} className="chip ghost mono" title={omitHint(c, he).trim() || undefined} onClick={() => setChord(c)}>{prettyChord(c)}</button>)}
         </div>
       )}
+      <DegreePad current={existing?.scaleDegree} measure={measure} chord={chord.trim() || null} onPick={pickDegree} />
       <div className="qb-chips small">
         {HARMONIC_FUNCTIONS.map(f => (
           <button key={f.value} className={`chip${existing?.function === f.value ? ' on' : ''}`} title={he ? f.he : f.en}
@@ -233,6 +268,136 @@ function HarmonyPanel({ chords }: { chords: string[] }) {
     </div>
   )
 }
+
+/**
+ * One-click roman numerals: diatonic degrees (major/minor from the key signature), applied
+ * dominants, chromatic chords and inversion figures. The degree suggested from the chord
+ * symbol is offered first. Clicking the current degree removes it.
+ */
+function DegreePad({ current, measure, chord, onPick, figureOf = current, onFigure = onPick }: {
+  current?: string; measure: number; chord: string | null; onPick: (d: string | undefined) => void
+  /** degree the figure buttons edit (defaults to `current`) */
+  figureOf?: string; onFigure?: (d: string | undefined) => void
+}) {
+  const he = useHe()
+  const tr = useTr()
+  const key = keyAtMeasure(measure)
+  const suggested = chord ? suggestDegree(chord, key) : null
+  const minor = key.mode === 'minor'
+  const base = current ? current.replace(/(65|64|43|42|7|6|2)(?=\/|$)/, '') : ''
+  const fig = current ? degreeFigure(current) : ''
+  const targetFig = figureOf ? degreeFigure(figureOf) : ''
+  const btn = (o: { value: string; he: string; en: string }, cls = '') => (
+    <button key={o.value} className={`chip mono${cls}${current === o.value || (base === o.value && fig) ? ' on' : ''}`} title={he ? o.he : o.en}
+      onClick={() => onPick(current === o.value ? undefined : o.value)}>{o.value}</button>
+  )
+  return (
+    <div className="qb-degrees">
+      <div className="qb-chips small">
+        <span className="qb-hint">{tr('דרגה', 'Degree')}</span>
+        {suggested && btn({ value: suggested, he: `מוצע לפי ${chord}`, en: `Suggested from ${chord}` }, ' suggest')}
+        {(minor ? DEGREES_MINOR : DEGREES_MAJOR).map(o => btn(o))}
+      </div>
+      <div className="qb-chips small">
+        <span className="qb-hint">{tr('משני', 'Applied')}</span>
+        {(minor ? APPLIED_MINOR : APPLIED_MAJOR).map(o => btn(o))}
+        <span className="qb-sep" />
+        {CHROMATIC_DEGREES.map(o => btn(o, ' ghost'))}
+      </div>
+      <div className="qb-chips small">
+        <span className="qb-hint">{tr('היפוך', 'Figure')}</span>
+        {DEGREE_FIGURES.map(f => (
+          <button key={f.value} className={`chip ghost mono${targetFig === f.value ? ' on' : ''}`} title={he ? f.he : f.en} disabled={!figureOf}
+            onClick={() => figureOf && onFigure(withFigure(figureOf, f.value) || undefined)}>{f.value}</button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Several chords selected: a strip of the chord positions (one is "current"). Degree buttons
+ * fill the current chord and move on to the next, so ii → V → I tags a progression in three
+ * clicks. A typed sequence ("ii V I") fills them in order; a cadence goes on the last chord.
+ */
+function ChordSequencePanel({ slots }: { slots: ChordSlot[] }) {
+  const tr = useTr()
+  const he = useHe()
+  const [focus, setFocus] = useState(0)
+  const [lastSet, setLastSet] = useState<number | null>(null)
+  const [degrees, setDegrees] = useState('')
+  const [symbols, setSymbols] = useState('')
+  const i = Math.min(focus, slots.length - 1)
+  const cur = slots[i]
+  const last = slots[slots.length - 1]
+  const anchorsFrom = (k: number) => slots.slice(k).map(s => s.anchorId)
+  const tokens = (v: string) => v.trim().split(/[\s,|]+/).filter(Boolean)
+
+  // Figures (7, 6, 65…) go on the current chord — or, right after a degree moved focus on, on the chord just tagged
+  const figTarget = !cur.ann?.scaleDegree && lastSet !== null && slots[lastSet]?.ann?.scaleDegree ? lastSet : i
+  const pick = (d: string | undefined) => {
+    setHarmonyAt([cur.anchorId], { scaleDegree: d })
+    setLastSet(d ? i : null)
+    // a new degree moves on to the next chord; changing a figure / removing stays put
+    if (d && (!cur.ann?.scaleDegree || withoutFigure(cur.ann.scaleDegree) !== withoutFigure(d))) setFocus(Math.min(i + 1, slots.length - 1))
+  }
+  const pickFigure = (d: string | undefined) => {
+    if (figTarget === i) { pick(d); return }
+    setHarmonyAt([slots[figTarget].anchorId], { scaleDegree: d })
+  }
+  const fill = (field: 'scaleDegree' | 'chordSymbol', v: string) => {
+    const t = tokens(v)
+    if (t.length === 0) return
+    setHarmonyAt(anchorsFrom(i), k => (t[k] ? { [field]: t[k] } : null))
+    setFocus(Math.min(i + t.length, slots.length - 1))
+  }
+
+  return (
+    <div className="qb-stack">
+      <div className="qb-slots">
+        {slots.map((s, k) => {
+          const chord = slotChord(s)
+          const guessed = !s.ann?.chordSymbol && !s.printed
+          return (
+            <button key={s.key} className={`qb-slot${k === i ? ' on' : ''}`} onClick={() => { setFocus(k); setLastSet(null) }}
+              title={`${tr('תיבה', 'Bar')} ${s.measure} · ${tr('פעמה', 'beat')} ${+s.beat.toFixed(2)}${chord ? omitHint(chord, he) : ''}`}>
+              <span className={`qb-slot-chord${guessed ? ' guessed' : ''}`}>{chord ? prettyChord(chord) : '·'}{guessed && chord ? '?' : ''}</span>
+              <span className="qb-slot-deg">{s.ann?.scaleDegree ?? '—'}{s.ann?.cadenceType ? ` ${s.ann.cadenceType}` : ''}</span>
+            </button>
+          )
+        })}
+      </div>
+      <DegreePad current={cur.ann?.scaleDegree} measure={cur.measure} chord={slotChord(cur)} onPick={pick}
+        figureOf={slots[figTarget].ann?.scaleDegree} onFigure={pickFigure} />
+      <div className="qb-chips small">
+        {HARMONIC_FUNCTIONS.map(f => (
+          <button key={f.value} className={`chip${cur.ann?.function === f.value ? ' on' : ''}`} title={he ? f.he : f.en}
+            onClick={() => setHarmonyAt([cur.anchorId], { function: cur.ann?.function === f.value ? undefined : f.value })}>{f.value}</button>
+        ))}
+        <span className="qb-sep" />
+        <span className="qb-hint">{tr('קדנצה (באקורד האחרון)', 'Cadence (on the last chord)')}</span>
+        {CADENCE_TYPES.map(c => (
+          <button key={c.value} className={`chip${last.ann?.cadenceType === c.value ? ' on' : ''}`} title={he ? c.he : c.en}
+            onClick={() => setHarmonyAt([last.anchorId], { cadenceType: last.ann?.cadenceType === c.value ? undefined : c.value })}>{c.value}</button>
+        ))}
+      </div>
+      <div className="qb-inputs">
+        <input value={degrees} onChange={e => setDegrees(e.target.value)} className="mono" placeholder={tr('דרגות ברצף: ii V I', 'Degrees in order: ii V I')}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); fill('scaleDegree', degrees); setDegrees('') } }} />
+        <input value={symbols} onChange={e => setSymbols(e.target.value)} className="mono" placeholder={tr('אקורדים ברצף: Dm7 G7 C', 'Chords in order: Dm7 G7 C')}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); fill('chordSymbol', symbols); setSymbols('') } }} />
+      </div>
+      <div className="qb-chips small">
+        <span className="qb-hint">{tr('כל הרצף', 'Whole progression')}</span>
+        <button className="chip" onClick={() => { addLabel(tr('סקוונצה', 'Sequence')); useSelectionStore.getState().openQuick(null) }}>{tr('סקוונצה', 'Sequence')}</button>
+        <button className="chip" onClick={() => { addLabel(tr('מעגל קווינטות', 'Circle of fifths')); useSelectionStore.getState().openQuick(null) }}>{tr('מעגל קווינטות', 'Circle of fifths')}</button>
+        <button className="chip ghost" onClick={() => useSelectionStore.getState().openQuick('labels')}>{tr('תווית אחרת…', 'Other label…')}</button>
+      </div>
+    </div>
+  )
+}
+
+const withoutFigure = (d: string) => d.replace(/(65|64|43|42|7|6|2)(?=\/|$)/, '')
 
 function MotifPanel() {
   const he = useHe()

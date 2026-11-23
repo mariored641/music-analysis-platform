@@ -154,7 +154,7 @@ export const AnnotationLayer = memo(function AnnotationLayer({ geometry: g, anno
       const cy = L.chord - (chordRow.get(a.id) ?? 0) * CHORD_ROW_STEP + off.y
       const ry = L.numeral + off.y
       out.push(
-        <g key={a.id} {...common(a)}>
+        <g key={a.id} {...common(a)} data-ann-id={a.id}>
           <title>{title}</title>
           {chord && <text x={ax + off.x} y={cy} className="ann-chord" fill={color}>{prettyChord(chord)}</text>}
           {(rn || h.cadenceType) && (

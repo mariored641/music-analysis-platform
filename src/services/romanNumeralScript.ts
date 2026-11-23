@@ -40,7 +40,7 @@ const CHROMATIC_DEGREE = [
 
 /** Find the anchor note for a chord at a 1-based beat: the melody note at that
  *  beat, else the nearest note in the measure (prefer later, then any staff). */
-function findNoteIdsAtBeat(noteMap: NoteMap, measureNum: number, beat: number): string[] {
+export function findNoteIdsAtBeat(noteMap: NoteMap, measureNum: number, beat: number): string[] {
   const measure = noteMap.measures.get(measureNum)
   if (!measure || measure.notes.length === 0) return []
   const exact = measure.notes.filter(n => Math.abs(n.beat - beat) < 0.01 && !n.grace)
@@ -193,6 +193,18 @@ function computeFunction(rn: string): 'T' | 'S' | 'D' | undefined {
   if (['v', 'vii', 'bvii'].includes(base) || /^(V|V7|vii[°ø]?7?)\//.test(rn)) return 'D'
   if (['ii', 'iv', 'bii'].includes(base)) return 'S'
   return undefined
+}
+
+/** Key (tonic pitch class + mode) from a measure's effective key signature. */
+export function keyOfSignature(fifths: number, mode: string): { pc: number; mode: 'major' | 'minor' } {
+  const majorPc = (((fifths * 7) % 12) + 12) % 12
+  return mode === 'minor' ? { pc: (majorPc + 9) % 12, mode: 'minor' } : { pc: majorPc, mode: 'major' }
+}
+
+/** Roman numeral a chord symbol would get in the given key ("A7" in C → "V7/ii"), or null. */
+export function suggestDegree(chordSymbol: string, key: { pc: number; mode: 'major' | 'minor' }): string | null {
+  const parsed = parseChordForRN(chordSymbol)
+  return parsed ? computeRN(parsed.rootPc, parsed.quality, key.pc, key.mode) : null
 }
 
 // ── Mode A: update existing harmony annotations ────────────────────────────────

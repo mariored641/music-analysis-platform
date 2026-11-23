@@ -15,6 +15,8 @@ import { PlaybackLayer, SelectionLayer, StrokeLayer, strokePoints } from './Over
 import { distToPolyline, strokePath } from './shapes'
 import { clickMeasure, clickNote, selectMeasures, selectNotes, selectSystemOf } from './selectionOps'
 import { isVisible, newId } from '../services/annotationQueries'
+import { findNoteIdsAtBeat } from '../services/romanNumeralScript'
+import { prettyPitch } from '../components/workspace/Inspector'
 import { melodyColor } from '../constants/layers'
 import type { Annotation, ColorAnnotation, FreehandAnnotation, MelodyAnnotation } from '../types/annotation'
 import { QuickTagBar } from '../components/workspace/QuickTagBar'
@@ -53,6 +55,8 @@ export function ScoreCanvas() {
   const hostRef = useRef<HTMLDivElement>(null)
   const liveRef = useRef<SVGPathElement>(null)
   const lassoRef = useRef<SVGRectElement>(null)
+  const tipRef = useRef<HTMLDivElement>(null)
+  const tipIdRef = useRef<string | null>(null)
   const gestureRef = useRef<Gesture | null>(null)
   const [busy, setBusy] = useState<'rendering' | 'error' | null>(null)
   const [gestureActive, setGestureActive] = useState(false)
@@ -226,7 +230,69 @@ export function ScoreCanvas() {
     }
   }
 
+  /** Hover label over a note: its name (as written), bar and beat. */
+  const showTip = (id: string | null) => {
+    const el = tipRef.current
+    if (!el || id === tipIdRef.current) return
+    tipIdRef.current = id
+    const { geometry: g, noteMap: nm } = useWorkspaceStore.getState()
+    const box = id ? g?.notes.get(id) : undefined
+    const n = id ? nm?.notes.get(id) : undefined
+    if (!box || !n) { el.style.display = 'none'; return }
+    const s = scaleRef.current
+    const bar = nm?.measures.get(n.measureNum)?.label || String(n.measureNum)
+    const beat = Number.isInteger(n.beat) ? String(n.beat) : String(+n.beat.toFixed(2))
+    el.replaceChildren()
+    const name = document.createElement('b')
+    name.textContent = prettyPitch(n.pitch)
+    const where = document.createElement('small')
+    where.dir = he ? 'rtl' : 'ltr'
+    where.textContent = he ? `תיבה ${bar} · פעמה ${beat}` : `bar ${bar} · beat ${beat}`
+    el.append(name, where)
+    el.style.left = `${box.cx * s}px`
+    el.style.top = `${box.y * s}px`
+    el.style.display = ''
+  }
+
+  const onHover = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'touch' || useStylusStore.getState().mode !== 'select') { showTip(null); return }
+    const p = toPage(e)
+    showTip(noteAt(p.x, p.y)?.id ?? null)
+  }
+
+  /** Anchor notes of chord labels (ours and the score's printed chord symbols) inside a lasso rect. */
+  const chordLabelHits = (rect: Rect): string[] => {
+    const page = pageRef.current
+    const { geometry: g, noteMap: nm, xmlHarmonies } = useWorkspaceStore.getState()
+    if (!page || !g || !nm) return []
+    const out: string[] = []
+    const pr = page.getBoundingClientRect()
+    const s = scaleRef.current
+    const all = useAnnotationStore.getState().annotations
+    page.querySelectorAll<SVGGElement>('g[data-ann-id]').forEach(el => {
+      const anchor = all[el.dataset.annId ?? '']?.noteIds?.[0]
+      if (!anchor) return
+      for (const t of el.querySelectorAll('text')) {
+        const r = t.getBoundingClientRect()
+        if (!r.width) continue
+        if (rectsIntersect({ x: (r.left - pr.left) / s, y: (r.top - pr.top) / s, w: r.width / s, h: r.height / s }, rect)) { out.push(anchor); break }
+      }
+    })
+    for (const h of xmlHarmonies) {
+      const id = findNoteIdsAtBeat(nm, h.measureNum, h.beat)[0]
+      const n = id ? nm.notes.get(id) : undefined
+      const box = id ? g.notes.get(id) : undefined
+      if (!n || !box || Math.abs(n.beat - h.beat) > 0.01) continue
+      // printed symbols sit above the top staff line, starting at their beat
+      const sys = g.systems[box.system]
+      const top = Math.min(sys.y, sys.content.y) - 30
+      if (rectsIntersect({ x: box.x - 2, y: top, w: 26, h: sys.y - top }, rect)) out.push(id)
+    }
+    return out
+  }
+
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    showTip(null)
     if (!geometry) return
     if (e.pointerType === 'mouse' && e.button !== 0) return
     const p = toPage(e)
@@ -254,7 +320,7 @@ export function ScoreCanvas() {
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const gst = gestureRef.current
-    if (!gst) return
+    if (!gst) { onHover(e); return }
     const p = toPage(e)
     if (gst.kind === 'draw') {
       const pts = gst.points
@@ -300,7 +366,8 @@ export function ScoreCanvas() {
     if (gst.kind === 'lasso') {
       if (lassoRef.current) lassoRef.current.style.display = 'none'
       const rect: Rect = { x: Math.min(gst.x, p.x), y: Math.min(gst.y, p.y), w: Math.abs(p.x - gst.x), h: Math.abs(p.y - gst.y) }
-      const hits = [...g.notes.values()].filter(n => rectsIntersect(n, rect)).map(n => n.id)
+      // notes in the rect + the notes chord labels in it are anchored to (lasso over chord symbols / numerals)
+      const hits = [...[...g.notes.values()].filter(n => rectsIntersect(n, rect)).map(n => n.id), ...chordLabelHits(rect)]
       const sel = useSelectionStore.getState().selection
       if (gst.ctrl && sel?.kind === 'notes') selectNotes([...sel.noteIds, ...hits])
       else if (hits.length) selectNotes(hits)
@@ -331,6 +398,7 @@ export function ScoreCanvas() {
     if (e.pointerType === 'pen' && useStylusStore.getState().penAlwaysDraws) e.currentTarget.classList.add('pen-near')
   }
   const onPenAway = (e: React.PointerEvent<HTMLDivElement>) => {
+    showTip(null)
     if (e.pointerType === 'pen') e.currentTarget.classList.remove('pen-near')
   }
 
@@ -444,6 +512,7 @@ export function ScoreCanvas() {
             </svg>
           )}
         </div>
+        <div ref={tipRef} className="note-tip" style={{ display: 'none' }} />
         {geometry && <QuickTagBar scale={scale} hidden={gestureActive || drawing || isPlaying} />}
       </div>
     </div>

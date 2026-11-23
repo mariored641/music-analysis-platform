@@ -16,7 +16,7 @@
 
 - Library (`components/library/LibraryView.tsx`) → click a card → Workspace (`components/workspace/Workspace.tsx`). `libraryStore.currentView` switches; the last open piece is restored on reload.
 - Workspace = TopBar · LayersPanel (left) · ScoreCanvas (center) + StylusDock · RightPanel (Inspector / research notes) · StatusBar. All UI strings are bilingual pairs: `tr('עברית', 'English')` (`i18n/index.ts`), Hebrew/RTL default.
-- **QuickTagBar** (`components/workspace/QuickTagBar.tsx`) floats above any selection: detected chord (one click), chord/degree (H, Enter), melodic role (N, then 1–8), motif (M, then 1–9), form/texture (F), label (T), question (Q), color (K), linked research note. Right-click opens it at the pointer. All tag writes go through `services/tagActions.ts` (one call = one undo step).
+- **QuickTagBar** (`components/workspace/QuickTagBar.tsx`) floats above any selection: detected chord (one click; missing chord tones spelled out as `(omit5)`), chord/degree (H, Enter — one-click degree pad; with ≥2 chord positions selected, `selectionChordSlots()` drives a per-chord strip), melodic role (N, then 1–8), motif (M, then 1–9), form/texture (F), label (T), question (Q), color (K), linked research note. Right-click opens it at the pointer. All tag writes go through `services/tagActions.ts` (one call = one undo step).
 - Shortcuts: `hooks/useShortcuts.ts` (cheat sheet: `?`, `components/workspace/ShortcutsHelp.tsx`).
 
 ## Score engine (`src/score/`)
