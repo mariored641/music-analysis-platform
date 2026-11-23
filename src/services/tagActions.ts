@@ -202,7 +202,23 @@ export function selectionChordSlots(): ChordSlot[] {
     if (!ann && !printed && !(ids.length >= 3 && detected)) continue
     slots.push({ key: k, anchorId: ann?.noteIds?.[0] ?? ids[0], measure: n.measureNum, beat: n.beat, noteIds: ids, ann, printed, detected })
   }
-  return slots.sort((a, b) => a.measure - b.measure || a.beat - b.beat)
+  slots.sort((a, b) => a.measure - b.measure || a.beat - b.beat)
+
+  // A chord is spelled by every selected note up to the next chord position — not just the notes
+  // that happen to start on its first beat (an arpeggio's first note + the bass would read "Bdim(omit3)").
+  const absQ = (measure: number, beat: number) => (nm.measures.get(measure)?.startQ ?? 0) + beat - 1
+  const startOf = slots.map(sl => absQ(sl.measure, sl.beat))
+  const selected = s.noteIds
+    .map(id => ({ id, n: nm.notes.get(id) }))
+    .filter((x): x is { id: string; n: NoteData } => !!x.n && !x.n.grace)
+    .map(x => ({ id: x.id, t: absQ(x.n.measureNum, x.n.beat) }))
+  slots.forEach((sl, i) => {
+    const from = i === 0 ? -Infinity : startOf[i] - 0.001
+    const to = i + 1 < slots.length ? startOf[i + 1] - 0.001 : Infinity
+    const span = selected.filter(x => x.t > from && x.t <= to).map(x => x.id)
+    if (span.length >= 2) sl.detected = detectChord(span, nm)
+  })
+  return slots
 }
 
 /** Add the detected chord symbol to every slot that has no chord yet. Returns how many were added. */
