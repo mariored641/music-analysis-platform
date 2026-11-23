@@ -82,19 +82,6 @@ function expectedNote(root: SpelledNote, interval: number, steps: number): Spell
   return { letter, alter }
 }
 
-/** Spelled notes of a noteMap selection. */
-function spelledFromIds(noteIds: string[], noteMap: NoteMap): SpelledNote[] {
-  const out: SpelledNote[] = []
-  for (const id of noteIds) {
-    const note = noteMap.notes.get(id)
-    if (!note) continue
-    const letter = LETTER_INDEX[note.step]
-    if (letter === undefined) continue
-    out.push({ letter, alter: Math.round(note.alter ?? 0) })
-  }
-  return out
-}
-
 /** Convert raw `{step, alter}` pairs (e.g. from the MusicXML parser) to spelled notes. */
 export function spelledFromStepAlter(notes: Array<{ step: string; alter?: number }>): SpelledNote[] {
   const out: SpelledNote[] = []
@@ -114,8 +101,13 @@ function omitSuffix(missing: Array<[number, number]>): string {
   return `(omit${missing.map(([, steps]) => DEGREE_NAME[steps]).join(',')})`
 }
 
-/** Score all matching chords for a set of written notes, sorted best-first. */
-function scoreAllMatches(notes: SpelledNote[]): { name: string; score: number }[] {
+interface Match { name: string; score: number; rootPc: number }
+
+/**
+ * Score all matching chords for a set of written notes, sorted best-first.
+ * `excludePc`: skip chords containing this pitch class (used for "chord over a foreign bass").
+ */
+function scoreAllMatches(notes: SpelledNote[], excludePc?: number): Match[] {
   const pcs = new Set(notes.map(pcOf))
   if (pcs.size < 2) return []
 
@@ -135,22 +127,26 @@ function scoreAllMatches(notes: SpelledNote[]): { name: string; score: number }[
   }
   const writtenKeys = new Set(notes.map(keyOf))
 
-  const results: { name: string; score: number }[] = []
+  const results: Match[] = []
   const seen = new Set<string>()
+  let root = 0
   const push = (name: string, score: number) => {
     if (seen.has(name)) return
     seen.add(name)
-    results.push({ name, score })
+    results.push({ name, score, rootPc: root })
   }
 
   for (const tpl of TEMPLATES) {
-    for (let root = 0; root < 12; root++) {
+    for (root = 0; root < 12; root++) {
       const tplPcs = new Set(tpl.degrees.map(([iv]) => (root + iv) % 12))
+      if (excludePc !== undefined && tplPcs.has(excludePc)) continue
       let matched = 0
       for (const pc of pcs) if (tplPcs.has(pc)) matched++
       if (matched < pcs.size) continue
 
       const isExact = tpl.degrees.length === pcs.size
+      // "Em7(omit7)" is just Em: skip partial matches that another chord on this root matches exactly
+      if (!isExact && TEMPLATES.some(t => t.degrees.length === pcs.size && t.degrees.every(([iv]) => pcs.has((root + iv) % 12)))) continue
       const base = isExact
         ? 1000 + tpl.degrees.length * 10
         : pcs.size * 10 - (tpl.degrees.length - pcs.size)
@@ -190,19 +186,57 @@ export function detectChordFromSpelled(notes: SpelledNote[]): string | null {
   return matches.length > 0 ? matches[0].name : null
 }
 
+/** A written note with its sounding height and staff — enough to know which note is the bass. */
+interface Voiced { note: SpelledNote; height: number; staff: number }
+
+function voicedFromIds(noteIds: string[], noteMap: NoteMap): Voiced[] {
+  const out: Voiced[] = []
+  for (const id of noteIds) {
+    const n = noteMap.notes.get(id)
+    const letter = n ? LETTER_INDEX[n.step] : undefined
+    if (!n || letter === undefined) continue
+    const alter = Math.round(n.alter ?? 0)
+    out.push({ note: { letter, alter }, height: n.octave * 12 + NATURAL_PC[letter] + alter, staff: n.globalStaff })
+  }
+  return out
+}
+
+/**
+ * Chord names for voiced notes, best first, with the bass taken into account:
+ * - notes on more than one staff → the lowest note is the bass: an inversion is named
+ *   with it ("C/E"), and the upper notes are also tried as a chord over it ("Em/C");
+ * - one staff and no chord fits all the notes → the upper notes over the lowest one.
+ */
+function matchesWithBass(voiced: Voiced[]): string[] {
+  if (voiced.length < 2) return []
+  const notes = voiced.map(v => v.note)
+  const bass = voiced.reduce((a, b) => (b.height < a.height ? b : a))
+  const bassPc = pcOf(bass.note)
+  const bassName = spelledName(bass.note)
+  const multiStaff = new Set(voiced.map(v => v.staff)).size > 1
+  const full = scoreAllMatches(notes)
+  const out = full.map(m => ({ name: multiStaff && m.rootPc !== bassPc ? `${m.name}/${bassName}` : m.name, score: m.score }))
+  if (multiStaff || full.length === 0) {
+    const upper = notes.filter(n => pcOf(n) !== bassPc)
+    // chords that don't contain the bass — those that do are inversions, already named above.
+    // A bare interval over a bass is too ambiguous to name: needs ≥3 different upper notes.
+    if (new Set(upper.map(pcOf)).size >= 3) for (const m of scoreAllMatches(upper, bassPc)) out.push({ name: `${m.name}/${bassName}`, score: m.score - 5 })
+  }
+  out.sort((a, b) => b.score - a.score)
+  return [...new Set(out.map(m => m.name))]
+}
+
 /** Detect the chord name from an array of noteMap IDs. Returns the best match, or null. */
 export function detectChord(noteIds: string[], noteMap: NoteMap): string | null {
-  if (noteIds.length < 2) return null
-  return detectChordFromSpelled(spelledFromIds(noteIds, noteMap))
+  return matchesWithBass(voicedFromIds(noteIds, noteMap))[0] ?? null
 }
 
 /**
  * Detect ALL matching chord names from an array of noteMap IDs.
- * Best first — the notated spelling leads; plain enharmonic alternatives follow.
+ * Best first — the notated spelling leads; plain enharmonic alternatives and slash chords follow.
  */
 export function detectAllChords(noteIds: string[], noteMap: NoteMap): string[] {
-  if (noteIds.length < 2) return []
-  return scoreAllMatches(spelledFromIds(noteIds, noteMap)).map(m => m.name)
+  return matchesWithBass(voicedFromIds(noteIds, noteMap))
 }
 
 // ── Converting existing chord symbols ──────────────────────────────────────────
